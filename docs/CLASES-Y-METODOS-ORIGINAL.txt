@@ -1,0 +1,552 @@
+Compiled from "BossCatalog.java"
+public final class dev.cazajefes.BossCatalog$Definition extends java.lang.Record {
+  private final java.lang.String id;
+  private final java.lang.String name;
+  private final dev.cazajefes.BossCatalog$Tier tier;
+  private final org.bukkit.entity.EntityType entityType;
+  private final boolean mini;
+  private final java.lang.String description;
+  public dev.cazajefes.BossCatalog$Definition(java.lang.String, java.lang.String, dev.cazajefes.BossCatalog$Tier, org.bukkit.entity.EntityType, boolean, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String id();
+  public java.lang.String name();
+  public dev.cazajefes.BossCatalog$Tier tier();
+  public org.bukkit.entity.EntityType entityType();
+  public boolean mini();
+  public java.lang.String description();
+}
+
+Compiled from "BossCatalog.java"
+public final class dev.cazajefes.BossCatalog$Tier extends java.lang.Enum<dev.cazajefes.BossCatalog$Tier> {
+  public static final dev.cazajefes.BossCatalog$Tier COMMON;
+  public static final dev.cazajefes.BossCatalog$Tier RARE;
+  public static final dev.cazajefes.BossCatalog$Tier EPIC;
+  public static final dev.cazajefes.BossCatalog$Tier LEGENDARY;
+  public static final dev.cazajefes.BossCatalog$Tier MYTHIC;
+  public static final dev.cazajefes.BossCatalog$Tier ABYSSAL;
+  public final java.lang.String display;
+  public final net.kyori.adventure.text.format.NamedTextColor color;
+  public final double scale;
+  public final double health;
+  public final double damage;
+  private static final dev.cazajefes.BossCatalog$Tier[] $VALUES;
+  public static dev.cazajefes.BossCatalog$Tier[] values();
+  public static dev.cazajefes.BossCatalog$Tier valueOf(java.lang.String);
+  private dev.cazajefes.BossCatalog$Tier(java.lang.String, net.kyori.adventure.text.format.NamedTextColor, double, double, double);
+  private static dev.cazajefes.BossCatalog$Tier[] $values();
+  static {};
+}
+
+Compiled from "BossCatalog.java"
+public final class dev.cazajefes.BossCatalog {
+  private static final java.util.Map<java.lang.String, dev.cazajefes.BossCatalog$Definition> DEFINITIONS;
+  private dev.cazajefes.BossCatalog();
+  public static dev.cazajefes.BossCatalog$Definition get(java.lang.String);
+  public static java.util.List<dev.cazajefes.BossCatalog$Definition> all();
+  public static java.util.List<java.lang.String> ids();
+  private static java.util.Map<java.lang.String, dev.cazajefes.BossCatalog$Definition> build();
+  private static void add(java.util.List<dev.cazajefes.BossCatalog$Definition>, java.lang.String, java.lang.String, dev.cazajefes.BossCatalog$Tier, org.bukkit.entity.EntityType, boolean);
+  private static void lambda$build$0(java.util.Map, dev.cazajefes.BossCatalog$Definition);
+  static {};
+}
+
+Compiled from "BossManager.java"
+class dev.cazajefes.BossManager$1 implements java.lang.Runnable {
+  int tick;
+  final org.bukkit.entity.LivingEntity val$boss;
+  final org.bukkit.scheduler.BukkitTask[] val$sequence;
+  final java.util.UUID val$id;
+  final org.bukkit.Location val$ground;
+  final double val$liftHeight;
+  final dev.cazajefes.BossCatalog$Definition val$impactBoss;
+  final dev.cazajefes.BossManager this$0;
+  dev.cazajefes.BossManager$1();
+  public void run();
+}
+
+Compiled from "BossManager.java"
+class dev.cazajefes.BossManager$2 implements java.lang.Runnable {
+  double angle;
+  final dev.cazajefes.BossManager$Encounter val$egg;
+  final dev.cazajefes.BossManager this$0;
+  dev.cazajefes.BossManager$2();
+  public void run();
+}
+
+Compiled from "BossManager.java"
+class dev.cazajefes.BossManager$3 {
+  static final int[] $SwitchMap$dev$cazajefes$BossCatalog$Tier;
+  static final int[] $SwitchMap$org$bukkit$event$entity$EntityDamageEvent$DamageCause;
+  static final int[] $SwitchMap$org$bukkit$entity$EntityType;
+  static {};
+}
+
+Compiled from "BossManager.java"
+class dev.cazajefes.BossManager$BossAttackTask$1 implements java.lang.Runnable {
+  int ticks;
+  final org.bukkit.entity.Entity val$entity;
+  final org.bukkit.scheduler.BukkitTask[] val$brainTask;
+  final dev.cazajefes.BossManager$BossAttackTask this$0;
+  dev.cazajefes.BossManager$BossAttackTask$1();
+  public void run();
+  private static int lambda$run$1(org.bukkit.entity.Entity, org.bukkit.entity.Player, org.bukkit.entity.Player);
+  private static boolean lambda$run$0(org.bukkit.entity.Entity, org.bukkit.entity.Player);
+}
+
+Compiled from "BossManager.java"
+final class dev.cazajefes.BossManager$BossAttackTask implements java.lang.Runnable {
+  private final org.bukkit.plugin.java.JavaPlugin plugin;
+  private final org.bukkit.entity.LivingEntity boss;
+  private final dev.cazajefes.BossCatalog$Definition definition;
+  private final org.bukkit.NamespacedKey minionKey;
+  private int attacks;
+  private int specialRotation;
+  private long nextSpecialAt;
+  private final java.util.Map<java.util.UUID, java.lang.Long> meleeCooldowns;
+  private final java.util.Map<java.util.UUID, java.lang.Long> hotbarCooldowns;
+  private dev.cazajefes.BossManager$BossAttackTask(org.bukkit.plugin.java.JavaPlugin, org.bukkit.entity.LivingEntity, dev.cazajefes.BossCatalog$Definition, org.bukkit.NamespacedKey);
+  public void run();
+  private void pursue(org.bukkit.entity.Player);
+  private void attackNearby(org.bukkit.entity.Player);
+  private boolean huntSpawnedSheep();
+  private void miniSpecial(org.bukkit.entity.Player, int);
+  private void specialDebuffWave(org.bukkit.entity.Player);
+  private void signatureSpecial(org.bukkit.entity.Player);
+  private void tryScrambleHotbar(org.bukkit.entity.Player);
+  private void summonMinions(org.bukkit.entity.Player);
+  private void summonCustom(org.bukkit.entity.EntityType, org.bukkit.entity.Player, int, java.lang.String);
+  private void strengthenMinion(org.bukkit.entity.Entity, java.lang.String);
+  private void shockwave(org.bukkit.entity.Player);
+  private void huntLunge(org.bukkit.entity.Player);
+  private void targetedBurst(org.bukkit.entity.Player);
+  private void debuff(org.bukkit.entity.Player);
+  private static void lambda$summonCustom$10(org.bukkit.entity.Entity);
+  private static void lambda$summonCustom$9(org.bukkit.entity.Bee, org.bukkit.scheduler.BukkitTask[]);
+  private static int lambda$summonCustom$8(org.bukkit.entity.Bee, org.bukkit.entity.Player, org.bukkit.entity.Player);
+  private static boolean lambda$summonCustom$7(org.bukkit.entity.Bee, org.bukkit.entity.Player);
+  private boolean lambda$summonCustom$6(org.bukkit.entity.Entity);
+  private static void lambda$summonMinions$5(org.bukkit.entity.Entity);
+  private boolean lambda$summonMinions$4(org.bukkit.entity.Entity);
+  private void lambda$signatureSpecial$3(org.bukkit.entity.Player);
+  private int lambda$huntSpawnedSheep$2(org.bukkit.entity.Entity, org.bukkit.entity.Entity);
+  private boolean lambda$huntSpawnedSheep$1(org.bukkit.entity.Entity);
+  private int lambda$run$0(org.bukkit.entity.Player, org.bukkit.entity.Player);
+}
+
+Compiled from "BossManager.java"
+final class dev.cazajefes.BossManager$Encounter {
+  private final java.util.UUID id;
+  private final dev.cazajefes.BossCatalog$Definition definition;
+  private final org.bukkit.Location location;
+  private final org.bukkit.entity.LivingEntity boss;
+  private final java.lang.String awakenedBy;
+  private final java.lang.String supportData;
+  private dev.cazajefes.BossManager$Encounter(java.util.UUID, dev.cazajefes.BossCatalog$Definition, org.bukkit.Location, org.bukkit.entity.LivingEntity, java.lang.String);
+  private dev.cazajefes.BossManager$Encounter(java.util.UUID, dev.cazajefes.BossCatalog$Definition, org.bukkit.Location, org.bukkit.entity.LivingEntity, java.lang.String, java.lang.String);
+}
+
+Compiled from "BossManager.java"
+public final class dev.cazajefes.BossManager$TrackedEncounter extends java.lang.Record {
+  private final java.util.UUID id;
+  private final java.lang.String idKey;
+  private final java.lang.String name;
+  private final java.lang.String tier;
+  private final boolean mini;
+  private final org.bukkit.Location location;
+  private final boolean egg;
+  private final double health;
+  private final double maxHealth;
+  private final java.lang.String awakenedBy;
+  public dev.cazajefes.BossManager$TrackedEncounter(java.util.UUID, java.lang.String, java.lang.String, java.lang.String, boolean, org.bukkit.Location, boolean, double, double, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.util.UUID id();
+  public java.lang.String idKey();
+  public java.lang.String name();
+  public java.lang.String tier();
+  public boolean mini();
+  public org.bukkit.Location location();
+  public boolean egg();
+  public double health();
+  public double maxHealth();
+  public java.lang.String awakenedBy();
+}
+
+Compiled from "BossManager.java"
+public final class dev.cazajefes.BossManager implements org.bukkit.event.Listener {
+  private final org.bukkit.plugin.java.JavaPlugin plugin;
+  private final org.bukkit.NamespacedKey bossKey;
+  private final org.bukkit.NamespacedKey encounterKey;
+  private final org.bukkit.NamespacedKey typeKey;
+  private final org.bukkit.NamespacedKey awakenerKey;
+  private final org.bukkit.NamespacedKey minionKey;
+  private final dev.cazajefes.RelicItems relicItems;
+  private final java.util.Map<java.util.UUID, dev.cazajefes.BossManager$Encounter> encounters;
+  private final java.util.Map<java.lang.String, dev.cazajefes.BossManager$Encounter> eggsByBlock;
+  private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> attacks;
+  private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> barTasks;
+  private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> eggEffects;
+  private final java.util.Map<java.util.UUID, org.bukkit.boss.BossBar> healthBars;
+  private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> deathSequences;
+  private final java.util.Set<java.util.UUID> finishingDeaths;
+  public dev.cazajefes.BossManager(org.bukkit.plugin.java.JavaPlugin, org.bukkit.NamespacedKey, dev.cazajefes.RelicItems);
+  private void normalizeLoadedCombatants();
+  public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent);
+  public java.util.List<java.lang.String> bossIds();
+  public java.lang.String bossName(java.lang.String);
+  public boolean placeEgg(java.lang.String, org.bukkit.Location);
+  public void spawnBoss(java.lang.String, org.bukkit.Location, java.lang.String);
+  private net.kyori.adventure.text.Component bossDisplay(dev.cazajefes.BossCatalog$Definition);
+  private void startBossSystems(java.util.UUID, org.bukkit.entity.LivingEntity, dev.cazajefes.BossCatalog$Definition, long);
+  private org.bukkit.boss.BarColor barColor(dev.cazajefes.BossCatalog$Tier);
+  private void updateBossBar(java.util.UUID, org.bukkit.entity.LivingEntity, dev.cazajefes.BossCatalog$Definition, org.bukkit.boss.BossBar);
+  private void removeBossBar(java.util.UUID);
+  public java.util.List<dev.cazajefes.BossManager$TrackedEncounter> trackedEncounters();
+  public void onEggInteract(org.bukkit.event.player.PlayerInteractEvent);
+  public void onlyTargetPlayers(org.bukkit.event.entity.EntityTargetLivingEntityEvent);
+  public void preventBossTransformation(org.bukkit.event.entity.EntityTransformEvent);
+  public void bossesOnlyDamagePlayers(org.bukkit.event.entity.EntityDamageByEntityEvent);
+  public void bossesCannotBurn(org.bukkit.event.entity.EntityCombustEvent);
+  public void bossesIgnoreFireDamage(org.bukkit.event.entity.EntityDamageEvent);
+  public void minionsAreDurableAndStayHostile(org.bukkit.event.entity.EntityDamageEvent);
+  public void onBossLethalDamage(org.bukkit.event.entity.EntityDamageEvent);
+  public void onBossDeath(org.bukkit.event.entity.EntityDeathEvent);
+  private void setAttribute(org.bukkit.entity.LivingEntity, org.bukkit.attribute.Attribute, double);
+  private void setScale(org.bukkit.entity.LivingEntity, double);
+  private void restoreEggs();
+  private void saveEggs();
+  private java.lang.String key(org.bukkit.Location);
+  private void startEggEffects(dev.cazajefes.BossManager$Encounter);
+  private void stopEggEffects(java.util.UUID);
+  private void restoreSupport(dev.cazajefes.BossManager$Encounter);
+  public void onEggBreak(org.bukkit.event.block.BlockBreakEvent);
+  public void stopAllAttacks();
+  private void lambda$startBossSystems$0(java.util.UUID, org.bukkit.entity.LivingEntity, dev.cazajefes.BossCatalog$Definition, org.bukkit.boss.BossBar);
+}
+
+Compiled from "CazaJefesCommand.java"
+class dev.cazajefes.CazaJefesCommand$1 {
+  static final int[] $SwitchMap$org$bukkit$entity$EntityType;
+  static {};
+}
+
+Compiled from "CazaJefesCommand.java"
+final class dev.cazajefes.CazaJefesCommand$GearTierSpec extends java.lang.Record {
+  private final java.lang.String key;
+  private final java.lang.String display;
+  private final dev.cazajefes.BossCatalog$Tier tier;
+  private final int fragments;
+  private final int tributes;
+  private final int cores;
+  private dev.cazajefes.CazaJefesCommand$GearTierSpec(java.lang.String, java.lang.String, dev.cazajefes.BossCatalog$Tier, int, int, int);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String key();
+  public java.lang.String display();
+  public dev.cazajefes.BossCatalog$Tier tier();
+  public int fragments();
+  public int tributes();
+  public int cores();
+}
+
+Compiled from "CazaJefesCommand.java"
+final class dev.cazajefes.CazaJefesCommand$MenuHolder implements org.bukkit.inventory.InventoryHolder {
+  private final java.lang.String mode;
+  private final int page;
+  private final java.lang.String detailId;
+  private final java.util.Map<java.lang.Integer, dev.cazajefes.CazaJefesCommand$TradeOffer> offersBySlot;
+  private final java.util.Map<java.lang.Integer, java.lang.String> recipeIdsBySlot;
+  private final java.util.Map<java.lang.Integer, java.lang.String> catalogIdsBySlot;
+  private final java.util.Map<java.lang.Integer, java.lang.String> bossIdsBySlot;
+  private org.bukkit.inventory.Inventory inventory;
+  private dev.cazajefes.CazaJefesCommand$MenuHolder(java.lang.String);
+  private dev.cazajefes.CazaJefesCommand$MenuHolder(java.lang.String, int);
+  private dev.cazajefes.CazaJefesCommand$MenuHolder(java.lang.String, int, java.lang.String);
+  public org.bukkit.inventory.Inventory getInventory();
+}
+
+Compiled from "CazaJefesCommand.java"
+final class dev.cazajefes.CazaJefesCommand$TradeOffer extends java.lang.Record {
+  private final org.bukkit.inventory.ItemStack reward;
+  private final int fragments;
+  private final int tributes;
+  private final java.lang.String itemPrefix;
+  private final int itemAmount;
+  private final java.lang.String label;
+  private dev.cazajefes.CazaJefesCommand$TradeOffer(org.bukkit.inventory.ItemStack, int, int, java.lang.String);
+  private dev.cazajefes.CazaJefesCommand$TradeOffer(org.bukkit.inventory.ItemStack, int, int, java.lang.String, int, java.lang.String);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public org.bukkit.inventory.ItemStack reward();
+  public int fragments();
+  public int tributes();
+  public java.lang.String itemPrefix();
+  public int itemAmount();
+  public java.lang.String label();
+}
+
+Compiled from "CazaJefesCommand.java"
+final class dev.cazajefes.CazaJefesCommand$VisualRecipe extends java.lang.Record {
+  private final java.lang.String id;
+  private final java.lang.String title;
+  private final org.bukkit.inventory.ItemStack icon;
+  private final org.bukkit.inventory.ItemStack result;
+  private final java.lang.String[] shape;
+  private final java.util.Map<java.lang.Character, org.bukkit.inventory.ItemStack> ingredients;
+  private dev.cazajefes.CazaJefesCommand$VisualRecipe(java.lang.String, java.lang.String, org.bukkit.inventory.ItemStack, org.bukkit.inventory.ItemStack, java.lang.String[], java.util.Map<java.lang.Character, org.bukkit.inventory.ItemStack>);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public java.lang.String id();
+  public java.lang.String title();
+  public org.bukkit.inventory.ItemStack icon();
+  public org.bukkit.inventory.ItemStack result();
+  public java.lang.String[] shape();
+  public java.util.Map<java.lang.Character, org.bukkit.inventory.ItemStack> ingredients();
+}
+
+Compiled from "CazaJefesCommand.java"
+public final class dev.cazajefes.CazaJefesCommand implements org.bukkit.command.CommandExecutor,org.bukkit.command.TabCompleter,org.bukkit.event.Listener {
+  private final org.bukkit.plugin.java.JavaPlugin plugin;
+  private final dev.cazajefes.BossManager bosses;
+  private final dev.cazajefes.RelicItems items;
+  public dev.cazajefes.CazaJefesCommand(org.bukkit.plugin.java.JavaPlugin, dev.cazajefes.BossManager, dev.cazajefes.RelicItems);
+  public boolean onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[]);
+  public java.util.List<java.lang.String> onTabComplete(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[]);
+  private java.util.List<java.lang.String> onlinePlayerNames();
+  private void spawnpoint(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void egg(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void boss(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void compass(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void essence(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void giveBook(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void giveMaterial(org.bukkit.command.CommandSender, java.lang.String[], java.lang.String);
+  private void giveGear(org.bukkit.command.CommandSender, java.lang.String[], boolean);
+  private void trade(org.bukkit.command.CommandSender);
+  private void trade(org.bukkit.entity.Player, int);
+  private java.util.List<dev.cazajefes.CazaJefesCommand$TradeOffer> createTradeOffers();
+  private org.bukkit.inventory.ItemStack tradeDisplay(dev.cazajefes.CazaJefesCommand$TradeOffer);
+  private java.util.List<dev.cazajefes.CazaJefesCommand$GearTierSpec> gearTierSpecs();
+  private dev.cazajefes.BossCatalog$Definition firstBoss(dev.cazajefes.BossCatalog$Tier);
+  private java.lang.String armorSlotName(int);
+  private void recipes(org.bukkit.command.CommandSender);
+  private void recipes(org.bukkit.entity.Player, int);
+  private int recipeCategory(dev.cazajefes.CazaJefesCommand$VisualRecipe);
+  private java.util.List<dev.cazajefes.CazaJefesCommand$VisualRecipe> visualRecipes();
+  private int recipeCatalystVariant(java.lang.String);
+  private void openRecipeDetail(org.bukkit.entity.Player, java.lang.String, int);
+  private void openTradeGearRecipeDetail(org.bukkit.entity.Player, java.lang.String, int);
+  private void fillPremiumFrame(org.bukkit.inventory.Inventory);
+  private org.bukkit.inventory.ItemStack menuItem(org.bukkit.Material, java.lang.String, java.lang.String...);
+  private void catalog(org.bukkit.command.CommandSender);
+  private void catalog(org.bukkit.entity.Player, int);
+  private void openRareDetail(org.bukkit.entity.Player, java.lang.String, int);
+  private org.bukkit.inventory.ItemStack catalogItem(java.lang.String);
+  private java.lang.String catalogType(java.lang.String);
+  private java.lang.String catalogBase(java.lang.String, java.lang.String);
+  private java.lang.String catalogDescription(java.lang.String);
+  public void onMenuClick(org.bukkit.event.inventory.InventoryClickEvent);
+  private void get(org.bukkit.command.CommandSender, java.lang.String[]);
+  private void giveRare(org.bukkit.command.CommandSender, java.lang.String[], int);
+  private void listRares(org.bukkit.command.CommandSender);
+  private void reload(org.bukkit.command.CommandSender);
+  private void listEggs(org.bukkit.command.CommandSender);
+  private void bossCatalog(org.bukkit.command.CommandSender);
+  private void bossCatalog(org.bukkit.entity.Player, int);
+  private org.bukkit.Material bossIcon(org.bukkit.entity.EntityType);
+  private org.bukkit.inventory.ItemStack bossHead(dev.cazajefes.BossCatalog$Definition);
+  private void openBossDetail(org.bukkit.entity.Player, java.lang.String, int);
+  private org.bukkit.Location locationArg(org.bukkit.entity.Player, java.lang.String, boolean);
+  private boolean isAdmin(org.bukkit.command.CommandSender, java.lang.String);
+  private double parseDouble(java.lang.String, double);
+  private void deny(org.bukkit.command.CommandSender);
+  private void help(org.bukkit.command.CommandSender);
+  private static java.lang.Integer lambda$bossCatalog$13(dev.cazajefes.BossCatalog$Definition);
+  private static int lambda$bossCatalog$12(dev.cazajefes.BossCatalog$Definition);
+  private static void lambda$giveRare$11(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static void lambda$onMenuClick$10(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static boolean lambda$openTradeGearRecipeDetail$9(java.lang.String[], dev.cazajefes.CazaJefesCommand$GearTierSpec);
+  private static boolean lambda$openRecipeDetail$8(java.lang.String, dev.cazajefes.CazaJefesCommand$VisualRecipe);
+  private boolean lambda$recipes$7(int, dev.cazajefes.CazaJefesCommand$VisualRecipe);
+  private static boolean lambda$firstBoss$6(dev.cazajefes.BossCatalog$Tier, dev.cazajefes.BossCatalog$Definition);
+  private static void lambda$giveGear$5(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static void lambda$giveMaterial$4(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static void lambda$giveBook$3(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static void lambda$essence$2(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static void lambda$compass$1(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack);
+  private static boolean lambda$onTabComplete$0(java.lang.String, java.lang.String);
+}
+
+Compiled from "CazaJefesPlugin.java"
+public final class dev.cazajefes.CazaJefesPlugin extends org.bukkit.plugin.java.JavaPlugin {
+  private org.bukkit.NamespacedKey itemKey;
+  private dev.cazajefes.BossManager bossManager;
+  private dev.cazajefes.RelicItems relicItems;
+  private dev.cazajefes.HuntTracker tracker;
+  public dev.cazajefes.CazaJefesPlugin();
+  public void onEnable();
+  public void onDisable();
+}
+
+Compiled from "HuntTracker.java"
+final class dev.cazajefes.HuntTracker$Session extends java.lang.Record {
+  private final org.bukkit.scoreboard.Scoreboard previous;
+  private final org.bukkit.scoreboard.Scoreboard board;
+  private final org.bukkit.scoreboard.Objective objective;
+  private dev.cazajefes.HuntTracker$Session(org.bukkit.scoreboard.Scoreboard, org.bukkit.scoreboard.Scoreboard, org.bukkit.scoreboard.Objective);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public org.bukkit.scoreboard.Scoreboard previous();
+  public org.bukkit.scoreboard.Scoreboard board();
+  public org.bukkit.scoreboard.Objective objective();
+}
+
+Compiled from "HuntTracker.java"
+public final class dev.cazajefes.HuntTracker implements org.bukkit.event.Listener {
+  private final org.bukkit.plugin.java.JavaPlugin plugin;
+  private final dev.cazajefes.BossManager bosses;
+  private final dev.cazajefes.RelicItems items;
+  private final java.util.Map<java.util.UUID, dev.cazajefes.HuntTracker$Session> sessions;
+  private final org.bukkit.scheduler.BukkitTask task;
+  private int trailTick;
+  public dev.cazajefes.HuntTracker(org.bukkit.plugin.java.JavaPlugin, dev.cazajefes.BossManager, dev.cazajefes.RelicItems);
+  private void update();
+  private boolean hasCompass(org.bukkit.entity.Player);
+  private void drawTrail(org.bukkit.entity.Player, org.bukkit.Location);
+  private void showTarget(org.bukkit.entity.Player, dev.cazajefes.BossManager$TrackedEncounter, org.bukkit.Location);
+  private void showNoSignal(org.bukkit.entity.Player);
+  private dev.cazajefes.HuntTracker$Session session(org.bukkit.entity.Player);
+  private void setLines(dev.cazajefes.HuntTracker$Session, java.util.List<java.lang.String>);
+  private java.lang.String shorten(java.lang.String);
+  private void restore(org.bukkit.entity.Player);
+  public void onQuit(org.bukkit.event.player.PlayerQuitEvent);
+  public void onHotbarChange(org.bukkit.event.player.PlayerItemHeldEvent);
+  public void stop();
+  private static dev.cazajefes.HuntTracker$Session lambda$session$2(org.bukkit.entity.Player, java.util.UUID);
+  private static int lambda$update$1(org.bukkit.entity.Player, dev.cazajefes.BossManager$TrackedEncounter, dev.cazajefes.BossManager$TrackedEncounter);
+  private static boolean lambda$update$0(org.bukkit.entity.Player, dev.cazajefes.BossManager$TrackedEncounter);
+}
+
+Compiled from "RelicItems.java"
+class dev.cazajefes.RelicItems$1 implements java.lang.Runnable {
+  int ticks;
+  final org.bukkit.entity.Item val$item;
+  final org.bukkit.scheduler.BukkitTask[] val$task;
+  final org.bukkit.Location val$location;
+  final org.bukkit.Particle val$particle;
+  dev.cazajefes.RelicItems$1();
+  public void run();
+}
+
+Compiled from "RelicItems.java"
+class dev.cazajefes.RelicItems$2 {
+  static final int[] $SwitchMap$org$bukkit$Material;
+  static final int[] $SwitchMap$dev$cazajefes$BossCatalog$Tier;
+  static {};
+}
+
+Compiled from "RelicItems.java"
+final class dev.cazajefes.RelicItems$DropGroup {
+  private final java.lang.String bossName;
+  private int remaining;
+  private dev.cazajefes.RelicItems$DropGroup(java.lang.String, int);
+}
+
+Compiled from "RelicItems.java"
+public final class dev.cazajefes.RelicItems implements org.bukkit.event.Listener {
+  private final org.bukkit.plugin.java.JavaPlugin plugin;
+  private final org.bukkit.NamespacedKey itemKey;
+  private final org.bukkit.NamespacedKey dropEncounterKey;
+  private final org.bukkit.NamespacedKey rareBookKey;
+  private final org.bukkit.NamespacedKey rareEnchantKey;
+  private final org.bukkit.NamespacedKey rareEssenceLevelKey;
+  private final org.bukkit.NamespacedKey rareLevelsKey;
+  private final java.util.Map<java.util.UUID, dev.cazajefes.RelicItems$DropGroup> dropGroups;
+  private final org.bukkit.configuration.file.FileConfiguration rareConfig;
+  private final java.util.Map<java.lang.String, java.lang.Long> burstCooldowns;
+  private final java.util.Map<java.util.UUID, java.lang.Long> passiveRepair;
+  private final java.util.Map<java.lang.String, java.lang.Long> passiveSaturation;
+  private final java.util.Map<java.util.UUID, java.lang.Long> flyDrain;
+  private final java.util.Set<java.util.UUID> flyUsers;
+  public dev.cazajefes.RelicItems(org.bukkit.plugin.java.JavaPlugin, org.bukkit.NamespacedKey);
+  public java.util.List<java.lang.String> enchantIds();
+  public java.util.List<java.lang.String> spellIds();
+  public int maxLevel(java.lang.String);
+  public java.util.List<java.lang.String> catalogIds();
+  public org.bukkit.inventory.ItemStack rareBook(java.lang.String);
+  public org.bukkit.inventory.ItemStack rareBook(java.lang.String, int);
+  private java.lang.String spellDescription(java.lang.String);
+  private java.lang.String titleForRare(java.lang.String);
+  private void restoreArmorSaturation();
+  public void onSpellUse(org.bukkit.event.player.PlayerInteractEvent);
+  public void onPrepareRareCraft(org.bukkit.event.inventory.PrepareItemCraftEvent);
+  private java.util.Map<java.lang.String, java.lang.Integer> parseLevels(java.lang.String);
+  private java.lang.String serializeLevels(java.util.Map<java.lang.String, java.lang.Integer>);
+  private int propertyLevel(org.bukkit.inventory.ItemStack, java.lang.String);
+  private float saturationCost(org.bukkit.inventory.ItemStack, java.lang.String);
+  private boolean consumeSaturation(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack, java.lang.String);
+  private boolean consumePassiveSaturation(org.bukkit.entity.Player, org.bukkit.inventory.ItemStack, java.lang.String);
+  public void onRareHit(org.bukkit.event.entity.EntityDamageByEntityEvent);
+  private void scrambleInventory(org.bukkit.entity.Player, int);
+  public void onToolRare(org.bukkit.event.block.BlockBreakEvent);
+  public void onMagnetoDrops(org.bukkit.event.block.BlockDropItemEvent);
+  public void onToolRightClick(org.bukkit.event.player.PlayerInteractEvent);
+  private boolean isOre(org.bukkit.Material);
+  private void breakConnected(org.bukkit.event.block.BlockBreakEvent, org.bukkit.inventory.ItemStack, boolean);
+  public void onRareDefense(org.bukkit.event.entity.EntityDamageEvent);
+  public void onRareDoubleJump(org.bukkit.event.player.PlayerToggleFlightEvent);
+  public void onWindStep(org.bukkit.event.player.PlayerMoveEvent);
+  public org.bukkit.inventory.ItemStack essence();
+  public org.bukkit.inventory.ItemStack primordialEssence();
+  public org.bukkit.inventory.ItemStack abyssalEssence();
+  public org.bukkit.inventory.ItemStack abyssalEssenceFromBoss();
+  private org.bukkit.inventory.ItemStack plainGreenItem(org.bukkit.Material, java.lang.String, java.lang.String, java.lang.String...);
+  public org.bukkit.inventory.ItemStack fragment(int);
+  public org.bukkit.inventory.ItemStack tribute(java.lang.String);
+  public org.bukkit.inventory.ItemStack compass();
+  public org.bukkit.inventory.ItemStack amulet();
+  public org.bukkit.inventory.ItemStack rare(java.lang.String);
+  public org.bukkit.inventory.ItemStack rare(java.lang.String, int);
+  public java.util.List<java.lang.String> rareIds();
+  public java.lang.String rareTier(java.lang.String);
+  public boolean isTracker(org.bukkit.inventory.ItemStack);
+  public java.lang.String customId(org.bukkit.inventory.ItemStack);
+  public boolean hasPrefix(org.bukkit.entity.Player, java.lang.String, int);
+  public void consumePrefix(org.bukkit.entity.Player, java.lang.String, int);
+  public void consumeId(org.bukkit.entity.Player, java.lang.String, int);
+  public org.bukkit.inventory.ItemStack craftedArmor(java.lang.String, int);
+  public org.bukkit.inventory.ItemStack craftedWeapon(java.lang.String, int);
+  public org.bukkit.inventory.ItemStack gear(java.lang.String, boolean);
+  public int dropBossLoot(org.bukkit.Location, dev.cazajefes.BossCatalog$Definition, java.util.UUID);
+  private boolean chance(double);
+  private void addRiftDropClassification(org.bukkit.inventory.ItemStack, dev.cazajefes.BossCatalog$Tier);
+  private org.bukkit.inventory.ItemStack riftMaterial(int);
+  private java.lang.String rareForBoss(dev.cazajefes.BossCatalog$Definition);
+  private org.bukkit.inventory.ItemStack component(dev.cazajefes.BossCatalog$Definition);
+  public org.bukkit.inventory.ItemStack componentForRecipe();
+  public org.bukkit.inventory.ItemStack riftMaterialForRecipe(int);
+  public void registerRecipes();
+  private int rareCatalystVariant(java.lang.String);
+  private void addRecipe(java.lang.String, org.bukkit.inventory.ItemStack, java.lang.String[], java.util.Map<java.lang.Character, org.bukkit.inventory.RecipeChoice>);
+  private org.bukkit.inventory.RecipeChoice$ExactChoice exactRiftMaterial(int);
+  private org.bukkit.inventory.RecipeChoice$ExactChoice bossCoreChoice();
+  private org.bukkit.inventory.ItemStack armor(dev.cazajefes.BossCatalog$Definition, int);
+  private org.bukkit.inventory.ItemStack weaponDrop(dev.cazajefes.BossCatalog$Definition, int);
+  private void enchant(org.bukkit.inventory.ItemStack, org.bukkit.enchantments.Enchantment, int);
+  private org.bukkit.inventory.ItemStack named(org.bukkit.Material, java.lang.String, java.lang.String, net.kyori.adventure.text.format.NamedTextColor, int, java.lang.String...);
+  private void dropWithAura(org.bukkit.Location, org.bukkit.inventory.ItemStack, org.bukkit.Particle, java.util.UUID);
+  public void onLootPickup(org.bukkit.event.entity.EntityPickupItemEvent);
+  private static boolean lambda$addRiftDropClassification$6(net.kyori.adventure.text.Component);
+  private static boolean lambda$gear$5(dev.cazajefes.BossCatalog$Tier, dev.cazajefes.BossCatalog$Definition);
+  private static net.kyori.adventure.text.TextComponent lambda$plainGreenItem$4(java.lang.String);
+  private static void lambda$onRareDoubleJump$3(org.bukkit.entity.Player);
+  private static void lambda$serializeLevels$2(java.util.List, java.lang.String, java.lang.Integer);
+  private static boolean lambda$onPrepareRareCraft$1(java.lang.String, net.kyori.adventure.text.Component);
+  private static boolean lambda$onSpellUse$0(org.bukkit.entity.Player, org.bukkit.entity.Entity);
+}

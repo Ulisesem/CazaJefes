@@ -1,0 +1,1974 @@
+package dev.cazajefes;
+
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.GameMode;
+import org.bukkit.Keyed;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.Tag;
+import org.bukkit.block.Block;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.RecipeChoice.ExactChoice;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
+
+public final class RelicItems implements Listener {
+   private final JavaPlugin plugin;
+   private final NamespacedKey itemKey;
+   private final NamespacedKey dropEncounterKey;
+   private final NamespacedKey rareBookKey;
+   private final NamespacedKey rareEnchantKey;
+   private final NamespacedKey rareEssenceLevelKey;
+   private final NamespacedKey rareLevelsKey;
+   private final Map<UUID, RelicItems.DropGroup> dropGroups = new HashMap<>();
+   private FileConfiguration rareConfig;
+   private boolean breakingConnected;
+   private final Map<String, Long> burstCooldowns = new HashMap<>();
+   private final Map<UUID, Long> passiveRepair = new HashMap<>();
+   private final Map<String, Long> passiveSaturation = new HashMap<>();
+   private final Map<UUID, Long> flyDrain = new HashMap<>();
+   private final Set<UUID> flyUsers = new HashSet<>();
+
+   public RelicItems(JavaPlugin var1, NamespacedKey var2) {
+      this.plugin = var1;
+      this.itemKey = var2;
+      this.dropEncounterKey = new NamespacedKey(var1, "loot_encounter");
+      this.rareBookKey = new NamespacedKey(var1, "rare_book");
+      this.rareEnchantKey = new NamespacedKey(var1, "rare_enchants");
+      this.rareEssenceLevelKey = new NamespacedKey(var1, "rare_essence_level");
+      this.rareLevelsKey = new NamespacedKey(var1, "rare_levels");
+      File var3 = new File(var1.getDataFolder(), "rares.yml");
+      if (!var3.exists()) {
+         var1.saveResource("rares.yml", false);
+      }
+
+      this.rareConfig = YamlConfiguration.loadConfiguration(var3);
+      var1.getServer().getScheduler().runTaskTimer(var1, this::restoreArmorSaturation, 100L, 100L);
+   }
+
+   public List<String> enchantIds() {
+      return List.of("vampirismo", "veneno", "guardian", "brasas", "paso_viento");
+   }
+
+   public List<String> spellIds() {
+      return List.of("burst", "craftitem", "fireresistance", "greaterburst", "haste", "invisibility", "magicbag", "repairitem");
+   }
+
+   public int maxLevel(String var1) {
+      return Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
+   }
+
+   public List<String> catalogIds() {
+      ArrayList var1 = new ArrayList<>(
+         List.of(
+            "poison",
+            "backstab",
+            "blinding",
+            "calllighting",
+            "confuse",
+            "disarm",
+            "slow",
+            "vampiricregeneration",
+            "weaken",
+            "execute",
+            "bleed",
+            "fertilize",
+            "meltobsidian",
+            "smelt",
+            "spore",
+            "veinminer",
+            "treefeller",
+            "magneto",
+            "burst",
+            "craftitem",
+            "fireresistance",
+            "greaterburst",
+            "haste",
+            "invisibility",
+            "magicbag",
+            "repairitem",
+            "durability",
+            "regeneration",
+            "nofalldamage",
+            "doublejump",
+            "fly",
+            "hardy",
+            "saturacion",
+            "flame"
+         )
+      );
+      var1.addAll(this.enchantIds());
+      return var1;
+   }
+
+   public ItemStack rareBook(String var1) {
+      return this.rareBook(var1, 1);
+   }
+
+   public ItemStack rareBook(String var1, int var2) {
+      if (!this.catalogIds().contains(var1) && !this.enchantIds().contains(var1)) {
+         return null;
+      } else {
+         String var3 = this.titleForRare(var1);
+         int var4 = Math.max(1, Math.min(this.maxLevel(var1), var2));
+         boolean var5 = this.spellIds().contains(var1);
+         String var6 = var5
+            ? this.spellDescription(var1)
+            : (
+               var1.equals("flame")
+                  ? "Combínala en la mesa de crafteo con un casco."
+                  : (var1.equals("magneto") ? "Atrae al inventario todo lo que extraes con un pico." : "Combínala en la mesa de crafteo con equipo compatible.")
+            );
+         String var7 = var5 ? "SpellBook de la Grieta" : "Esencia: " + var3 + " nivel " + var4;
+         ItemStack var8 = this.named(
+            var5 ? Material.BOOK : Material.MAGMA_CREAM,
+            (var5 ? "rare_spell_book_" : "esencia_rare_") + var1 + "_" + var4,
+            var7,
+            NamedTextColor.GREEN,
+            1,
+            var6,
+            "Rare: " + var3,
+            "Nivel: " + var4
+         );
+         ItemMeta var9 = var8.getItemMeta();
+         var9.displayName(
+            var5
+               ? ((TextComponent)Component.text(var7, NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD)).decoration(TextDecoration.ITALIC, false)
+               : ((TextComponent)Component.text(var7, NamedTextColor.GREEN).decorate(TextDecoration.BOLD)).decoration(TextDecoration.ITALIC, false)
+         );
+         var9.lore(
+            List.of(
+               (TextComponent)Component.text(var6, NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
+               (TextComponent)Component.text("Rare: " + var3, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+               (TextComponent)Component.text("Nivel: " + var4, NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false),
+               (TextComponent)((TextComponent)Component.text("Rare de la Grieta", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD))
+                  .decoration(TextDecoration.ITALIC, false)
+            )
+         );
+         var9.getPersistentDataContainer().set(this.rareBookKey, PersistentDataType.STRING, var1);
+         var9.getPersistentDataContainer().set(this.rareEssenceLevelKey, PersistentDataType.INTEGER, var4);
+         var8.setItemMeta(var9);
+         return var8;
+      }
+   }
+
+   private String spellDescription(String var1) {
+      return switch (var1) {
+         case "burst" -> "Al usarlo, empuja hacia atrás a los enemigos cercanos.";
+         case "craftitem" -> "Abre una mesa de crafteo portátil.";
+         case "fireresistance" -> "Te protege temporalmente del fuego y la lava.";
+         case "greaterburst" -> "Desata una onda que repele a varios enemigos.";
+         case "haste" -> "Te otorga Velocidad temporal al activarlo.";
+         case "invisibility" -> "Te vuelve invisible temporalmente.";
+         case "magicbag" -> "Abre tu cofre de Ender al instante.";
+         case "repairitem" -> "Repara el objeto dañado del primer espacio de la hotbar.";
+         default -> "Activa su poder con clic derecho. Consume saturación.";
+      };
+   }
+
+   private String titleForRare(String var1) {
+      return switch (var1) {
+         case "vampirismo" -> "Sello Vampírico";
+         case "veneno" -> "Veneno Antiguo";
+         case "guardian" -> "Piel del Guardián";
+         case "brasas" -> "Marca de Brasas";
+         case "paso_viento" -> "Paso del Viento";
+         case "saturacion" -> "Saturación";
+         default -> var1.replace('_', ' ').toUpperCase();
+      };
+   }
+
+   private void restoreArmorSaturation() {
+      for (Player var2 : this.plugin.getServer().getOnlinePlayers()) {
+         int var3 = 0;
+
+         for (ItemStack var7 : var2.getInventory().getArmorContents()) {
+            if (var7 != null && var7.hasItemMeta()) {
+               String var8 = (String)var7.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+               if (var8 != null && var8.contains("saturacion")) {
+                  var3 = Math.max(var3, this.propertyLevel(var7, "saturacion"));
+               }
+            }
+         }
+
+         if (var3 != 0 && var2.getFoodLevel() > 0) {
+            float var9 = 0.5F + 0.5F * var3;
+            var2.setSaturation(Math.min((float)var2.getFoodLevel(), var2.getSaturation() + var9));
+         }
+      }
+   }
+
+   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+   public void onSpellUse(PlayerInteractEvent var1) {
+      if (var1.getAction() == Action.RIGHT_CLICK_AIR || var1.getAction() == Action.RIGHT_CLICK_BLOCK) {
+         ItemStack var2 = var1.getItem();
+         if (var2 == null || !var2.hasItemMeta()) {
+            var2 = var1.getHand() == EquipmentSlot.OFF_HAND
+               ? var1.getPlayer().getInventory().getItemInOffHand()
+               : var1.getPlayer().getInventory().getItemInMainHand();
+         }
+
+         if (var2 != null && var2.hasItemMeta()) {
+            String var3 = (String)var2.getItemMeta().getPersistentDataContainer().get(this.rareBookKey, PersistentDataType.STRING);
+            if (var3 != null && this.spellIds().contains(var3)) {
+               Player var4 = var1.getPlayer();
+               var1.setCancelled(true);
+               long var5 = System.currentTimeMillis();
+               if (true) {
+                  String var7 = var4.getUniqueId() + ":" + var3;
+                  long var8 = this.burstCooldowns.getOrDefault(var7, 0L);
+                  if (var8 > var5) {
+                     String var24 = var3.equals("burst") ? "Burst" : "GreaterBurst";
+                     var4.sendMessage(Component.text(var24 + " estará listo en " + (var8 - var5 + 999L) / 1000L + " segundos.", NamedTextColor.GRAY));
+                     return;
+                  }
+               }
+
+               Player var20 = var4;
+               if (var4.isSneaking() && (var3.equals("haste") || var3.equals("invisibility"))) {
+                  RayTraceResult var21 = var4.getWorld()
+                     .rayTraceEntities(
+                        var4.getEyeLocation(),
+                        var4.getEyeLocation().getDirection(),
+                        24.0,
+                        0.65,
+                        var1x -> var1x instanceof Player var2x && !var2x.getUniqueId().equals(var4.getUniqueId())
+                     );
+                  if (var21 == null || !(var21.getHitEntity() instanceof Player var9)) {
+                     var4.sendMessage(Component.text("Apunta directamente a un jugador para darle este efecto.", NamedTextColor.YELLOW));
+                     return;
+                  }
+
+                  var20 = var9;
+               }
+
+               double var22 = this.rareConfig.getDouble(var3 + ".useCost", 6.0);
+               if (var22 < 0.0) {
+                  var4.sendMessage(Component.text("Esta rare está desactivada.", NamedTextColor.RED));
+               } else {
+                  int var23 = Math.max(1, Math.min(maxLevel(var3), (Integer)var2.getItemMeta().getPersistentDataContainer().getOrDefault(this.rareEssenceLevelKey, PersistentDataType.INTEGER, 1)));
+                  if (!this.consumeSaturation(var4, var2, var3)) {
+                     var4.sendMessage(Component.text("No tienes suficiente saturación para activar esta rare.", NamedTextColor.RED));
+                  } else {
+                     this.burstCooldowns.put(var4.getUniqueId() + ":" + var3,
+                        var5 + Math.max(0, Math.min(3600, rareConfig.getLong(var3 + ".cooldownSeconds", 10))) * 1000L);
+
+                     switch (var3) {
+                        case "haste":
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600 * var23, Math.min(5, var23 - 1)));
+                           break;
+                        case "fireresistance":
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 900 * var23, 0));
+                           break;
+                        case "invisibility":
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 500 * var23, 0));
+                           break;
+                        case "burst":
+                        case "greaterburst":
+                           double var25 = (var3.equals("burst") ? 3 : 5) + var23 * 2;
+
+                           for (Entity var16 : var4.getNearbyEntities(var25, var25, var25)) {
+                              if (var16 instanceof LivingEntity var17 && !var17.getUniqueId().equals(var4.getUniqueId())) {
+                                 Vector var18 = var17.getLocation().toVector().subtract(var4.getLocation().toVector());
+                                 if (var18.lengthSquared() < 0.01) {
+                                    var18 = var4.getLocation().getDirection().multiply(-1);
+                                 }
+
+                                 var18.normalize();
+                                 Vector var19 = var18.multiply((var3.equals("burst") ? 1.0 : 1.25) + var23 * 0.35).setY(0.65 + var23 * 0.18);
+                                 var17.setVelocity(var19);
+                              }
+                           }
+
+                           var4.getWorld()
+                              .spawnParticle(var3.equals("burst") ? Particle.EXPLOSION : Particle.CLOUD, var4.getLocation(), 22, 1.4, 0.6, 1.4, 0.12);
+                           break;
+                        case "magicbag":
+                           var4.openInventory(var4.getEnderChest());
+                           break;
+                        case "craftitem":
+                           var4.openWorkbench(var4.getLocation(), true);
+                           break;
+                        case "repairitem":
+                           ItemStack var13 = var4.getInventory().getItem(0);
+                           if (var13 != null && var13.getItemMeta() instanceof Damageable var14 && var14.getDamage() > 0) {
+                              int var26 = Math.max(1, (int)Math.ceil(var14.getDamage() * (var23 / 5.0)));
+                              var14.setDamage(Math.max(0, var14.getDamage() - var26));
+                              var13.setItemMeta(var14);
+                              var4.sendMessage(Component.text("El objeto del primer espacio de tu hotbar fue reparado.", NamedTextColor.GREEN));
+                           } else {
+                              var4.sendMessage(Component.text("El primer espacio de tu hotbar no contiene un objeto dañado reparable.", NamedTextColor.GRAY));
+                           }
+                     }
+
+                     if (var20 != var4 && (var3.equals("haste") || var3.equals("invisibility"))) {
+                        String var11 = var3.equals("haste") ? "Haste " + var23 : "Invisibilidad";
+                        var4.sendMessage(Component.text("Le diste " + var11 + " a " + var20.getName() + ".", NamedTextColor.GREEN));
+                        var20.sendMessage(Component.text("Has recibido " + var11 + " de " + var4.getName() + ".", NamedTextColor.AQUA));
+                     }
+
+                     var4.playSound(var4.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0F, 1.2F);
+                     var4.sendActionBar(Component.text(this.titleForRare(var3) + " activada", NamedTextColor.LIGHT_PURPLE));
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   @EventHandler
+   public void onPrepareRareCraft(PrepareItemCraftEvent var1) {
+      if (var1.getRecipe() instanceof Keyed var2 && var2.getKey().getKey().startsWith("rare_essence_attach")) {
+         if (var1.getInventory().getResult() != null) {
+            String var23 = var2.getKey().getKey();
+            int var4 = var23.endsWith("_3") ? 3 : (var23.endsWith("_2") ? 2 : 1);
+            ItemStack[] var5 = var1.getInventory().getMatrix();
+            ArrayList var6 = new ArrayList();
+            ItemStack var7 = null;
+            String var8 = null;
+            int var9 = 0;
+
+            for (int var10 = 0; var10 < var5.length; var10++) {
+               ItemStack var11 = var5[var10];
+               if (var11 != null && !var11.getType().isAir()) {
+                  String var12 = var11.hasItemMeta()
+                     ? (String)var11.getItemMeta().getPersistentDataContainer().get(this.rareBookKey, PersistentDataType.STRING)
+                     : null;
+                  if (var12 != null) {
+                     if (var8 != null && !var8.equals(var12)) {
+                        var1.getInventory().setResult(null);
+                        return;
+                     }
+
+                     var8 = var12;
+                     var6.add(var11);
+                     var9 += var11.getItemMeta().getPersistentDataContainer().getOrDefault(this.rareEssenceLevelKey, PersistentDataType.INTEGER, 1);
+                  } else {
+                     if (var7 != null) {
+                        var1.getInventory().setResult(null);
+                        return;
+                     }
+
+                     var7 = var11;
+                  }
+               }
+            }
+
+            if (var7 != null && var6.size() == var4 && var8 != null && !this.spellIds().contains(var8) && !var7.getType().isAir()) {
+               boolean var24 = var7.getType().name().endsWith("HELMET")
+                  || var7.getType().name().endsWith("CHESTPLATE")
+                  || var7.getType().name().endsWith("LEGGINGS")
+                  || var7.getType().name().endsWith("BOOTS");
+               boolean var25 = var7.getType().name().endsWith("SWORD")
+                  || var7.getType().name().endsWith("AXE")
+                  || var7.getType() == Material.BOW
+                  || var7.getType() == Material.CROSSBOW
+                  || var7.getType() == Material.TRIDENT;
+               boolean var26 = var7.getType().name().endsWith("PICKAXE") || var7.getType().name().endsWith("SHOVEL") || var7.getType().name().endsWith("HOE");
+               boolean var13 = List.of("fertilize", "meltobsidian", "smelt", "spore", "veinminer", "treefeller", "magneto").contains(var8);
+               if (var8.equals("flame")) {
+                  if (!var7.getType().name().endsWith("HELMET")) {
+                     var1.getInventory().setResult(null);
+                     return;
+                  }
+               } else if (!var8.equals("guardian")
+                  && !var8.equals("paso_viento")
+                  && !var8.equals("hardy")
+                  && !var8.equals("durability")
+                  && !var8.equals("regeneration")
+                  && !var8.equals("nofalldamage")
+                  && !var8.equals("doublejump")
+                  && !var8.equals("fly")
+                  && !var8.equals("saturacion")) {
+                  if (var13 ? !var26 : !var25) {
+                     var1.getInventory().setResult(null);
+                     return;
+                  }
+               } else {
+                  boolean var14 = var8.equals("hardy");
+                  if (!var24 || var14 && !var7.getType().name().endsWith("CHESTPLATE")) {
+                     var1.getInventory().setResult(null);
+                     return;
+                  }
+               }
+
+               if (var8.equals("magneto") && !var7.getType().name().endsWith("PICKAXE")) {
+                  var1.getInventory().setResult(null);
+               } else {
+                  ItemStack var27 = var7.clone();
+                  ItemMeta var15 = var27.getItemMeta();
+                  String var16 = (String)var15.getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+                  Map<String, Integer> var17 = this.parseLevels((String)var15.getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
+                  int var18 = this.maxLevel(var8);
+                  int var19 = Math.min(var18, var17.getOrDefault(var8, 0) + var9);
+                  if (var17.getOrDefault(var8, 0) >= var18) {
+                     var1.getInventory().setResult(null);
+                  } else {
+                     var17.put(var8, var19);
+                     LinkedHashSet var20 = new LinkedHashSet();
+                     if (var16 != null && !var16.isBlank()) {
+                        var20.addAll(List.of(var16.split(",")));
+                     }
+
+                     var20.add(var8);
+                     var15.getPersistentDataContainer().set(this.rareEnchantKey, PersistentDataType.STRING, String.join(",", var20));
+                     var15.getPersistentDataContainer().set(this.rareLevelsKey, PersistentDataType.STRING, this.serializeLevels(var17));
+                     ArrayList<Component> var21 = var15.lore() == null ? new ArrayList<>() : new ArrayList<>(var15.lore());
+                     String var22 = var8.replace('_', ' ').toUpperCase();
+                     var21.removeIf(var1x -> PlainTextComponentSerializer.plainText().serialize(var1x).startsWith("Rare: " + var22));
+                     var21.add(Component.text("Rare: " + var22 + " • Nivel " + var19 + "/" + var18, NamedTextColor.GRAY).decorate(TextDecoration.BOLD));
+                     var15.lore(var21);
+                     var27.setItemMeta(var15);
+                     var1.getInventory().setResult(var27);
+                  }
+               }
+            } else {
+               var1.getInventory().setResult(null);
+            }
+         }
+      }
+   }
+
+   private Map<String, Integer> parseLevels(String var1) {
+      LinkedHashMap var2 = new LinkedHashMap();
+      if (var1 != null) {
+         for (String var6 : var1.split(",")) {
+            String[] var7 = var6.split(":");
+            if (var7.length == 2) {
+               try {
+                  var2.put(var7[0], Integer.parseInt(var7[1]));
+               } catch (NumberFormatException var9) {
+               }
+            }
+         }
+      }
+
+      return var2;
+   }
+
+   private String serializeLevels(Map<String, Integer> var1) {
+      ArrayList var2 = new ArrayList();
+      var1.forEach((var1x, var2x) -> var2.add(var1x + ":" + var2x));
+      return String.join(",", var2);
+   }
+
+   private int propertyLevel(ItemStack var1, String var2) {
+      if (var1 != null && var1.hasItemMeta()) {
+         String var3 = (String)var1.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING);
+         return this.parseLevels(var3).getOrDefault(var2, 1);
+      } else {
+         return 1;
+      }
+   }
+
+   private float saturationCost(ItemStack var1, String var2) {
+      double var3 = this.rareConfig.getDouble(var2 + ".useCost", 2.0);
+      if (var3 < 0.0) {
+         return -1.0F;
+      } else {
+         int var5 = var1 != null && var1.hasItemMeta()
+            ? (Integer)var1.getItemMeta()
+               .getPersistentDataContainer()
+               .getOrDefault(this.rareEssenceLevelKey, PersistentDataType.INTEGER, this.propertyLevel(var1, var2))
+            : 1;
+         int var6 = Math.max(1, Math.min(5, var5));
+         return (float)(var3 / (var6 * var6));
+      }
+   }
+
+   private boolean consumeSaturation(Player var1, ItemStack var2, String var3) {
+      float var4 = this.saturationCost(var2, var3);
+      if (!(var4 < 0.0F) && !(var1.getSaturation() < var4)) {
+         var1.setSaturation(Math.max(0.0F, var1.getSaturation() - var4));
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   private boolean consumePassiveSaturation(Player var1, ItemStack var2, String var3) {
+      String var4 = var1.getUniqueId() + ":" + var3;
+      long var5 = System.currentTimeMillis();
+      if (var5 - this.passiveSaturation.getOrDefault(var4, 0L) < 5000L) {
+         return true;
+      } else if (!this.consumeSaturation(var1, var2, var3)) {
+         return false;
+      } else {
+         this.passiveSaturation.put(var4, var5);
+         return true;
+      }
+   }
+
+   @EventHandler(ignoreCancelled = true)
+   public void onRareHit(EntityDamageByEntityEvent var1) {
+      Player var2 = var1.getDamager() instanceof Player var5
+         ? var5
+         : (var1.getDamager() instanceof Projectile var4 && var4.getShooter() instanceof Player var3 ? var3 : null);
+      if (var2 != null) {
+         ItemStack var14 = var2.getInventory().getItemInMainHand();
+         if (var14.hasItemMeta()) {
+            String var15 = (String)var14.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+            if (var15 != null) {
+               Map<String, Integer> var16 = this.parseLevels((String)var14.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
+               if (var15.contains("vampirismo") || var15.contains("vampiricregeneration")) {
+                  int var19 = Math.max(var16.getOrDefault("vampirismo", 1), var16.getOrDefault("vampiricregeneration", 1));
+                  if (Math.random() < 0.1 + var19 * 0.03
+                     && this.consumeSaturation(var2, var14, var15.contains("vampirismo") ? "vampirismo" : "vampiricregeneration")) {
+                     var2.setHealth(Math.min(var2.getMaxHealth(), var2.getHealth() + 1.0 + var19));
+                  }
+               }
+
+               if (var1.getEntity() instanceof LivingEntity var20) {
+                  int var21 = Math.max(var16.getOrDefault("veneno", 1), var16.getOrDefault("poison", 1));
+                  int var8 = var16.getOrDefault("slow", 1);
+                  int var9 = var16.getOrDefault("weaken", 1);
+                  if ((var15.contains("veneno") || var15.contains("poison"))
+                     && Math.random() < 0.1 + var21 * 0.05
+                     && this.consumeSaturation(var2, var14, var15.contains("veneno") ? "veneno" : "poison")) {
+                     var20.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40 + var21 * 24, Math.min(2, (var21 - 1) / 2)));
+                  }
+
+                  if (var15.contains("brasas")) {
+                     int var10 = var16.getOrDefault("brasas", 1);
+                     if (this.consumeSaturation(var2, var14, "brasas")) {
+                        var20.setFireTicks(Math.max(var20.getFireTicks(), 40 + var10 * 24));
+                     }
+                  }
+
+                  if (var15.contains("slow") && Math.random() < 0.1 + var8 * 0.05 && this.consumeSaturation(var2, var14, "slow")) {
+                     var20.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40 + var8 * 20, Math.min(2, (var8 - 1) / 2)));
+                  }
+
+                  if (var15.contains("weaken") && Math.random() < 0.1 + var9 * 0.05 && this.consumeSaturation(var2, var14, "weaken")) {
+                     var20.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 40 + var9 * 20, Math.min(2, (var9 - 1) / 2)));
+                  }
+
+                  if (var15.contains("blinding")) {
+                     int var22 = var16.getOrDefault("blinding", 1);
+                     if (Math.random() < 0.05 + var22 * 0.03 && this.consumeSaturation(var2, var14, "blinding")) {
+                        var20.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 25 + var22 * 12, 0));
+                     }
+                  }
+
+                  if (var15.contains("confuse")) {
+                     int var23 = var16.getOrDefault("confuse", 1);
+                     if (Math.random() < 0.08 + var23 * 0.04 && this.consumeSaturation(var2, var14, "confuse")) {
+                        var20.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 35 + var23 * 18, 0));
+                     }
+                  }
+
+                  if (var15.contains("calllighting")) {
+                     int var24 = var16.getOrDefault("calllighting", 1);
+                     if (Math.random() < 0.04 + var24 * 0.025 && this.consumeSaturation(var2, var14, "calllighting")) {
+                        var20.getWorld().strikeLightningEffect(var20.getLocation());
+                     }
+                  }
+
+                  if (var15.contains("bleed")) {
+                     int var25 = var16.getOrDefault("bleed", 1);
+                     if (Math.random() < 0.1 + var25 * 0.04 && this.consumeSaturation(var2, var14, "bleed")) {
+                        var20.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 35 + var25 * 18, Math.min(1, (var25 - 1) / 3)));
+                     }
+                  }
+
+                  if (var15.contains("execute") && var20.getHealth() / var20.getMaxHealth() < 0.25 && this.consumeSaturation(var2, var14, "execute")) {
+                     var1.setDamage(var1.getDamage() * (1.2 + var16.getOrDefault("execute", 1).intValue() * 0.1));
+                  }
+
+                  if (var15.contains("backstab")) {
+                     Vector var26 = var2.getLocation().toVector().subtract(var20.getLocation().toVector()).setY(0);
+                     Vector var11 = var20.getLocation().getDirection().setY(0);
+                     if (var26.lengthSquared() > 0.001
+                        && var11.lengthSquared() > 0.001
+                        && var11.normalize().dot(var26.normalize()) < -0.05
+                        && this.consumeSaturation(var2, var14, "backstab")) {
+                        int var12 = var16.getOrDefault("backstab", 1);
+                        var1.setDamage(var1.getDamage() * (1.2 + var12 * 0.12));
+                        var20.getWorld().spawnParticle(Particle.CRIT, var20.getLocation().add(0.0, 1.0, 0.0), 12, 0.35, 0.4, 0.35, 0.1);
+                        var2.playSound(var20.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8F, 1.3F);
+                        var2.sendActionBar(Component.text("Backstab activado • daño aumentado", NamedTextColor.RED));
+                     }
+                  }
+
+                  if (var15.contains("disarm")) {
+                     int var27 = var16.getOrDefault("disarm", 1);
+                     if (Math.random() < 0.08 + var27 * 0.06 && this.consumeSaturation(var2, var14, "disarm")) {
+                        if (var20 instanceof Player var28) {
+                           this.scrambleInventory(var28, var27);
+                           var28.sendMessage(Component.text("Disarm revuelve parte de tu inventario.", NamedTextColor.RED));
+                           var2.sendMessage(Component.text("Disarm activado contra " + var28.getName() + ".", NamedTextColor.GOLD));
+                        } else if (var20 instanceof Mob var29 && var29.getEquipment() != null) {
+                           ItemStack var13 = var29.getEquipment().getItemInMainHand();
+                           if (var13 != null && !var13.getType().isAir()) {
+                              var20.getWorld().dropItemNaturally(var20.getLocation(), var13.clone());
+                              var29.getEquipment().setItemInMainHand(new ItemStack(Material.AIR));
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   private void scrambleInventory(Player var1, int var2) {
+      PlayerInventory var3 = var1.getInventory();
+      ArrayList<Integer> var4 = new ArrayList<>();
+
+      for (int var5 = 0; var5 < 36; var5++) {
+         var4.add(var5);
+      }
+
+      Collections.shuffle(var4, (Random)ThreadLocalRandom.current());
+      int var9 = Math.min(var4.size(), 6 * Math.max(1, Math.min(5, var2)));
+      ArrayList var6 = new ArrayList();
+
+      for (int var7 = 0; var7 < var9; var7++) {
+         ItemStack var8 = var3.getItem((Integer)var4.get(var7));
+         var6.add(var8 == null ? null : var8.clone());
+      }
+
+      Collections.shuffle(var6, (Random)ThreadLocalRandom.current());
+
+      for (int var10 = 0; var10 < var9; var10++) {
+         var3.setItem((Integer)var4.get(var10), (ItemStack)var6.get(var10));
+      }
+
+      var1.getWorld().spawnParticle(Particle.WITCH, var1.getLocation().add(0.0, 1.0, 0.0), 24, 0.5, 0.7, 0.5, 0.08);
+      var1.playSound(var1.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.8F, 0.8F);
+   }
+
+   @EventHandler(ignoreCancelled = true)
+   public void onToolRare(BlockBreakEvent var1) {
+      if (breakingConnected) return;
+      ItemStack var2 = var1.getPlayer().getInventory().getItemInMainHand();
+      if (var2.hasItemMeta()) {
+         String var3 = (String)var2.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+         if (var3 != null) {
+            Player var4 = var1.getPlayer();
+            Material var5 = var1.getBlock().getType();
+            if (var3.contains("meltobsidian") && var5 == Material.LAVA && this.consumeSaturation(var4, var2, "meltobsidian")) {
+               var1.getBlock().setType(Material.OBSIDIAN);
+               var1.setDropItems(false);
+            } else {
+               if (var3.contains("fertilize") && var5 == Material.DIRT && this.consumeSaturation(var4, var2, "fertilize")) {
+                  var1.getBlock().setType(Material.GRASS_BLOCK);
+               }
+
+               if (var3.contains("spore") && var5 == Material.COBBLESTONE && this.consumeSaturation(var4, var2, "spore")) {
+                  var1.getBlock().setType(Material.MOSSY_COBBLESTONE);
+               }
+
+               if (var3.contains("smelt")) {
+                  Material var6 = switch (var1.getBlock().getType()) {
+                     case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.IRON_INGOT;
+                     case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE -> Material.GOLD_INGOT;
+                     case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.COPPER_INGOT;
+                     default -> null;
+                  };
+                  if (var6 != null && this.consumeSaturation(var4, var2, "smelt")) {
+                     var1.setDropItems(false);
+                     var1.getBlock().getWorld().dropItemNaturally(var1.getBlock().getLocation(), new ItemStack(var6));
+                  }
+               }
+
+               if (var3.contains("treefeller") && Tag.LOGS.isTagged(var5) && this.consumeSaturation(var4, var2, "treefeller")) {
+                  this.breakConnected(var1, var2, true);
+               }
+
+               if (var3.contains("veinminer") && this.isOre(var5) && this.consumeSaturation(var4, var2, "veinminer")) {
+                  this.breakConnected(var1, var2, false);
+               }
+            }
+         }
+      }
+   }
+
+   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+   public void onMagnetoDrops(BlockDropItemEvent var1) {
+      Player var2 = var1.getPlayer();
+      ItemStack var3 = var2.getInventory().getItemInMainHand();
+      if (var3 != null && var3.getType().name().endsWith("PICKAXE") && var3.hasItemMeta()) {
+         String var4 = (String)var3.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+         if (var4 != null && Arrays.asList(var4.split(",")).contains("magneto")) {
+            var1.setCancelled(true);
+
+            for (Item var6 : new ArrayList<Item>(var1.getItems())) {
+               HashMap<Integer, ItemStack> var7 = var2.getInventory().addItem(new ItemStack[]{var6.getItemStack().clone()});
+
+               for (ItemStack var9 : var7.values()) {
+                  var2.getWorld().dropItemNaturally(var6.getLocation(), var9);
+               }
+
+               var6.remove();
+            }
+
+            var2.playSound(var2.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 1.5F);
+         }
+      }
+   }
+
+   @EventHandler(ignoreCancelled = true)
+   public void onToolRightClick(PlayerInteractEvent var1) {
+      if (var1.getAction() == Action.RIGHT_CLICK_BLOCK && var1.getClickedBlock() != null && var1.getItem() != null && var1.getItem().hasItemMeta()) {
+         String var2 = (String)var1.getItem().getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+         if (var2 != null) {
+            Material var3 = var1.getClickedBlock().getType();
+            Material var4 = null;
+            if (var2.contains("fertilize")
+               && (var3 == Material.DIRT || var3 == Material.COARSE_DIRT || var3 == Material.ROOTED_DIRT)
+               && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "fertilize")) {
+               var4 = Material.GRASS_BLOCK;
+            }
+
+            if (var2.contains("spore")
+               && (var3 == Material.COBBLESTONE || var3 == Material.STONE)
+               && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "spore")) {
+               var4 = var3 == Material.COBBLESTONE ? Material.MOSSY_COBBLESTONE : Material.MOSSY_STONE_BRICKS;
+            }
+
+            if (var2.contains("meltobsidian") && var3 == Material.LAVA && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "meltobsidian")) {
+               var4 = Material.OBSIDIAN;
+            }
+
+            if (var4 != null) {
+               var1.setCancelled(true);
+               var1.getClickedBlock().setType(var4);
+               var1.getPlayer().getWorld().spawnParticle(Particle.WITCH, var1.getClickedBlock().getLocation().add(0.5, 0.8, 0.5), 12, 0.3, 0.3, 0.3, 0.03);
+            }
+         }
+      }
+   }
+
+   private boolean isOre(Material var1) {
+      return var1.name().endsWith("_ORE") || var1 == Material.ANCIENT_DEBRIS;
+   }
+
+   private void breakConnected(BlockBreakEvent var1, ItemStack var2, boolean var3) {
+      if (breakingConnected) return;
+      ArrayDeque var4 = new ArrayDeque();
+      HashSet var5 = new HashSet();
+      var4.add(var1.getBlock());
+      var5.add(var1.getBlock().getX() + ":" + var1.getBlock().getY() + ":" + var1.getBlock().getZ());
+      int var6 = 0;
+
+      while (!var4.isEmpty() && var6 < 64) {
+         Block var7 = (Block)var4.removeFirst();
+
+         for (int var8 = -1; var8 <= 1; var8++) {
+            for (int var9 = -1; var9 <= 1; var9++) {
+               for (int var10 = -1; var10 <= 1; var10++) {
+                  if (var8 != 0 || var9 != 0 || var10 != 0) {
+                     Block var11 = var7.getRelative(var8, var9, var10);
+                     String var12 = var11.getX() + ":" + var11.getY() + ":" + var11.getZ();
+                     if (var5.add(var12)) {
+                        boolean var13 = var3 ? Tag.LOGS.isTagged(var11.getType()) : this.isOre(var11.getType());
+                        if (var13 && var6 < 64) {
+                           breakingConnected = true;
+                           try {
+                              if (var1.getPlayer().breakBlock(var11)) { var4.add(var11); var6++; }
+                           } finally { breakingConnected = false; }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   @EventHandler(ignoreCancelled = true)
+   public void onRareDefense(EntityDamageEvent var1) {
+      if (var1.getEntity() instanceof Player var2) {
+         for (ItemStack var6 : var2.getInventory().getArmorContents()) {
+            if (var6 != null && var6.hasItemMeta()) {
+               String var7 = (String)var6.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+               if (var7 != null && var7.contains("guardian") && this.consumeSaturation(var2, var6, "guardian")) {
+                  var1.setDamage(var1.getDamage() * 0.82);
+                  return;
+               }
+
+               if (var7 != null && var7.contains("nofalldamage") && var1.getCause() == DamageCause.FALL && this.consumeSaturation(var2, var6, "nofalldamage")) {
+                  var1.setDamage(var1.getDamage() * 0.35);
+               }
+            }
+         }
+      }
+   }
+
+   @EventHandler(ignoreCancelled = true)
+   public void onRareDoubleJump(PlayerToggleFlightEvent var1) {
+      Player var2 = var1.getPlayer();
+      if (var2.getGameMode() != GameMode.CREATIVE && var2.getGameMode() != GameMode.SPECTATOR) {
+         ItemStack var3 = var2.getInventory().getBoots();
+         if (var3 != null && var3.hasItemMeta()) {
+            String var4 = (String)var3.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+            if (var4 != null && var4.contains("doublejump")) {
+               var1.setCancelled(true);
+               var2.setFlying(false);
+               var2.setAllowFlight(false);
+               if (!this.consumeSaturation(var2, var3, "doublejump")) {
+                  var2.sendMessage(Component.text("El salto rare está desactivado o te falta saturación.", NamedTextColor.RED));
+               } else {
+                  var2.setVelocity(var2.getLocation().getDirection().multiply(0.75).setY(0.75));
+                  this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                     if (var2.isOnline() && var2.isOnGround()) {
+                        var2.setAllowFlight(true);
+                     }
+                  }, 10L);
+               }
+            }
+         }
+      }
+   }
+
+   @EventHandler(ignoreCancelled = true)
+   public void onWindStep(PlayerMoveEvent var1) {
+      if (var1.getTo() != null
+         && (
+            var1.getFrom().getBlockX() != var1.getTo().getBlockX()
+               || var1.getFrom().getBlockY() != var1.getTo().getBlockY()
+               || var1.getFrom().getBlockZ() != var1.getTo().getBlockZ()
+         )) {
+         Player var2 = var1.getPlayer();
+         ItemStack var3 = var2.getInventory().getBoots();
+         String var4 = var3 != null && var3.hasItemMeta()
+            ? (String)var3.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING)
+            : null;
+         if (var4 != null
+            && var4.contains("doublejump")
+            && var2.isOnGround()
+            && var2.getGameMode() != GameMode.CREATIVE
+            && var2.getGameMode() != GameMode.SPECTATOR) {
+            var2.setAllowFlight(true);
+         }
+
+         boolean var5 = false;
+         int var6 = 1;
+
+         for (ItemStack var10 : var2.getInventory().getArmorContents()) {
+            if (var10 != null && var10.hasItemMeta()) {
+               String var11 = (String)var10.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+               if (var11 != null && var11.contains("fly")) {
+                  var5 = true;
+                  var6 = this.propertyLevel(var10, "fly");
+               }
+            }
+         }
+
+         if (var2.getGameMode() != GameMode.CREATIVE && var2.getGameMode() != GameMode.SPECTATOR) {
+            if (var5) {
+               var2.setAllowFlight(true);
+               this.flyUsers.add(var2.getUniqueId());
+               if (var2.isFlying() && System.currentTimeMillis() - this.flyDrain.getOrDefault(var2.getUniqueId(), 0L) > 10000L) {
+                  ItemStack var19 = var2.getInventory().getChestplate();
+                  if (var19 != null && this.consumeSaturation(var2, var19, "fly")) {
+                     this.flyDrain.put(var2.getUniqueId(), System.currentTimeMillis());
+                  } else {
+                     var2.setFlying(false);
+                     var2.setAllowFlight(false);
+                     var2.sendMessage(Component.text("La rare de vuelo está desactivada o se quedó sin saturación.", NamedTextColor.RED));
+                  }
+               }
+            } else if (this.flyUsers.remove(var2.getUniqueId())) {
+               var2.setFlying(false);
+               var2.setAllowFlight(false);
+            }
+         }
+
+         for (ItemStack var25 : var1.getPlayer().getInventory().getArmorContents()) {
+            if (var25 != null && var25.hasItemMeta()) {
+               String var26 = (String)var25.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+               if (var26 != null && var26.contains("paso_viento") && this.consumePassiveSaturation(var1.getPlayer(), var25, "paso_viento")) {
+                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 30, 0, true, false, true));
+               }
+
+               if (var26 != null && var26.contains("regeneration") && this.consumePassiveSaturation(var1.getPlayer(), var25, "regeneration")) {
+                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, 0, true, false, true));
+               }
+
+               if (var26 != null && var26.contains("hardy") && this.consumePassiveSaturation(var1.getPlayer(), var25, "hardy")) {
+                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, 40, 0, true, false, true));
+               }
+
+               if (var26 != null
+                  && var26.contains("durability")
+                  && System.currentTimeMillis() - this.passiveRepair.getOrDefault(var1.getPlayer().getUniqueId(), 0L) > 5000L
+                  && this.consumeSaturation(var1.getPlayer(), var25, "durability")) {
+                  this.passiveRepair.put(var1.getPlayer().getUniqueId(), System.currentTimeMillis());
+
+                  for (ItemStack var15 : var1.getPlayer().getInventory().getArmorContents()) {
+                     if (var15 != null && var15.getItemMeta() instanceof Damageable var16 && var16.getDamage() > 0) {
+                        var16.setDamage(var16.getDamage() - 1);
+                        var15.setItemMeta(var16);
+                     }
+                  }
+               }
+            }
+         }
+
+         ItemStack var21 = var1.getPlayer().getInventory().getHelmet();
+         if (var21 != null && var21.hasItemMeta()) {
+            String var23 = (String)var21.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+            if (var23 != null && var23.contains("flame") && this.consumePassiveSaturation(var1.getPlayer(), var21, "flame")) {
+               var1.getPlayer().getWorld().spawnParticle(Particle.FLAME, var1.getPlayer().getLocation().add(0.0, 1.7, 0.0), 2, 0.18, 0.12, 0.18, 0.01);
+            }
+         }
+      }
+   }
+
+   public ItemStack essence() {
+      return this.plainGreenItem(
+         Material.MAGMA_CREAM, "rare_essence", "Rare Essence", "Energía concentrada de la Grieta.", "Sirve para recetas y forjas de reliquias."
+      );
+   }
+
+   public ItemStack primordialEssence() {
+      return this.plainGreenItem(
+         Material.MAGMA_CREAM,
+         "rare_essence_primordial",
+         "Esencia Primordial de la Grieta",
+         "Rare Essence refinada con Polvo de la Grieta y Núcleos de jefe.",
+         "Catalizador para recetas y forjas de alto rango."
+      );
+   }
+
+   public ItemStack abyssalEssence() {
+      return this.named(
+         Material.DRAGON_BREATH,
+         "rare_essence_abyssal",
+         "Esencia Abisal",
+         NamedTextColor.DARK_PURPLE,
+         1,
+         "Energía condensada de los jefes más poderosos.",
+         "Requisito de forja para reliquias míticas.",
+         "Se obtiene de jefes legendarios y míticos."
+      );
+   }
+
+   public ItemStack abyssalEssenceFromBoss() {
+      ItemStack var1 = this.abyssalEssence();
+      this.addRiftDropClassification(var1, BossCatalog.Tier.MYTHIC);
+      return var1;
+   }
+
+   private ItemStack plainGreenItem(Material var1, String var2, String var3, String... var4) {
+      ItemStack var5 = this.named(var1, var2, var3, NamedTextColor.GREEN, 1, var4);
+      ItemMeta var6 = var5.getItemMeta();
+      var6.displayName(((TextComponent)Component.text(var3, NamedTextColor.GREEN).decorate(TextDecoration.BOLD)).decoration(TextDecoration.ITALIC, false));
+      ArrayList var7 = new ArrayList<>(
+         Arrays.stream(var4).map(var0 -> (TextComponent)Component.text(var0, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)).toList()
+      );
+      var6.lore(var7);
+      var5.setItemMeta(var6);
+      return var5;
+   }
+
+   public ItemStack fragment(int var1) {
+      return this.named(
+         Material.AMETHYST_SHARD,
+         "fragmento_grieta",
+         "Fragmento de la Grieta",
+         NamedTextColor.LIGHT_PURPLE,
+         var1,
+         "Energía antigua cristalizada.",
+         "Se utiliza en canjes y crafteos de reliquias."
+      );
+   }
+
+   public ItemStack tribute(String var1) {
+      return this.named(
+         Material.EMERALD,
+         "tributo_grieta",
+         "Tributo de la Grieta",
+         NamedTextColor.AQUA,
+         1,
+         "Marca de una cacería victoriosa.",
+         "Sirve para canjes y forjas especiales."
+      );
+   }
+
+   public ItemStack compass() {
+      ItemStack var1 = this.named(
+         Material.COMPASS,
+         "tracking_compass",
+         "Brújula de Caza",
+         NamedTextColor.AQUA,
+         1,
+         "Sigue el rastro del jefe más cercano.",
+         "Actívala al seleccionarla en la hotbar."
+      );
+      var1.addUnsafeEnchantment(Enchantment.UNBREAKING, 10);
+      return var1;
+   }
+
+   public ItemStack amulet() {
+      return this.named(
+         Material.TOTEM_OF_UNDYING,
+         "amuleto_coloso",
+         "Amuleto del Coloso",
+         NamedTextColor.GOLD,
+         1,
+         "Reliquia forjada en la Grieta.",
+         "Una receta clásica con nueva energía."
+      );
+   }
+
+   public ItemStack rare(String var1) {
+      return this.rare(var1, 1);
+   }
+
+   public ItemStack rare(String var1, int var2) {
+      var2 = Math.max(1, Math.min(5, var2));
+      ItemStack var3;
+      switch (var1) {
+         case "hacha_sismica":
+            var3 = this.named(
+               Material.NETHERITE_AXE,
+               var1,
+               "Hacha Sísmica",
+               NamedTextColor.RED,
+               1,
+               "Su golpe despierta la piedra.",
+               "Arma rare de la Grieta con efecto Execute."
+            );
+            this.enchant(var3, Enchantment.EFFICIENCY, 5);
+            this.enchant(var3, Enchantment.UNBREAKING, 4);
+            this.enchant(var3, Enchantment.SHARPNESS, 5);
+            break;
+         case "espada_brezal":
+            var3 = this.named(
+               Material.NETHERITE_SWORD,
+               var1,
+               "Espada del Brezal",
+               NamedTextColor.GREEN,
+               1,
+               "Un filo envuelto en enredaderas.",
+               "Arma rare de la Grieta con efecto Veneno."
+            );
+            this.enchant(var3, Enchantment.SHARPNESS, 5);
+            this.enchant(var3, Enchantment.FIRE_ASPECT, 2);
+            this.enchant(var3, Enchantment.UNBREAKING, 4);
+            break;
+         case "lanza_magma":
+            var3 = this.named(
+               Material.TRIDENT, var1, "Lanza de Magma", NamedTextColor.GOLD, 1, "Atraviesa la tormenta ardiente.", "Arma rare de la Grieta con efecto Brasas."
+            );
+            this.enchant(var3, Enchantment.IMPALING, 5);
+            this.enchant(var3, Enchantment.LOYALTY, 3);
+            this.enchant(var3, Enchantment.UNBREAKING, 4);
+            break;
+         case "mandoble_vacio":
+            var3 = this.named(
+               Material.NETHERITE_SWORD,
+               var1,
+               "Mandoble del Vacío",
+               NamedTextColor.DARK_PURPLE,
+               1,
+               "Un filo que devora la luz.",
+               "Arma rare mítica de la Grieta con efecto Hemorragia."
+            );
+            this.enchant(var3, Enchantment.SHARPNESS, 7);
+            this.enchant(var3, Enchantment.FIRE_ASPECT, 2);
+            this.enchant(var3, Enchantment.UNBREAKING, 5);
+            this.enchant(var3, Enchantment.MENDING, 1);
+            break;
+         default:
+            var3 = this.named(
+               Material.BOW,
+               "arco_ceniciento",
+               "Arco Ceniciento",
+               NamedTextColor.GOLD,
+               1,
+               "Cada flecha dibuja una brasa.",
+               "Arma rare de la Grieta con efecto Rayo."
+            );
+            this.enchant(var3, Enchantment.POWER, 5);
+            this.enchant(var3, Enchantment.FLAME, 1);
+            this.enchant(var3, Enchantment.UNBREAKING, 3);
+      }
+
+      String var4 = this.rareTier(var1);
+      if (var4 != null) {
+         ItemMeta var11 = var3.getItemMeta();
+         ArrayList var6 = var11.lore() == null ? new ArrayList() : new ArrayList(var11.lore());
+         var6.add(Component.text("Rare especial de la Grieta", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD));
+
+         String var7 = switch (var1) {
+            case "espada_brezal" -> "veneno";
+            case "hacha_sismica" -> "execute";
+            case "arco_ceniciento" -> "calllighting";
+            case "lanza_magma" -> "brasas";
+            default -> "bleed";
+         };
+         var11.getPersistentDataContainer().set(this.rareEnchantKey, PersistentDataType.STRING, var7);
+         var11.getPersistentDataContainer().set(this.rareLevelsKey, PersistentDataType.STRING, var7 + ":" + var2);
+         var6.add(Component.text("Rare " + var7 + " • Nivel " + var2, NamedTextColor.GREEN));
+         var11.lore(var6);
+         var3.setItemMeta(var11);
+      }
+
+      return var3;
+   }
+
+   public List<String> rareIds() {
+      return List.of("espada_brezal", "hacha_sismica", "arco_ceniciento", "lanza_magma", "mandoble_vacio");
+   }
+
+   public String rareTier(String var1) {
+      return switch (var1) {
+         case "espada_brezal" -> "RARO";
+         case "hacha_sismica" -> "ÉPICO";
+         case "arco_ceniciento", "lanza_magma" -> "LEGENDARIO";
+         case "mandoble_vacio" -> "MÍTICO";
+         default -> null;
+      };
+   }
+
+   public boolean isTracker(ItemStack var1) {
+      return "tracking_compass".equals(this.customId(var1));
+   }
+
+   public String customId(ItemStack var1) {
+      return var1 != null && var1.hasItemMeta() ? (String)var1.getItemMeta().getPersistentDataContainer().get(this.itemKey, PersistentDataType.STRING) : null;
+   }
+
+   public boolean hasPrefix(Player var1, String var2, int var3) {
+      int var4 = 0;
+
+      for (ItemStack var8 : var1.getInventory().getStorageContents()) {
+         if (this.customId(var8) != null && this.customId(var8).startsWith(var2)) {
+            var4 += var8.getAmount();
+         }
+      }
+
+      return var4 >= var3;
+   }
+
+   public void consumePrefix(Player var1, String var2, int var3) {
+      for (int var4 = 0; var4 < var1.getInventory().getStorageContents().length && var3 > 0; var4++) {
+         ItemStack var5 = var1.getInventory().getItem(var4);
+         if (var5 != null && this.customId(var5) != null && this.customId(var5).startsWith(var2)) {
+            int var6 = Math.min(var3, var5.getAmount());
+            var3 -= var6;
+            var5.setAmount(var5.getAmount() - var6);
+            if (var5.getAmount() <= 0) {
+               var1.getInventory().setItem(var4, null);
+            }
+         }
+      }
+   }
+
+   public void consumeId(Player var1, String var2, int var3) {
+      this.consumePrefix(var1, var2, var3);
+   }
+
+   public ItemStack craftedArmor(String var1, int var2) {
+      BossCatalog.Definition var3 = BossCatalog.get(var1);
+      return var3 == null ? null : this.armor(var3, var2);
+   }
+
+   public ItemStack craftedWeapon(String var1, int var2) {
+      BossCatalog.Definition var3 = BossCatalog.get(var1);
+      return var3 == null ? null : this.weaponDrop(var3, var2);
+   }
+
+   public ItemStack gear(String var1, boolean var2) {
+      String var4 = var1.toLowerCase();
+
+      BossCatalog.Tier var3 = switch (var4) {
+         case "comun", "común", "common" -> BossCatalog.Tier.COMMON;
+         case "raro", "rare" -> BossCatalog.Tier.RARE;
+         case "epico", "épico", "epic" -> BossCatalog.Tier.EPIC;
+         case "legendario", "legendary" -> BossCatalog.Tier.LEGENDARY;
+         case "mitico", "mítico", "mythic" -> BossCatalog.Tier.MYTHIC;
+         case "abismal", "abyssal" -> BossCatalog.Tier.ABYSSAL;
+         default -> null;
+      };
+      if (var3 == null) {
+         return null;
+      } else {
+         BossCatalog.Definition var6 = BossCatalog.all().stream().filter(var1x -> var1x.tier() == var3 && !var1x.mini()).findFirst().orElse(null);
+         return var6 == null
+            ? null
+            : (var2 ? this.armor(var6, ThreadLocalRandom.current().nextInt(4)) : this.weaponDrop(var6, ThreadLocalRandom.current().nextInt(2)));
+      }
+   }
+
+   public int dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3) {
+      ArrayList<ItemStack> var4 = new ArrayList<>();
+      int var5 = var2.tier().ordinal();
+      ThreadLocalRandom var6 = ThreadLocalRandom.current();
+      if (var2.mini() && var2.tier() == BossCatalog.Tier.COMMON) {
+         var4.add(this.tribute(var2.name()));
+         var4.add(new ItemStack(Material.GOLDEN_APPLE, 1));
+         if (this.chance(0.22)) {
+            var4.add(this.weaponDrop(var2, var6.nextInt(2)));
+         }
+      } else {
+         var4.add(new ItemStack(Material.GOLDEN_APPLE, 1 + var6.nextInt(2)));
+         double var7 = var5;
+         if (var5 >= BossCatalog.Tier.LEGENDARY.ordinal()
+            && this.chance(var5 >= BossCatalog.Tier.ABYSSAL.ordinal() ? 0.14 : (var5 >= BossCatalog.Tier.MYTHIC.ordinal() ? 0.11 : 0.08))) {
+            var4.add(this.weaponDrop(var2, var6.nextInt(2)));
+         }
+
+         if (this.chance(Math.min(0.58, 0.18 + 0.1 * var7))) {
+            var4.add(this.rare(this.rareForBoss(var2)));
+         }
+
+         if (this.chance(Math.min(0.72, 0.28 + 0.08 * var7))) {
+            var4.add(this.fragment(1 + (var5 >= 3 && this.chance(0.45) ? 1 : 0)));
+         }
+
+         if (this.chance(Math.min(0.62, 0.24 + 0.075 * var7))) {
+            var4.add(this.tribute(var2.name()));
+         }
+
+         if (var5 >= BossCatalog.Tier.LEGENDARY.ordinal()
+            && this.chance(var5 >= BossCatalog.Tier.ABYSSAL.ordinal() ? 0.12 : (var5 >= BossCatalog.Tier.MYTHIC.ordinal() ? 0.09 : 0.06))) {
+            var4.add(this.essence());
+         }
+
+         if (var5 >= BossCatalog.Tier.LEGENDARY.ordinal()
+            && this.chance(var5 >= BossCatalog.Tier.ABYSSAL.ordinal() ? 0.04 : (var5 >= BossCatalog.Tier.MYTHIC.ordinal() ? 0.06 : 0.08))) {
+            var4.add(this.abyssalEssenceFromBoss());
+         }
+
+         if (this.chance(Math.min(0.75, 0.36 + 0.075 * var7))) {
+            var4.add(this.component(var2));
+         }
+
+         if (this.chance(Math.min(0.78, 0.3 + 0.09 * var7))) {
+            var4.add(this.riftMaterial(var6.nextInt(4)));
+         }
+
+         if (this.chance(Math.min(0.4, 0.1 + 0.065 * var7))) {
+            var4.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
+         }
+      }
+
+      if (var2.mini() && this.chance(0.04)) {
+         ItemStack var12 = this.named(
+            Material.STICK,
+            "palo_grieta_empuje_iii",
+            "Palo de Empuje III",
+            NamedTextColor.LIGHT_PURPLE,
+            1,
+            "Un golpe que aparta incluso a los rivales más pesados.",
+            "Botín poco común de los mini jefes."
+         );
+         this.enchant(var12, Enchantment.KNOCKBACK, 3);
+         var4.add(var12);
+      }
+
+      int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
+      RelicItems.DropGroup var8 = new RelicItems.DropGroup(var2.name(), var13);
+      this.dropGroups.put(var3, var8);
+
+      Particle var9 = switch (var2.tier()) {
+         case COMMON -> Particle.CRIT;
+         case RARE -> Particle.WITCH;
+         case EPIC -> Particle.ENCHANT;
+         case LEGENDARY -> Particle.FLAME;
+         case MYTHIC -> Particle.SOUL_FIRE_FLAME;
+         case ABYSSAL -> Particle.DRAGON_BREATH;
+      };
+
+      for (ItemStack var11 : var4) {
+         this.addRiftDropClassification(var11, var2.tier());
+         this.dropWithAura(var1, var11, var9, var3);
+      }
+
+      var1.getWorld().playSound(var1, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0F, 0.85F);
+      var1.getWorld().spawnParticle(Particle.FIREWORK, var1.clone().add(0.0, 1.0, 0.0), 50, 0.9, 0.8, 0.9, 0.12);
+      return var13;
+   }
+
+   private boolean chance(double var1) {
+      return ThreadLocalRandom.current().nextDouble() < var1;
+   }
+
+   private void addRiftDropClassification(ItemStack var1, BossCatalog.Tier var2) {
+      if (var1 != null && var1.hasItemMeta()) {
+         ItemMeta var3 = var1.getItemMeta();
+         ArrayList<Component> var4 = var3.lore() == null ? new ArrayList<>() : new ArrayList<>(var3.lore());
+         var4.removeIf(var0 -> {
+            String var1x = PlainTextComponentSerializer.plainText().serialize(var0);
+            return var1x.toLowerCase(Locale.ROOT).contains("clasificación:") || var1x.toLowerCase(Locale.ROOT).contains("clasificacion:");
+         });
+         var3.lore(var4);
+         var1.setItemMeta(var3);
+      }
+   }
+
+   private ItemStack riftMaterial(int var1) {
+      return switch (var1) {
+         case 0 -> this.named(
+            Material.GLOWSTONE_DUST,
+            "material_grieta_polvo",
+            "Polvo de la Grieta",
+            NamedTextColor.LIGHT_PURPLE,
+            1 + ThreadLocalRandom.current().nextInt(3),
+            "Residuo de energía dimensional.",
+            "Catalizador para crafteos de reliquias."
+         );
+         case 1 -> this.named(
+            Material.PRISMARINE_CRYSTALS,
+            "material_grieta_cristal",
+            "Cristal de la Grieta",
+            NamedTextColor.AQUA,
+            1 + ThreadLocalRandom.current().nextInt(2),
+            "Cristal cargado con energía antigua.",
+            "Componente para forjas y mejoras especiales."
+         );
+         case 2 -> this.named(
+            Material.PHANTOM_MEMBRANE,
+            "material_grieta_membrana",
+            "Membrana de la Grieta",
+            NamedTextColor.DARK_PURPLE,
+            1,
+            "Membrana flexible de energía oscura.",
+            "Ingrediente para equipo y artefactos de movilidad."
+         );
+         default -> this.named(
+            Material.BLAZE_POWDER,
+            "material_grieta_ceniza",
+            "Ceniza de la Grieta",
+            NamedTextColor.GOLD,
+            1 + ThreadLocalRandom.current().nextInt(2),
+            "Ceniza caliente que conserva su brillo.",
+            "Ingrediente para consumibles y forjas de fuego."
+         );
+      };
+   }
+
+   private String rareForBoss(BossCatalog.Definition var1) {
+      if (var1.id().equals("coloso")) {
+         return "hacha_sismica";
+      } else if (var1.id().equals("viuda")) {
+         return "espada_brezal";
+      } else if (var1.id().equals("centinela")) {
+         return "arco_ceniciento";
+      } else {
+         return switch (var1.tier()) {
+            case COMMON, RARE -> "espada_brezal";
+            case EPIC -> "hacha_sismica";
+            case LEGENDARY -> "lanza_magma";
+            case MYTHIC, ABYSSAL -> "mandoble_vacio";
+         };
+      }
+   }
+
+   private ItemStack component(BossCatalog.Definition var1) {
+      return this.named(
+         Material.ECHO_SHARD,
+         "componente_" + var1.id(),
+         "Núcleo de la Grieta",
+         var1.tier().color,
+         1,
+         "Núcleo de energía condensada.",
+         "Componente para armas y armaduras forjadas."
+      );
+   }
+
+   public ItemStack componentForRecipe() {
+      BossCatalog.Definition var1 = BossCatalog.get("coloso");
+      ItemStack var2 = this.component(var1);
+      this.addRiftDropClassification(var2, var1.tier());
+      return var2;
+   }
+
+   public ItemStack riftMaterialForRecipe(int var1) {
+      ItemStack var2 = this.riftMaterial(var1);
+      this.addRiftDropClassification(var2, BossCatalog.Tier.EPIC);
+      return var2;
+   }
+
+   public void reloadRares() {
+      this.rareConfig = YamlConfiguration.loadConfiguration(new File(this.plugin.getDataFolder(), "rares.yml"));
+      registerRecipes();
+   }
+
+   public void registerRecipes() {
+      java.util.List<NamespacedKey> stale = new java.util.ArrayList<>();
+      this.plugin.getServer().recipeIterator().forEachRemaining(r -> {
+         if (r instanceof Keyed keyed && keyed.getKey().getNamespace().equals("cazajefes")) stale.add(keyed.getKey());
+      });
+      stale.forEach(this.plugin.getServer()::removeRecipe);
+      for (String var2 : this.rareIds()) {
+         this.plugin.getServer().removeRecipe(new NamespacedKey(this.plugin, var2));
+      }
+
+      this.plugin.getServer().removeRecipe(new NamespacedKey(this.plugin, "amuleto_coloso"));
+      this.plugin.getServer().removeRecipe(new NamespacedKey(this.plugin, "amuleto_grieta"));
+      this.addRecipe(
+         "brujula_caza",
+         this.compass(),
+         new String[]{" M ", "MCM", " M "},
+         Map.of('M', new ExactChoice(this.essence()), 'C', new MaterialChoice(Material.COMPASS))
+      );
+      ExactChoice var29 = new ExactChoice(this.fragment(1));
+      ExactChoice var30 = this.exactRiftMaterial(0);
+      ExactChoice var3 = this.exactRiftMaterial(1);
+      ExactChoice var4 = this.exactRiftMaterial(2);
+      ExactChoice var5 = this.exactRiftMaterial(3);
+      this.addRecipe("esencia_rara", this.essence(), new String[]{"FPF", "PCP", "FPF"}, Map.of('F', var30, 'P', var29, 'C', this.bossCoreChoice()));
+      this.addRecipe(
+         "esencia_primordial",
+         this.primordialEssence(),
+         new String[]{"RDR", "CDC", "RDR"},
+         Map.of('R', new ExactChoice(this.essence()), 'D', this.exactRiftMaterial(0), 'C', this.bossCoreChoice())
+      );
+      this.addRecipe(
+         "esencia_abisal",
+         this.abyssalEssence(),
+         new String[]{"PTP", "TNT", "PTP"},
+         Map.of('P', new ExactChoice(this.primordialEssence()), 'T', new ExactChoice(this.tribute("Cazador")), 'N', new MaterialChoice(Material.NETHER_STAR))
+      );
+      ExactChoice var6 = this.bossCoreChoice();
+
+      for (String var8 : this.catalogIds().stream().distinct().toList()) {
+         ItemStack var9 = this.rareBook(var8, 1);
+         if (var9 != null) {
+            ExactChoice var10 = switch (this.rareCatalystVariant(var8)) {
+               case 0 -> var30;
+               case 1 -> var3;
+               case 2 -> var4;
+               default -> var5;
+            };
+            if (this.spellIds().contains(var8)) {
+               this.addRecipe(
+                  "crear_libro_rare_" + var8,
+                  var9,
+                  new String[]{"PCP", "MEM", " F "},
+                  Map.of('P', new MaterialChoice(Material.PAPER), 'C', var6, 'M', var10, 'E', new ExactChoice(this.essence()), 'F', var29)
+               );
+            } else {
+               this.addRecipe(
+                  "crear_esencia_rare_" + var8,
+                  var9,
+                  new String[]{" M ", "CEC", " F "},
+                  Map.of('M', var10, 'C', var6, 'E', new ExactChoice(this.essence()), 'F', var29)
+               );
+            }
+         }
+      }
+
+      ExactChoice var31 = this.bossCoreChoice();
+      ExactChoice var32 = this.exactRiftMaterial(0);
+      ExactChoice var33 = this.exactRiftMaterial(1);
+      ExactChoice var34 = this.exactRiftMaterial(2);
+      ExactChoice var11 = this.exactRiftMaterial(3);
+      MaterialChoice var12 = new MaterialChoice(Material.NETHERITE_INGOT);
+      MaterialChoice var13 = new MaterialChoice(Material.STICK);
+      ExactChoice var15 = new ExactChoice(this.tribute("Cazador"));
+      this.addRecipe(
+         "hacha_sismica",
+         this.rare("hacha_sismica"),
+         new String[]{"GMP", " NB", " S "},
+         Map.of('G', var32, 'M', var31, 'P', var33, 'N', var12, 'B', var11, 'S', var13)
+      );
+      this.addRecipe(
+         "espada_brezal", this.rare("espada_brezal"), new String[]{" P ", "NMB", " F "}, Map.of('P', var34, 'N', var12, 'M', var31, 'B', var11, 'F', var29)
+      );
+      this.addRecipe("arco_ceniciento", this.rare("arco_ceniciento"), new String[]{"PFB", "M B", "PFB"}, Map.of('P', var33, 'F', var29, 'B', var11, 'M', var31));
+      this.addRecipe(
+         "lanza_magma", this.rare("lanza_magma"), new String[]{" P ", "MFB", " T "}, Map.of('P', var34, 'M', var31, 'F', var29, 'B', var11, 'T', var15)
+      );
+      ExactChoice var16 = new ExactChoice(new ItemStack[]{this.abyssalEssence(), this.abyssalEssenceFromBoss()});
+      this.addRecipe(
+         "mandoble_vacio",
+         this.rare("mandoble_vacio"),
+         new String[]{"HAN", "MFM", " T "},
+         Map.of('H', var34, 'A', var16, 'N', var12, 'M', var31, 'F', var29, 'T', var15)
+      );
+      BossCatalog.Definition var17 = BossCatalog.get("warden_abismal");
+      BossCatalog.Definition var18 = BossCatalog.get("coloso");
+      BossCatalog.Definition var19 = BossCatalog.get("leviatan_ender");
+      BossCatalog.Definition var20 = BossCatalog.get("rey_brasas");
+      this.addRecipe("armadura_grieta_yelmo", this.armor(var17, 0), new String[]{"MHM", "N N", "F F"}, Map.of('M', var31, 'H', var34, 'N', var12, 'F', var29));
+      this.addRecipe("armadura_grieta_pechera", this.armor(var18, 1), new String[]{"N N", "MGM", "NPN"}, Map.of('N', var12, 'M', var31, 'G', var32, 'P', var33));
+      this.addRecipe("armadura_grieta_grebas", this.armor(var19, 2), new String[]{"NPN", "M M", "F F"}, Map.of('N', var12, 'P', var33, 'M', var31, 'F', var29));
+      this.addRecipe("armadura_grieta_botas", this.armor(var20, 3), new String[]{"P P", "M M", "B B"}, Map.of('P', var33, 'M', var31, 'B', var11));
+      ArrayList var21 = new ArrayList();
+
+      for (Material var25 : Material.values()) {
+         if (var25.name().endsWith("HELMET")
+            || var25.name().endsWith("CHESTPLATE")
+            || var25.name().endsWith("LEGGINGS")
+            || var25.name().endsWith("BOOTS")
+            || var25.name().endsWith("SWORD")
+            || var25.name().endsWith("AXE")
+            || var25.name().endsWith("PICKAXE")
+            || var25.name().endsWith("SHOVEL")
+            || var25.name().endsWith("HOE")
+            || var25 == Material.BOW
+            || var25 == Material.CROSSBOW
+            || var25 == Material.TRIDENT) {
+            var21.add(var25);
+         }
+      }
+
+      for (int var35 = 1; var35 <= 3; var35++) {
+         String var36 = var35 == 1 ? "rare_essence_attach" : "rare_essence_attach_" + var35;
+         NamespacedKey var37 = new NamespacedKey(this.plugin, var36);
+         if (this.plugin.getServer().getRecipe(var37) == null) {
+            ItemStack var38 = new ItemStack(Material.PAPER);
+            ItemMeta var26 = var38.getItemMeta();
+            var26.displayName(Component.text("Infusión de esencia", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD));
+            var26.lore(List.of(Component.text("Combina equipo con " + var35 + " esencia(s) de la misma rare.", NamedTextColor.GRAY)));
+            var38.setItemMeta(var26);
+            ShapelessRecipe var27 = new ShapelessRecipe(var37, var38);
+            var27.addIngredient(new MaterialChoice(var21));
+
+            for (int var28 = 0; var28 < var35; var28++) {
+               var27.addIngredient(Material.MAGMA_CREAM);
+            }
+
+            this.plugin.getServer().addRecipe(var27);
+         }
+      }
+   }
+
+   private int rareCatalystVariant(String var1) {
+      if (this.spellIds().contains(var1)) {
+         return 3;
+      } else if (this.enchantIds().contains(var1)
+         || List.of("fertilize", "meltobsidian", "smelt", "spore", "veinminer", "treefeller", "magneto").contains(var1)) {
+         return 0;
+      } else if (List.of("durability", "regeneration", "nofalldamage", "doublejump", "fly", "hardy", "guardian", "paso_viento", "saturacion").contains(var1)) {
+         return 2;
+      } else {
+         return var1.equals("flame") ? 3 : 1;
+      }
+   }
+
+   private void addRecipe(String var1, ItemStack var2, String[] var3, Map<Character, RecipeChoice> var4) {
+      var3 = var3.clone();
+      var4 = new HashMap<>(var4);
+      try {
+         if (!((CazaJefesPlugin)this.plugin).recipeSettings.apply(var1, var3, var4)) return;
+      } catch (IllegalArgumentException invalid) {
+         this.plugin.getLogger().warning("Receta deshabilitada: " + invalid.getMessage()); return;
+      }
+      NamespacedKey var5 = new NamespacedKey(this.plugin, var1);
+      if (this.plugin.getServer().getRecipe(var5) == null) {
+         ShapedRecipe var6 = new ShapedRecipe(var5, var2);
+         var6.shape(var3);
+         var4.forEach(var6::setIngredient);
+         this.plugin.getServer().addRecipe(var6);
+      }
+   }
+
+   private ExactChoice exactRiftMaterial(int var1) {
+      ItemStack var2 = this.riftMaterial(var1);
+      this.addRiftDropClassification(var2, BossCatalog.Tier.EPIC);
+      return new ExactChoice(var2);
+   }
+
+   private ExactChoice bossCoreChoice() {
+      ArrayList var1 = new ArrayList();
+
+      for (BossCatalog.Definition var3 : BossCatalog.all()) {
+         ItemStack var4 = this.component(var3);
+         this.addRiftDropClassification(var4, var3.tier());
+         var1.add(var4);
+      }
+
+      return new ExactChoice(var1);
+   }
+
+   private ItemStack armor(BossCatalog.Definition var1, int var2) {
+      Material var10000_1 = switch (var1.tier()) {
+         case COMMON -> {
+            switch (var2 % 4) {
+               case 1:
+                  yield Material.DIAMOND_CHESTPLATE;
+               case 2:
+                  yield Material.DIAMOND_LEGGINGS;
+               case 3:
+                  yield Material.DIAMOND_BOOTS;
+               default:
+                  yield Material.DIAMOND_HELMET;
+            }
+         }
+         case RARE -> {
+            switch (var2 % 4) {
+               case 1:
+                  yield Material.IRON_CHESTPLATE;
+               case 2:
+                  yield Material.IRON_LEGGINGS;
+               case 3:
+                  yield Material.IRON_BOOTS;
+               default:
+                  yield Material.IRON_HELMET;
+            }
+         }
+         case EPIC -> {
+            switch (var2 % 4) {
+               case 1:
+                  yield Material.DIAMOND_CHESTPLATE;
+               case 2:
+                  yield Material.DIAMOND_LEGGINGS;
+               case 3:
+                  yield Material.DIAMOND_BOOTS;
+               default:
+                  yield Material.DIAMOND_HELMET;
+            }
+         }
+         case LEGENDARY -> {
+            switch (var2 % 4) {
+               case 1:
+                  yield Material.DIAMOND_CHESTPLATE;
+               case 2:
+                  yield Material.DIAMOND_LEGGINGS;
+               case 3:
+                  yield Material.DIAMOND_BOOTS;
+               default:
+                  yield Material.DIAMOND_HELMET;
+            }
+         }
+         case MYTHIC, ABYSSAL -> {
+            switch (var2 % 4) {
+               case 1:
+                  yield Material.NETHERITE_CHESTPLATE;
+               case 2:
+                  yield Material.NETHERITE_LEGGINGS;
+               case 3:
+                  yield Material.NETHERITE_BOOTS;
+               default:
+                  yield Material.NETHERITE_HELMET;
+            }
+         }
+      };
+
+      Material var3 = var10000_1;
+
+      String var4 = switch (var2 % 4) {
+         case 1 -> "Pechera";
+         case 2 -> "Grebas";
+         case 3 -> "Botas";
+         default -> "Yelmo";
+      };
+      ItemStack var5 = this.named(
+         (Material)var3,
+         "armadura_" + var1.id() + "_" + var2,
+         var4 + " de " + var1.name(),
+         var1.tier().color,
+         1,
+         "Armadura encantada de la Grieta.",
+         "Forjada con la energía de " + var1.name() + "."
+      );
+      int var6 = 2 + var1.tier().ordinal();
+      this.enchant(var5, Enchantment.PROTECTION, var6);
+      this.enchant(var5, Enchantment.UNBREAKING, var6);
+      if (var1.tier().ordinal() >= 3) {
+         this.enchant(var5, Enchantment.MENDING, 1);
+      }
+
+      if (var1.tier().ordinal() >= BossCatalog.Tier.MYTHIC.ordinal()) {
+         this.enchant(var5, Enchantment.THORNS, 3);
+      }
+
+      String var7 = var1.id();
+      switch (var7) {
+         case "viuda":
+         case "reina_brezal":
+         case "aracnido_cristal":
+            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, Math.min(4, 1 + var1.tier().ordinal() / 2));
+            break;
+         case "centinela":
+         case "arquero_invernal":
+         case "serpiente_pillager":
+         case "cuervo_carmesi":
+         case "desollador_bogged":
+            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, 4);
+            break;
+         case "coloso":
+         case "golem_grieta":
+         case "titan_barro":
+            this.enchant(var5, Enchantment.BLAST_PROTECTION, Math.min(4, 2 + var1.tier().ordinal() / 2));
+            break;
+         case "rey_brasas":
+         case "dragon_ceniza":
+         case "guardian_abismal":
+         case "sapo_fuego":
+         case "hongo_infernal":
+            this.enchant(var5, Enchantment.FIRE_PROTECTION, 4);
+            break;
+         case "leviatan_ender":
+         case "espectro_fin":
+         case "warden_abismal":
+            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, 3);
+            break;
+         case "devorador_ecos":
+         case "liche_noche":
+         case "caballero_wither":
+         case "verdugo_necrotico":
+            this.enchant(var5, Enchantment.BLAST_PROTECTION, Math.min(4, 1 + var1.tier().ordinal()));
+            break;
+         case "anciano_coral":
+         case "ahogado_abisal":
+         case "vigia_prismarina":
+            this.enchant(var5, Enchantment.RESPIRATION, Math.min(3, 1 + var1.tier().ordinal() / 2));
+            break;
+         case "brisa_cortante":
+         case "tormenta_breeze":
+         case "murcielago_fosa":
+            this.enchant(var5, Enchantment.FEATHER_FALLING, Math.min(5, 2 + var1.tier().ordinal()));
+            break;
+         case "cazador_oxidado":
+         case "saqueador_gris":
+         case "reina_piglin":
+            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, Math.min(4, 1 + var1.tier().ordinal()));
+      }
+
+      if (var2 == 0 && var1.tier().ordinal() >= 2) {
+         this.enchant(var5, Enchantment.RESPIRATION, Math.min(3, var1.tier().ordinal()));
+      }
+
+      if (var2 == 2 && var1.tier().ordinal() >= 2) {
+         this.enchant(var5, Enchantment.SWIFT_SNEAK, Math.min(3, var1.tier().ordinal()));
+      }
+
+      int var9 = Math.floorMod(var1.id().hashCode(), 3);
+      int var10 = Math.min(3, 1 + var1.tier().ordinal() / 2);
+      if (var2 == 0) {
+         this.enchant(
+            var5, var9 == 0 ? Enchantment.AQUA_AFFINITY : (var9 == 1 ? Enchantment.PROJECTILE_PROTECTION : Enchantment.FIRE_PROTECTION), var9 == 0 ? 1 : var10
+         );
+      } else if (var2 == 1) {
+         this.enchant(
+            var5,
+            var9 == 0 ? Enchantment.THORNS : (var9 == 1 ? Enchantment.BLAST_PROTECTION : Enchantment.FIRE_PROTECTION),
+            var9 == 0 ? Math.min(3, var10) : var10
+         );
+      } else if (var2 == 2) {
+         this.enchant(
+            var5,
+            var9 == 0 ? Enchantment.SWIFT_SNEAK : (var9 == 1 ? Enchantment.PROJECTILE_PROTECTION : Enchantment.BLAST_PROTECTION),
+            var9 == 0 ? var10 : var10
+         );
+      } else {
+         this.enchant(
+            var5,
+            var9 == 0 ? Enchantment.SOUL_SPEED : (var9 == 1 ? Enchantment.DEPTH_STRIDER : Enchantment.FROST_WALKER),
+            var9 == 0 ? var10 : Math.min(2, var10)
+         );
+      }
+
+      if (var3 == Material.NETHERITE_BOOTS || var3 == Material.DIAMOND_BOOTS || var3 == Material.IRON_BOOTS || var3 == Material.CHAINMAIL_BOOTS) {
+         this.enchant(var5, Enchantment.FEATHER_FALLING, var6);
+      }
+
+      return var5;
+   }
+
+   private ItemStack weaponDrop(BossCatalog.Definition var1, int var2) {
+      Material var3 = switch (var1.tier()) {
+         case COMMON -> var2 % 2 == 0 ? Material.DIAMOND_SWORD : Material.DIAMOND_AXE;
+         case RARE -> var2 % 2 == 0 ? Material.DIAMOND_SWORD : Material.DIAMOND_AXE;
+         case EPIC -> var2 % 2 == 0 ? Material.DIAMOND_SWORD : Material.DIAMOND_AXE;
+         case LEGENDARY, MYTHIC, ABYSSAL -> var2 % 2 == 0 ? Material.NETHERITE_SWORD : Material.NETHERITE_AXE;
+      };
+      String var4 = var3.name().endsWith("AXE") ? "Hacha" : "Espada";
+      ItemStack var5 = this.named(
+         var3,
+         "arma_" + var1.id() + "_" + var2,
+         var4 + " de la Grieta",
+         var1.tier().color,
+         1,
+         "Arma encantada de la Grieta.",
+         "Reliquia de combate con encantamientos de cazador."
+      );
+      int var6 = 2 + var1.tier().ordinal();
+      this.enchant(var5, Enchantment.SHARPNESS, var6);
+      this.enchant(var5, Enchantment.UNBREAKING, var6);
+      if (var1.tier().ordinal() >= 2) {
+         this.enchant(var5, Enchantment.FIRE_ASPECT, Math.min(2, 1 + var1.tier().ordinal() - 2));
+      }
+
+      if (var1.tier().ordinal() >= 3) {
+         this.enchant(var5, Enchantment.MENDING, 1);
+      }
+
+      if (var1.id().contains("wither") || var1.id().contains("liche")) {
+         this.enchant(var5, Enchantment.LOOTING, 3);
+      }
+
+      if (var1.id().contains("coloso") || var1.id().contains("golem") || var1.id().contains("titan")) {
+         this.enchant(var5, Enchantment.KNOCKBACK, 2);
+      }
+
+      if (var1.id().contains("viuda") || var1.id().contains("aracnido") || var1.id().contains("reina")) {
+         this.enchant(var5, Enchantment.SWEEPING_EDGE, 3);
+      }
+
+      return var5;
+   }
+
+   private void enchant(ItemStack var1, Enchantment var2, int var3) {
+      var1.addUnsafeEnchantment(var2, var3);
+   }
+
+   private ItemStack named(Material var1, String var2, String var3, NamedTextColor var4, int var5, String... var6) {
+      ItemStack var7 = new ItemStack(var1, Math.max(1, Math.min(64, var5)));
+      ItemMeta var8 = var7.getItemMeta();
+      var8.displayName(((TextComponent)Component.text(var3, var4).decorate(TextDecoration.BOLD)).decoration(TextDecoration.ITALIC, false));
+      ArrayList var9 = new ArrayList();
+
+      for (int var10 = 0; var10 < var6.length; var10++) {
+         Component var11 = Component.text(var6[var10], var10 % 2 == 0 ? var4 : NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false);
+         var9.add(var11);
+      }
+
+      var8.lore(var9);
+      var8.getPersistentDataContainer().set(this.itemKey, PersistentDataType.STRING, var2);
+      var7.setItemMeta(var8);
+      return var7;
+   }
+
+   private void dropWithAura(final Location var1, ItemStack var2, final Particle var3, UUID var4) {
+      final Item var5 = var1.getWorld().dropItem(var1.clone().add(0.5, 0.7, 0.5), var2);
+      var5.getPersistentDataContainer().set(this.dropEncounterKey, PersistentDataType.STRING, var4.toString());
+      var5.setPickupDelay(35);
+      var5.setGravity(false);
+      var5.setVelocity(new Vector(ThreadLocalRandom.current().nextDouble(-0.13, 0.13), 0.035, ThreadLocalRandom.current().nextDouble(-0.13, 0.13)));
+      var5.setGlowing(true);
+      final BukkitTask[] var6 = new BukkitTask[1];
+      var6[0] = this.plugin.getServer().getScheduler().runTaskTimer(this.plugin, new Runnable() {
+         int ticks;
+
+         @Override
+         public void run() {
+            if (var5.isValid() && !var5.isDead() && this.ticks++ <= 70) {
+               if (this.ticks == 12) {
+                  var5.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var5.getLocation(), 14, 0.25, 0.25, 0.25, 0.08);
+               }
+
+               if (this.ticks == 22) {
+                  var5.setGravity(true);
+                  var5.setVelocity(new Vector(var5.getVelocity().getX(), -0.22, var5.getVelocity().getZ()));
+               }
+
+               Location var1x = var5.getLocation().add(0.0, 0.25, 0.0);
+               double var2x = this.ticks * 0.36;
+
+               for (int var4x = 0; var4x < 6; var4x++) {
+                  double var5x = var2x + var4x * Math.PI / 3.0;
+                  var1.getWorld().spawnParticle(var3, var1x.clone().add(Math.cos(var5x) * 0.48, var4x * 0.025, Math.sin(var5x) * 0.48), 1, 0.0, 0.0, 0.0, 0.0);
+               }
+
+               if (this.ticks == 4 || this.ticks == 22 || this.ticks == 46) {
+                  var1.getWorld().spawnParticle(Particle.FIREWORK, var1x, 12, 0.25, 0.3, 0.25, 0.08);
+               }
+            } else {
+               var6[0].cancel();
+            }
+         }
+      }, 1L, 2L);
+   }
+
+   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+   public void onLootPickup(EntityPickupItemEvent var1) {
+      if (var1.getEntity() instanceof Player var2) {
+         String var9 = (String)var1.getItem().getPersistentDataContainer().get(this.dropEncounterKey, PersistentDataType.STRING);
+         if (var9 != null) {
+            UUID var4;
+            try {
+               var4 = UUID.fromString(var9);
+            } catch (IllegalArgumentException var8) {
+               return;
+            }
+
+            RelicItems.DropGroup var5 = this.dropGroups.get(var4);
+            if (var5 != null) {
+               var5.remaining = Math.max(0, var5.remaining - var1.getItem().getItemStack().getAmount());
+               ItemMeta var6 = var1.getItem().getItemStack().getItemMeta();
+               Object var7 = var6.displayName() == null ? Component.text(var1.getItem().getItemStack().getType().name()) : var6.displayName();
+               this.plugin
+                  .getServer()
+                  .broadcast(
+                     ((TextComponent)Component.text(var2.getName() + " recogió ", NamedTextColor.AQUA).append((Component)var7))
+                        .append(Component.text(" de " + var5.bossName + " • quedan " + var5.remaining + " objetos", NamedTextColor.GRAY))
+                  );
+               if (var5.remaining == 0) {
+                  this.dropGroups.remove(var4);
+               }
+            }
+         }
+      }
+   }
+
+   private static final class DropGroup {
+      private final String bossName;
+      private int remaining;
+
+      private DropGroup(String var1, int var2) {
+         this.bossName = var1;
+         this.remaining = var2;
+      }
+   }
+}
+

@@ -1,0 +1,19 @@
+package dev.cazajefes;
+
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class BossCatalogTest {
+    @Test public void retainsCatalogAndAliases() {
+        assertEquals(62,BossCatalog.all().size());
+        assertEquals(10,BossCatalog.all().stream().filter(BossCatalog.Definition::mini).count());
+        assertEquals("volcano",BossCatalog.get("sniffer_tanque").id());
+        assertEquals("warden_abismal",BossCatalog.get("dragon_grieta").id());
+    }
+    @Test public void idsAreUniqueAndNewNamesRetainIds() {
+        assertEquals(62,BossCatalog.ids().stream().distinct().count());
+        assertTrue(BossCatalog.get("coloso").name().startsWith("Gorath"));
+        assertNull(BossCatalog.get("no_existe"));
+        assertNull(BossCatalog.get(null));
+    }
+}
