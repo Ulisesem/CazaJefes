@@ -17,6 +17,8 @@ active-eggs: []
 
 # Target acquisition: 24 blocks + line of sight; phase thresholds: 65% / 30%.
 combat:
+  # Creative damage/loot tests require cazajefes.admin; survival targeting is unchanged.
+  allow-creative-admin-tests: true
   leash-radius: 48
   special-cooldown-seconds: 15
   loot-credit-seconds: 120

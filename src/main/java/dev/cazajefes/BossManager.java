@@ -367,14 +367,12 @@ public final class BossManager implements Listener {
          HashSet<Player> var7 = new HashSet<>();
 
          for (Player var9 : var2.getWorld().getPlayers()) {
-            if (!CombatGuard.eligible(var9)) continue;
             if (var9.getLocation().distanceSquared(var2.getLocation()) <= 4096.0) {
                var7.add(var9);
             }
          }
 
          for (Player var12 : new HashSet<Player>(var4.getPlayers())) {
-            if (!CombatGuard.eligible(var12)) continue;
             if (!var7.contains(var12)) {
                var12.sendExperienceChange(var12.getExp(), var12.getLevel());
                var4.removePlayer(var12);
@@ -382,7 +380,6 @@ public final class BossManager implements Listener {
          }
 
          for (Player var13 : var7) {
-            if (!CombatGuard.eligible(var13)) continue;
             if (!var4.getPlayers().contains(var13)) {
                var4.addPlayer(var13);
             }
@@ -403,7 +400,6 @@ public final class BossManager implements Listener {
       BossBar var3 = this.healthBars.remove(var1);
       if (var3 != null) {
          for (Player var5 : var3.getPlayers()) {
-            if (!CombatGuard.eligible(var5)) continue;
             var5.sendExperienceChange(var5.getExp(), var5.getLevel());
          }
 
@@ -447,7 +443,7 @@ public final class BossManager implements Listener {
          if (var2 != null) {
             var1.setCancelled(true);
             Player var3 = var1.getPlayer();
-            if (!var3.hasPermission("rareitemhunter.hunter.hatch") || !CombatGuard.eligible(var3)) return;
+            if (!var3.hasPermission("rareitemhunter.hunter.hatch") || !((CazaJefesPlugin)plugin).guard.canAttackBoss(var3)) return;
             this.eggsByBlock.remove(this.key(var2.location));
             this.encounters.remove(var2.id);
             this.stopEggEffects(var2.id);

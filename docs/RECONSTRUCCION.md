@@ -1,3 +1,5 @@
+> Informe histórico de la base 1.0.0. Los cambios y la validación de 1.0.1 están en CORRECCIONES-1.0.1.md y validation/. Evidencia anterior: validation-1.0.0/.
+
 # Reconstrucción y validación
 
 Fecha: 24 de octubre de 2026. Destino: Paper 1.21.11, Java 21.
