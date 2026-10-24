@@ -1,0 +1,51 @@
+name: CazaJefes
+version: '0.9.7'
+main: dev.cazajefes.CazaJefesPlugin
+api-version: '1.21'
+description: Jefes grandes con ataques especiales, botín y recetas.
+authors: [CazaJefes]
+commands:
+  ri:
+    description: Caza jefes, rastrea sus huevos y forja reliquias.
+    usage: /ri <help|egg|boss|compass|essence|book|fragment|tribute|rare>
+    aliases: [cazajefes]
+permissions:
+  cazajefes.admin:
+    description: Permite invocar jefes de CazaJefes.
+    default: op
+  rareitemhunter.admin.*:
+    description: Acceso administrativo compatible con RareItemHunter.
+    default: op
+    children:
+      rareitemhunter.admin.spawnpoint: true
+      rareitemhunter.admin.egg: true
+      rareitemhunter.admin.boss: true
+      rareitemhunter.admin.compass: true
+      rareitemhunter.admin.essence: true
+      rareitemhunter.admin.reload: true
+  rareitemhunter.admin.spawnpoint:
+    default: op
+  rareitemhunter.admin.egg:
+    default: op
+  rareitemhunter.admin.boss:
+    default: op
+  rareitemhunter.admin.compass:
+    default: op
+  rareitemhunter.admin.essence:
+    default: op
+  rareitemhunter.admin.reload:
+    default: op
+  rareitemhunter.admin.notify:
+    default: op
+  rareitemhunter.hunter.compass:
+    default: true
+  rareitemhunter.hunter.*:
+    default: true
+    children:
+      rareitemhunter.hunter.compass: true
+      rareitemhunter.hunter.hatch: true
+      rareitemhunter.hunter.craft: true
+  rareitemhunter.hunter.hatch:
+    default: true
+  rareitemhunter.hunter.craft:
+    default: true

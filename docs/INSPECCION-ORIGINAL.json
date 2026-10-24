@@ -1,0 +1,135 @@
+{
+  "filename": "CazaJefes-0.9.7(1).jar",
+  "sha256": "73652939e0029b7fca64b30540bcde01569f4854b79316af392cb18500e95a29",
+  "bytes": 123807,
+  "crc": "OK",
+  "classes": [
+    {
+      "class": "dev/cazajefes/BossCatalog$Definition.class",
+      "major": 65,
+      "size": 2088
+    },
+    {
+      "class": "dev/cazajefes/BossCatalog$Tier.class",
+      "major": 65,
+      "size": 2251
+    },
+    {
+      "class": "dev/cazajefes/BossCatalog.class",
+      "major": 65,
+      "size": 9986
+    },
+    {
+      "class": "dev/cazajefes/BossManager$1.class",
+      "major": 65,
+      "size": 5694
+    },
+    {
+      "class": "dev/cazajefes/BossManager$2.class",
+      "major": 65,
+      "size": 2018
+    },
+    {
+      "class": "dev/cazajefes/BossManager$3.class",
+      "major": 65,
+      "size": 2246
+    },
+    {
+      "class": "dev/cazajefes/BossManager$BossAttackTask$1.class",
+      "major": 65,
+      "size": 3978
+    },
+    {
+      "class": "dev/cazajefes/BossManager$BossAttackTask.class",
+      "major": 65,
+      "size": 24236
+    },
+    {
+      "class": "dev/cazajefes/BossManager$Encounter.class",
+      "major": 65,
+      "size": 1100
+    },
+    {
+      "class": "dev/cazajefes/BossManager$TrackedEncounter.class",
+      "major": 65,
+      "size": 2411
+    },
+    {
+      "class": "dev/cazajefes/BossManager.class",
+      "major": 65,
+      "size": 29462
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesCommand$1.class",
+      "major": 65,
+      "size": 2582
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesCommand$GearTierSpec.class",
+      "major": 65,
+      "size": 2041
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesCommand$MenuHolder.class",
+      "major": 65,
+      "size": 1348
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesCommand$TradeOffer.class",
+      "major": 65,
+      "size": 2098
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesCommand$VisualRecipe.class",
+      "major": 65,
+      "size": 2483
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesCommand.class",
+      "major": 65,
+      "size": 66609
+    },
+    {
+      "class": "dev/cazajefes/CazaJefesPlugin.class",
+      "major": 65,
+      "size": 2184
+    },
+    {
+      "class": "dev/cazajefes/HuntTracker$Session.class",
+      "major": 65,
+      "size": 1698
+    },
+    {
+      "class": "dev/cazajefes/HuntTracker.class",
+      "major": 65,
+      "size": 10867
+    },
+    {
+      "class": "dev/cazajefes/RelicItems$1.class",
+      "major": 65,
+      "size": 2251
+    },
+    {
+      "class": "dev/cazajefes/RelicItems$2.class",
+      "major": 65,
+      "size": 1462
+    },
+    {
+      "class": "dev/cazajefes/RelicItems$DropGroup.class",
+      "major": 65,
+      "size": 429
+    },
+    {
+      "class": "dev/cazajefes/RelicItems.class",
+      "major": 65,
+      "size": 63846
+    }
+  ],
+  "resources": [
+    "config.yml",
+    "plugin.yml",
+    "rares.yml",
+    "META-INF/maven/dev.cazajefes/cazajefes/pom.xml",
+    "META-INF/maven/dev.cazajefes/cazajefes/pom.properties"
+  ]
+}

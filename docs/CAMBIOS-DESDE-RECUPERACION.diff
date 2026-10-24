@@ -1,0 +1,1110 @@
+--- recovered-0.9.7/BossCatalog.java
++++ 1.0.0/BossCatalog.java
+@@ -18,7 +18,7 @@
+       if (var0 == null) {
+          return null;
+       } else {
+-         String var1 = var0.toLowerCase();
++         String var1 = var0.toLowerCase(java.util.Locale.ROOT);
+          if (var1.equals("sniffer_tanque")) {
+             var1 = "volcano";
+          }
+@@ -45,19 +45,19 @@
+ 
+    private static Map<String, BossCatalog.Definition> build() {
+       LinkedHashMap var0 = new LinkedHashMap();
+-      ArrayList var1 = new ArrayList();
+-      add(var1, "coloso", "Coloso de la Grieta", BossCatalog.Tier.LEGENDARY, EntityType.ZOMBIE, false);
+-      add(var1, "viuda", "Viuda del Brezal", BossCatalog.Tier.EPIC, EntityType.SPIDER, false);
+-      add(var1, "centinela", "Centinela de Ceniza", BossCatalog.Tier.RARE, EntityType.SKELETON, false);
+-      add(var1, "reina_abeja", "Reina Abeja", BossCatalog.Tier.COMMON, EntityType.BEE, true);
+-      add(var1, "zorro_salvaje", "Zorro Salvaje", BossCatalog.Tier.COMMON, EntityType.FOX, true);
+-      add(var1, "jabali_infernal", "Jabalí Infernal", BossCatalog.Tier.COMMON, EntityType.HOGLIN, true);
+-      add(var1, "volcano", "Volcano", BossCatalog.Tier.COMMON, EntityType.SNIFFER, true);
+-      add(var1, "oso_tundra", "Oso de la Tundra", BossCatalog.Tier.COMMON, EntityType.POLAR_BEAR, true);
+-      add(var1, "lobo_ceniza", "Lobo de Ceniza", BossCatalog.Tier.COMMON, EntityType.WOLF, true);
+-      add(var1, "cabra_quebrada", "Cabra Quebrantacumbres", BossCatalog.Tier.COMMON, EntityType.GOAT, true);
+-      add(var1, "tortuga_baluarte", "Tortuga Baluarte", BossCatalog.Tier.COMMON, EntityType.TURTLE, true);
+-      add(var1, "llama_saqueadora", "Llama Saqueadora", BossCatalog.Tier.COMMON, EntityType.LLAMA, true);
++      ArrayList<Definition> var1 = new ArrayList<>();
++      add(var1, "coloso", "Gorath, Quebrantador de Mundos", BossCatalog.Tier.LEGENDARY, EntityType.ZOMBIE, false);
++      add(var1, "viuda", "Nyxara, Tejedora del Ocaso", BossCatalog.Tier.EPIC, EntityType.SPIDER, false);
++      add(var1, "centinela", "Varkhos, Vigía de las Cenizas", BossCatalog.Tier.RARE, EntityType.SKELETON, false);
++      add(var1, "reina_abeja", "Melisara, Emperatriz del Enjambre", BossCatalog.Tier.COMMON, EntityType.BEE, true);
++      add(var1, "zorro_salvaje", "Kitsar, Acechador Carmesí", BossCatalog.Tier.COMMON, EntityType.FOX, true);
++      add(var1, "jabali_infernal", "Brakk, Colmillo del Averno", BossCatalog.Tier.COMMON, EntityType.HOGLIN, true);
++      add(var1, "volcano", "Volkar, Corazón del Cataclismo", BossCatalog.Tier.COMMON, EntityType.SNIFFER, true);
++      add(var1, "oso_tundra", "Boreon, Garra de la Ventisca", BossCatalog.Tier.COMMON, EntityType.POLAR_BEAR, true);
++      add(var1, "lobo_ceniza", "Fenrak, Aullido de Ceniza", BossCatalog.Tier.COMMON, EntityType.WOLF, true);
++      add(var1, "cabra_quebrada", "Kragnar, Rompecumbres", BossCatalog.Tier.COMMON, EntityType.GOAT, true);
++      add(var1, "tortuga_baluarte", "Aegora, Bastión Viviente", BossCatalog.Tier.COMMON, EntityType.TURTLE, true);
++      add(var1, "llama_saqueadora", "Zalira, Saqueadora del Yermo", BossCatalog.Tier.COMMON, EntityType.LLAMA, true);
+       add(var1, "corredor_sepulcral", "Corredor Sepulcral", BossCatalog.Tier.RARE, EntityType.ZOMBIE, false);
+       add(var1, "hueso_viejo", "Hueso Viejo", BossCatalog.Tier.RARE, EntityType.SKELETON, false);
+       add(var1, "aranhuelo", "Arañuelo de Cueva", BossCatalog.Tier.EPIC, EntityType.CAVE_SPIDER, false);
+@@ -156,3 +156,4 @@
+       }
+    }
+ }
++
+--- recovered-0.9.7/BossManager.java
++++ 1.0.0/BossManager.java
+@@ -9,6 +9,7 @@
+ import java.util.Set;
+ import java.util.UUID;
+ import net.kyori.adventure.text.Component;
++import net.kyori.adventure.text.format.NamedTextColor;
+ import net.kyori.adventure.text.TextComponent;
+ import net.kyori.adventure.text.format.TextDecoration;
+ import net.kyori.adventure.title.Title;
+@@ -180,12 +181,12 @@
+       BossCatalog.Definition var3 = BossCatalog.get(var1);
+       if (var3 != null && var2.getWorld() != null) {
+          Block var4 = var2.getBlock();
+-         if (!var4.isEmpty() && var4.getType() != Material.DRAGON_EGG) {
++         if (!var4.isEmpty() || this.eggsByBlock.containsKey(this.key(var2))) {
+             return false;
+          } else {
+             Block var5 = var4.getRelative(BlockFace.DOWN);
+             String var6 = var5.getBlockData().getAsString();
+-            var5.setType(Material.BEDROCK, false);
++            // Preserve support blocks and their container contents; no bedrock substitution.
+             var4.setType(Material.DRAGON_EGG, false);
+             UUID var7 = UUID.randomUUID();
+             BossManager.Encounter var8 = new BossManager.Encounter(var7, var3, var4.getLocation(), null, "", var6);
+@@ -286,6 +287,9 @@
+             var12 = 26.0;
+          }
+ 
++         var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var1 + ".scale", var8)));
++         var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var1 + ".health", var10)));
++         var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var1 + ".damage", var12)));
+          this.setAttribute(var5, Attribute.MAX_HEALTH, var10);
+          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
+          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));
+@@ -328,7 +332,7 @@
+             var6.setAware(true);
+          }
+ 
+-         long var9 = 10L;
++         long var9 = Math.max(5L, Math.min(100L, var4));
+          this.attacks
+             .put(
+                var1,
+@@ -360,15 +364,17 @@
+          double var5 = Math.max(1.0, var2.getAttribute(Attribute.MAX_HEALTH).getValue());
+          var4.setProgress(Math.max(0.0, Math.min(1.0, var2.getHealth() / var5)));
+          var4.setTitle(var3.name() + "  " + (int)Math.ceil(var2.getHealth()) + " / " + (int)var5 + " HP");
+-         HashSet var7 = new HashSet();
++         HashSet<Player> var7 = new HashSet<>();
+ 
+          for (Player var9 : var2.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var9)) continue;
+             if (var9.getLocation().distanceSquared(var2.getLocation()) <= 4096.0) {
+                var7.add(var9);
+             }
+          }
+ 
+-         for (Player var12 : new HashSet(var4.getPlayers())) {
++         for (Player var12 : new HashSet<Player>(var4.getPlayers())) {
++            if (!CombatGuard.eligible(var12)) continue;
+             if (!var7.contains(var12)) {
+                var12.sendExperienceChange(var12.getExp(), var12.getLevel());
+                var4.removePlayer(var12);
+@@ -376,6 +382,7 @@
+          }
+ 
+          for (Player var13 : var7) {
++            if (!CombatGuard.eligible(var13)) continue;
+             if (!var4.getPlayers().contains(var13)) {
+                var4.addPlayer(var13);
+             }
+@@ -396,6 +403,7 @@
+       BossBar var3 = this.healthBars.remove(var1);
+       if (var3 != null) {
+          for (Player var5 : var3.getPlayers()) {
++            if (!CombatGuard.eligible(var5)) continue;
+             var5.sendExperienceChange(var5.getExp(), var5.getLevel());
+          }
+ 
+@@ -432,13 +440,14 @@
+       return var1;
+    }
+ 
+-   @EventHandler
++   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEggInteract(PlayerInteractEvent var1) {
+       if (var1.getAction() == Action.RIGHT_CLICK_BLOCK && var1.getClickedBlock() != null) {
+          BossManager.Encounter var2 = this.eggsByBlock.get(this.key(var1.getClickedBlock().getLocation()));
+          if (var2 != null) {
+             var1.setCancelled(true);
+             Player var3 = var1.getPlayer();
++            if (!var3.hasPermission("rareitemhunter.hunter.hatch") || !CombatGuard.eligible(var3)) return;
+             this.eggsByBlock.remove(this.key(var2.location));
+             this.encounters.remove(var2.id);
+             this.stopEggEffects(var2.id);
+@@ -592,7 +601,7 @@
+       }
+    }
+ 
+-   @EventHandler
++   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBossLethalDamage(EntityDamageEvent var1) {
+       if (var1.getEntity() instanceof LivingEntity var2) {
+          PersistentDataContainer var14 = var2.getPersistentDataContainer();
+@@ -608,6 +617,7 @@
+                if (this.deathSequences.containsKey(var4)) {
+                   var1.setCancelled(true);
+                } else if (!(var2.getHealth() - var1.getFinalDamage() > 0.0)) {
++                  if (var1 instanceof EntityDamageByEntityEvent hit) ((CazaJefesPlugin)plugin).guard.record(hit);
+                   var1.setCancelled(true);
+                   var2.setHealth(1.0);
+                   BukkitTask var5 = this.attacks.remove(var4);
+@@ -623,12 +633,10 @@
+                   final Location var15 = var2.getLocation().clone();
+                   final double var7 = Math.min(15.0, Math.max(0.5, var2.getWorld().getMaxHeight() - var15.getY() - 1.5));
+                   BossManager.Encounter var9 = this.encounters.get(var4);
+-                  final BossCatalog.Definition var10 = var9 == null
++                  BossCatalog.Definition recoveredDefinition = var9 == null
+                      ? BossCatalog.get((String)var14.get(this.typeKey, PersistentDataType.STRING))
+                      : var9.definition;
+-                  if (var10 == null) {
+-                     var10 = BossCatalog.get("coloso");
+-                  }
++                  final BossCatalog.Definition var10 = recoveredDefinition == null ? BossCatalog.get("coloso") : recoveredDefinition;
+ 
+                   var2.getWorld().playSound(var15, Sound.ENTITY_WARDEN_SONIC_BOOM, 1.1F, 0.55F);
+                   var2.getWorld().spawnParticle(Particle.REVERSE_PORTAL, var15.clone().add(0.0, 1.0, 0.0), 55, 0.8, 1.0, 0.8, 0.12);
+@@ -674,6 +682,7 @@
+                                     double var6 = 8.0 + var10.tier().ordinal() * 4.0;
+ 
+                                     for (Player var9x : var15.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var9x)) continue;
+                                        if (!(var9x.getLocation().distanceSquared(var15) > var2x * var2x)) {
+                                           var9x.getWorld().strikeLightningEffect(var9x.getLocation());
+                                           var9x.damage(var4x + var6, var2);
+@@ -775,7 +784,10 @@
+             var8 = "un aventurero";
+          }
+ 
+-         int var9 = this.relicItems.dropBossLoot(var2.getLocation(), var7, var4);
++         NamespacedKey paid = new NamespacedKey(plugin,"loot_paid");
++         if (var3.has(paid, PersistentDataType.BYTE)) return;
++         var3.set(paid, PersistentDataType.BYTE,(byte)1);
++         int var9 = ((CazaJefesPlugin)plugin).guard.canDrop(var2) ? this.relicItems.dropBossLoot(var2.getLocation(), var7, var4) : 0;
+          this.plugin
+             .getServer()
+             .broadcast(Component.text(var8 + " derrotó a " + var7.name() + " y dejó " + var9 + " objetos.", var7.tier().color).decorate(TextDecoration.BOLD));
+@@ -889,20 +901,11 @@
+       }
+    }
+ 
+-   private void restoreSupport(BossManager.Encounter var1) {
+-      if (var1.location.getWorld() != null && var1.supportData != null) {
+-         Block var2 = var1.location.getBlock().getRelative(BlockFace.DOWN);
+-         if (var2.getType() == Material.BEDROCK) {
+-            try {
+-               var2.setBlockData(Bukkit.createBlockData(var1.supportData), false);
+-            } catch (IllegalArgumentException var4) {
+-               var2.setType(Material.AIR, false);
+-            }
+-         }
+-      }
+-   }
+-
+-   @EventHandler
++   private void restoreSupport(BossManager.Encounter encounter) {
++      // Support blocks are left intact in 1.0.0, including inventories and tile data.
++   }
++
++   @EventHandler(ignoreCancelled = true)
+    public void onEggBreak(BlockBreakEvent var1) {
+       BossManager.Encounter var2 = this.eggsByBlock.remove(this.key(var1.getBlock().getLocation()));
+       if (var2 != null) {
+@@ -912,6 +915,8 @@
+          this.saveEggs();
+       }
+    }
++
++   public boolean isEggBlock(org.bukkit.block.Block block) { return eggsByBlock.containsKey(key(block.getLocation())); }
+ 
+    public void stopAllAttacks() {
+       this.attacks.values().forEach(BukkitTask::cancel);
+@@ -929,6 +934,8 @@
+       private int attacks;
+       private int specialRotation;
+       private long nextSpecialAt;
++      private int phase = 1;
++      private final Location anchor;
+       private final Map<UUID, Long> meleeCooldowns = new HashMap<>();
+       private final Map<UUID, Long> hotbarCooldowns = new HashMap<>();
+ 
+@@ -937,11 +944,21 @@
+          this.boss = var2;
+          this.definition = var3;
+          this.minionKey = var4;
++         this.anchor = var2.getLocation().clone();
+       }
+ 
+       @Override
+       public void run() {
+          if (this.boss.isValid() && !this.boss.isDead()) {
++            if (this.boss.isInvulnerable()) return;
++            double leash = Math.max(16, Math.min(128, plugin.getConfig().getDouble("combat.leash-radius", 48)));
++            if (this.boss.getLocation().distanceSquared(anchor) > leash * leash) {
++               this.boss.teleport(anchor);
++               this.boss.setHealth(this.boss.getAttribute(Attribute.MAX_HEALTH).getValue());
++               phase = 1;
++               ((CazaJefesPlugin)plugin).guard.clearCredit(boss);
++               return;
++            }
+             PotionEffect var1 = this.boss.getPotionEffect(PotionEffectType.SPEED);
+             if (var1 == null || var1.getAmplifier() < 4 || var1.getDuration() < 40) {
+                this.boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 4, true, false));
+@@ -951,6 +968,7 @@
+                .getWorld()
+                .getPlayers()
+                .stream()
++               .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(boss.getLocation()) <= 576 && boss.hasLineOfSight(p))
+                .min(
+                   (var1x, var2x) -> Double.compare(
+                      var1x.getLocation().distanceSquared(this.boss.getLocation()), var2x.getLocation().distanceSquared(this.boss.getLocation())
+@@ -958,11 +976,19 @@
+                )
+                .orElse(null);
+             if (var2 != null) {
++               double ratio = boss.getHealth() / boss.getAttribute(Attribute.MAX_HEALTH).getValue();
++               int nextPhase = ratio <= 0.30 ? 3 : ratio <= 0.65 ? 2 : 1;
++               if (nextPhase > phase) {
++                  phase = nextPhase;
++                  boss.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 200, phase - 2));
++                  summonMinions(var2);
++                  var2.sendMessage(Component.text(definition.name() + " · Fase " + phase + (phase == 3 ? " · Furia del Eclipse" : " · Ruptura de la Grieta"), definition.tier().color));
++               }
+                long var3 = System.currentTimeMillis();
+                if (this.definition.id().equals("zorro_salvaje") && this.huntSpawnedSheep()) {
+                   if (var3 >= this.nextSpecialAt) {
+                      this.miniSpecial(var2, this.specialRotation++ % 5);
+-                     this.nextSpecialAt = var3 + 15000L;
++                     this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
+                   }
+                } else {
+                   if (this.boss instanceof Mob var5) {
+@@ -975,14 +1001,14 @@
+                      this.attackNearby(var2);
+                      if (var3 >= this.nextSpecialAt) {
+                         this.miniSpecial(var2, this.specialRotation++ % 5);
+-                        this.nextSpecialAt = var3 + 15000L;
++                        this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
+                      }
+                   } else {
+                      this.pursue(var2);
+                      this.attacks++;
+                      if (var3 >= this.nextSpecialAt) {
+                         this.miniSpecial(var2, this.specialRotation++ % 5);
+-                        this.nextSpecialAt = var3 + 15000L;
++                        this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
+                      }
+ 
+                      if (this.attacks % 300 == 0) {
+@@ -1083,7 +1109,18 @@
+          }
+       }
+ 
+-      private void miniSpecial(Player var1, int var2) {
++      private void miniSpecial(Player target, int rotation) {
++         target.sendActionBar(Component.text("¡" + definition.name() + " prepara su ataque! · Aléjate", NamedTextColor.RED));
++         Location warning = target.getLocation().clone();
++         boss.getWorld().spawnParticle(Particle.FLAME, warning, 24, 0.8, 0.1, 0.8, 0);
++         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
++            if (boss.isValid() && !boss.isDead() && !boss.isInvulnerable() && CombatGuard.eligible(target)
++                && target.getWorld().equals(boss.getWorld()) && target.getLocation().distanceSquared(boss.getLocation()) <= 576
++                && target.getLocation().distanceSquared(warning) <= 9 && boss.hasLineOfSight(target)) executeSpecial(target, rotation);
++         }, 20L);
++      }
++
++      private void executeSpecial(Player var1, int var2) {
+          switch (var2) {
+             case 0:
+                this.shockwave(var1);
+@@ -1117,6 +1154,7 @@
+          double var4 = this.definition.mini() ? 5.0 : 8.0;
+ 
+          for (Player var7 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var7)) continue;
+             if (var7.getLocation().distanceSquared(var2) <= var4 * var4) {
+                var7.damage(Math.max(3.0, this.definition.tier().damage * 0.16), this.boss);
+                this.debuff(var7);
+@@ -1140,6 +1178,15 @@
+             for (int var16 = 0; var16 < 3; var16++) {
+                this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                   if (this.boss.isValid() && !this.boss.isDead()) {
++            if (this.boss.isInvulnerable()) return;
++            double leash = Math.max(16, Math.min(128, plugin.getConfig().getDouble("combat.leash-radius", 48)));
++            if (this.boss.getLocation().distanceSquared(anchor) > leash * leash) {
++               this.boss.teleport(anchor);
++               this.boss.setHealth(this.boss.getAttribute(Attribute.MAX_HEALTH).getValue());
++               phase = 1;
++               ((CazaJefesPlugin)plugin).guard.clearCredit(boss);
++               return;
++            }
+                      Vector var2x = var1.getLocation().toVector().subtract(this.boss.getLocation().toVector()).setY(0);
+                      if (var2x.lengthSquared() > 0.01) {
+                         this.boss.setVelocity(var2x.normalize().multiply(1.25).setY(0.24));
+@@ -1159,6 +1206,7 @@
+             }
+ 
+             for (Player var7 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var7)) continue;
+                if (var7.getLocation().distanceSquared(var2) <= 30.25) {
+                   var7.damage(12.0, this.boss);
+                   var7.setFireTicks(Math.max(var7.getFireTicks(), 100));
+@@ -1169,6 +1217,7 @@
+             this.boss.getWorld().spawnParticle(Particle.EXPLOSION, var2, 2, 0.7, 0.4, 0.7, 0.05);
+          } else if (var3.equals("volcano")) {
+             for (Player var21 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var21)) continue;
+                if (var21.getLocation().distanceSquared(var2) <= 49.0) {
+                   var21.damage(14.0, this.boss);
+                   var21.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 1));
+@@ -1182,6 +1231,7 @@
+                case ZOMBIE:
+                case HUSK:
+                   for (Player var20 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var20)) continue;
+                      if (var20.getLocation().distanceSquared(var2) <= 25.0) {
+                         var20.damage(11.0, this.boss);
+                         var20.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0));
+@@ -1215,6 +1265,7 @@
+                   return;
+                case BLAZE:
+                   for (Player var18 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var18)) continue;
+                      if (var18.getLocation().distanceSquared(var2) <= 36.0) {
+                         var18.damage(13.0, this.boss);
+                         var18.setFireTicks(Math.max(var18.getFireTicks(), 80));
+@@ -1225,6 +1276,7 @@
+                   return;
+                case SLIME:
+                   for (Player var17 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var17)) continue;
+                      if (var17.getLocation().distanceSquared(var2) <= 36.0) {
+                         var17.damage(12.0, this.boss);
+                         var17.setVelocity(var17.getLocation().toVector().subtract(var2.toVector()).normalize().multiply(0.8).setY(0.9));
+@@ -1254,6 +1306,7 @@
+                   return;
+                default:
+                   for (Player var6 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var6)) continue;
+                      if (var6.getLocation().distanceSquared(var2) <= 36.0) {
+                         var6.damage(8.0, this.boss);
+                         var6.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
+@@ -1278,7 +1331,7 @@
+                case ABYSSAL -> 0.02;
+             };
+             if (!(Math.random() >= var4)) {
+-               ArrayList var6 = new ArrayList();
++               ArrayList<Integer> var6 = new ArrayList<>();
+ 
+                for (int var7 = 0; var7 < 9; var7++) {
+                   var6.add(var7);
+@@ -1317,9 +1370,10 @@
+          } else if (this.definition.entityType() != EntityType.SPIDER && this.definition.entityType() != EntityType.CAVE_SPIDER) {
+             int var2 = this.definition.mini() ? 1 : 2 + this.definition.tier().ordinal();
+             long var3 = this.boss
+-               .getNearbyEntities(12.0, 8.0, 12.0)
++               .getWorld().getEntities()
+                .stream()
+                .filter(var1x -> var1x.getPersistentDataContainer().has(this.minionKey, PersistentDataType.BYTE))
++            .filter(e -> java.util.Objects.equals(e.getPersistentDataContainer().get(new NamespacedKey(plugin,"minion_parent"), PersistentDataType.STRING), boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"), PersistentDataType.STRING)))
+                .count();
+             if (var3 < var2) {
+                int var5 = this.definition.mini() ? 1 : 1 + this.definition.tier().ordinal() / 2;
+@@ -1340,6 +1394,8 @@
+                   try {
+                      Entity var11 = var10.getWorld().spawnEntity(var10, var6[NumberConversions.floor(Math.random() * var6.length)]);
+                      var11.getPersistentDataContainer().set(this.minionKey, PersistentDataType.BYTE, (byte)1);
++                     var11.getPersistentDataContainer().set(new NamespacedKey(plugin, "minion_parent"), PersistentDataType.STRING,
++                        boss.getPersistentDataContainer().get(new NamespacedKey(plugin, "encounter_id"), PersistentDataType.STRING));
+                      this.strengthenMinion(var11, "generic");
+                      if (var11 instanceof Mob var12) {
+                         var12.setTarget(var1);
+@@ -1347,7 +1403,7 @@
+                         var12.setRemoveWhenFarAway(true);
+                      }
+ 
+-                     var11.customName(Component.text("Súbdito de " + this.definition.name(), this.definition.tier().color));
++                     var11.customName(Component.text("Custodio del Eclipse · " + this.definition.name(), this.definition.tier().color));
+                      var11.setCustomNameVisible(true);
+                      this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                         if (var11.isValid()) {
+@@ -1368,9 +1424,10 @@
+ 
+       private void summonCustom(EntityType var1, Player var2, int var3, String var4) {
+          long var5 = this.boss
+-            .getNearbyEntities(14.0, 10.0, 14.0)
++            .getWorld().getEntities()
+             .stream()
+             .filter(var1x -> var1x.getPersistentDataContainer().has(this.minionKey, PersistentDataType.BYTE))
++            .filter(e -> java.util.Objects.equals(e.getPersistentDataContainer().get(new NamespacedKey(plugin,"minion_parent"), PersistentDataType.STRING), boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"), PersistentDataType.STRING)))
+             .count();
+          if (var5 < 5L) {
+             for (int var7 = 0; var7 < var3 && var5 + var7 < 5L; var7++) {
+@@ -1489,9 +1546,9 @@
+                   }
+ 
+                   var9.customName(
+-                     Component.text(var4.equals("fox_sheep") ? "Presa del Zorro" : "Súbdito de " + this.definition.name(), this.definition.tier().color)
++                     Component.text(var4.equals("fox_sheep") ? "Presa del Zorro" : "Custodio del Eclipse · " + this.definition.name(), this.definition.tier().color)
+                   );
+-                  var9.setCustomNameVisible(false);
++                  var9.setCustomNameVisible(true);
+                   this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                      if (var9.isValid()) {
+                         var9.remove();
+@@ -1539,6 +1596,7 @@
+          this.boss.getWorld().spawnParticle(var5, var2, 95, var3 / 3.0, 0.5, var3 / 3.0, 0.08);
+ 
+          for (Player var7 : this.boss.getWorld().getPlayers()) {
++            if (!CombatGuard.eligible(var7)) continue;
+             if (var7.getLocation().distanceSquared(var2) <= var3 * var3) {
+                var7.damage(Math.max(4.0, this.definition.tier().damage * 0.18), this.boss);
+                this.debuff(var7);
+@@ -1658,3 +1716,5 @@
+    ) {
+    }
+ }
++
++
+--- recovered-0.9.7/CazaJefesCommand.java
++++ 1.0.0/CazaJefesCommand.java
+@@ -99,7 +99,7 @@
+                this.giveRare(var1, var4, 1);
+                break;
+             case "rares":
+-               this.listRares(var1);
++               this.plugin.getServer().dispatchCommand(var1, "rares");
+                break;
+             case "give":
+                if (var4.length > 1 && var4[1].equalsIgnoreCase("rare")) {
+@@ -115,7 +115,7 @@
+             case "recipes":
+             case "recetas":
+             case "crafts":
+-               this.recipes(var1);
++               this.plugin.getServer().dispatchCommand(var1, "rares");
+                break;
+             case "catalog":
+             case "catalogo":
+@@ -148,7 +148,7 @@
+    }
+ 
+    public List<String> onTabComplete(CommandSender var1, Command var2, String var3, String[] var4) {
+-      ArrayList var5 = new ArrayList();
++      ArrayList<String> var5 = new ArrayList<>();
+       if (var4.length == 1) {
+          var5.addAll(List.of("help", "bosses", "bestiario", "recipes", "recetas", "canjear", "catalogo", "compass", "rares", "enchants"));
+          if (this.isAdmin(var1, "rareitemhunter.admin.egg")) {
+@@ -1320,6 +1320,11 @@
+          case "saturacion" -> "Recupera saturación pasivamente cada cinco segundos.";
+          default -> "Efecto visual de llamas en casco.";
+       };
++   }
++
++   @org.bukkit.event.EventHandler
++   public void preventMenuDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
++      if (event.getView().getTopInventory().getHolder() instanceof MenuHolder) event.setCancelled(true);
+    }
+ 
+    @EventHandler
+@@ -1443,7 +1448,7 @@
+       if (var2.length > 1 && var2[1].equalsIgnoreCase("rare")) {
+          this.giveRare(var1, var2, 2);
+       } else if (var1 instanceof Player var3) {
+-         if (!this.isAdmin(var1, "rareitemhunter.admin.essence") && !this.isAdmin(var1, "rareitemhunter.admin.compass")) {
++         if (!this.isAdmin(var1, "rareitemhunter.admin.essence")) {
+             this.deny(var1);
+          } else if (var2.length < 2) {
+             var1.sendMessage("Uso: /ri get <compass|essence|fragment|tribute|rare <id>>");
+@@ -1510,7 +1515,7 @@
+                if (var8 == null) {
+                   var1.sendMessage("Uso: /ri rare <id> [nivel 1-5] [jugador]");
+                } else {
+-                  HashMap var11 = var8.getInventory().addItem(new ItemStack[]{this.items.rare(var4, var7)});
++                  HashMap<Integer, ItemStack> var11 = var8.getInventory().addItem(new ItemStack[]{this.items.rare(var4, var7)});
+                   var11.values().forEach(var1x -> var8.getWorld().dropItemNaturally(var8.getLocation(), var1x));
+                   var1.sendMessage(
+                      Component.text("Entregaste la rare " + var4 + " nivel " + var7 + " (" + var5 + ") a " + var8.getName() + ".", NamedTextColor.GOLD)
+@@ -1536,12 +1541,14 @@
+          this.deny(var1);
+       } else {
+          this.plugin.reloadConfig();
++         ((CazaJefesPlugin)this.plugin).recipeSettings.reload();
++         this.items.reloadRares();
+          var1.sendMessage(Component.text("Configuración recargada.", NamedTextColor.GREEN));
+       }
+    }
+ 
+    private void listEggs(CommandSender var1) {
+-      List var2 = this.bosses.trackedEncounters().stream().filter(BossManager.TrackedEncounter::egg).toList();
++      List<BossManager.TrackedEncounter> var2 = this.bosses.trackedEncounters().stream().filter(BossManager.TrackedEncounter::egg).toList();
+       if (var2.isEmpty()) {
+          var1.sendMessage("No hay huevos activos.");
+       } else {
+--- recovered-0.9.7/CazaJefesPlugin.java
++++ 1.0.0/CazaJefesPlugin.java
+@@ -4,6 +4,8 @@
+ import org.bukkit.plugin.java.JavaPlugin;
+ 
+ public final class CazaJefesPlugin extends JavaPlugin {
++   RecipeSettings recipeSettings;
++   CombatGuard guard;
+    private NamespacedKey itemKey;
+    private BossManager bossManager;
+    private RelicItems relicItems;
+@@ -11,6 +13,9 @@
+ 
+    public void onEnable() {
+       this.saveDefaultConfig();
++      this.recipeSettings = new RecipeSettings(this);
++      this.guard = new CombatGuard(this);
++      getServer().getPluginManager().registerEvents(guard, this);
+       this.itemKey = new NamespacedKey(this, "relic_id");
+       this.relicItems = new RelicItems(this, this.itemKey);
+       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
+@@ -23,10 +28,16 @@
+       this.getCommand("ri").setTabCompleter(var1);
+       this.getServer().getPluginManager().registerEvents(var1, this);
+       this.relicItems.registerRecipes();
++      RaresMenu raresMenu = new RaresMenu(this, this.relicItems);
++      this.getCommand("rares").setExecutor(raresMenu);
++      this.getServer().getPluginManager().registerEvents(raresMenu, this);
+       this.getLogger().info("CazaJefes está listo.");
+    }
+ 
++   BossManager bosses() { return bossManager; }
++
+    public void onDisable() {
++      if (guard != null) guard.cleanup();
+       if (this.bossManager != null) {
+          this.bossManager.stopAllAttacks();
+       }
+--- recovered-0.9.7/CombatGuard.java
++++ 1.0.0/CombatGuard.java
+@@ -0,0 +1,112 @@
++package dev.cazajefes;
++
++import java.util.*;
++import org.bukkit.*;
++import org.bukkit.entity.*;
++import org.bukkit.event.*;
++import org.bukkit.event.entity.*;
++import org.bukkit.event.world.ChunkLoadEvent;
++import org.bukkit.persistence.PersistentDataType;
++
++/** Restricts combat to nearby survival players and prevents unattended loot farming. */
++final class CombatGuard implements Listener {
++    private final CazaJefesPlugin plugin;
++    private final NamespacedKey boss, minion, credit, parent, encounter;
++    CombatGuard(CazaJefesPlugin plugin) {
++        this.plugin=plugin;
++        boss=new NamespacedKey(plugin,"boss"); minion=new NamespacedKey(plugin,"boss_minion");
++        credit=new NamespacedKey(plugin,"last_player_hit"); parent=new NamespacedKey(plugin,"minion_parent");
++        encounter=new NamespacedKey(plugin,"encounter_id");
++    }
++    static boolean eligible(Player p) { return p.isOnline() && !p.isDead() && (p.getGameMode()==GameMode.SURVIVAL || p.getGameMode()==GameMode.ADVENTURE); }
++    private boolean combatant(Entity e) { return e.getPersistentDataContainer().has(boss,PersistentDataType.BYTE) || e.getPersistentDataContainer().has(minion,PersistentDataType.BYTE); }
++    private Entity source(Entity entity) {
++        return entity instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter ? shooter : entity;
++    }
++    @EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
++    public void restrict(EntityDamageByEntityEvent event) {
++        Entity attacker=source(event.getDamager()), victim=event.getEntity();
++        if (combatant(victim)) {
++            if (attacker instanceof Player player) {
++                if (!eligible(player) || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>576
++                    || !player.hasLineOfSight(victim)) event.setCancelled(true);
++            } else if (!combatant(attacker)) event.setCancelled(true);
++        }
++        if (combatant(attacker) && victim instanceof Player player && (!eligible(player)
++            || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>576
++            || attacker instanceof LivingEntity living && !living.hasLineOfSight(victim))) event.setCancelled(true);
++    }
++    @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
++    public void credit(EntityDamageByEntityEvent event) { record(event); }
++    void record(EntityDamageByEntityEvent event) {
++        if (event.getEntity().getPersistentDataContainer().has(boss,PersistentDataType.BYTE)
++            && source(event.getDamager()) instanceof Player player && eligible(player))
++            event.getEntity().getPersistentDataContainer().set(credit,PersistentDataType.LONG,System.currentTimeMillis());
++    }
++    void clearCredit(Entity entity) { entity.getPersistentDataContainer().remove(credit); }
++    boolean canDrop(Entity entity) {
++        long last=entity.getPersistentDataContainer().getOrDefault(credit,PersistentDataType.LONG,0L);
++        long age=System.currentTimeMillis()-last;
++        return age>=0 && age<=Math.max(10,Math.min(600,plugin.getConfig().getLong("combat.loot-credit-seconds",120)))*1000;
++    }
++    @EventHandler(priority=EventPriority.MONITOR)
++    public void death(EntityDeathEvent event) {
++        String id=event.getEntity().getPersistentDataContainer().get(encounter,PersistentDataType.STRING);
++        if (id!=null) for (Entity entity : event.getEntity().getWorld().getEntities()) {
++            if (id.equals(entity.getPersistentDataContainer().get(parent,PersistentDataType.STRING))) entity.remove();
++        }
++    }
++    @EventHandler public void load(ChunkLoadEvent event) {
++        // Minions are temporary; discard them on chunk reload rather than leave orphan armies.
++        for (Entity entity:event.getChunk().getEntities()) if (entity.getPersistentDataContainer().has(minion,PersistentDataType.BYTE)) entity.remove();
++    }
++    void cleanup() {
++        for (World world:Bukkit.getWorlds()) for (Entity entity:world.getEntities()) {
++            if (entity.getPersistentDataContainer().has(minion,PersistentDataType.BYTE)) entity.remove();
++            if (entity.getPersistentDataContainer().has(boss,PersistentDataType.BYTE) && entity instanceof LivingEntity living) {
++                living.setInvulnerable(false); living.setAI(true);
++            }
++        }
++    }
++    private boolean protectedEgg(org.bukkit.block.Block block) {
++        return plugin.bosses()!=null && plugin.bosses().isEggBlock(block);
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void physics(org.bukkit.event.block.BlockPhysicsEvent event) {
++        if (protectedEgg(event.getBlock())) event.setCancelled(true);
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void flow(org.bukkit.event.block.BlockFromToEvent event) {
++        if (protectedEgg(event.getBlock()) || protectedEgg(event.getToBlock())) event.setCancelled(true);
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void moveEgg(EntityChangeBlockEvent event) {
++        if (protectedEgg(event.getBlock())) event.setCancelled(true);
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void piston(org.bukkit.event.block.BlockPistonExtendEvent event) {
++        if (event.getBlocks().stream().anyMatch(b -> protectedEgg(b) || protectedEgg(b.getRelative(org.bukkit.block.BlockFace.UP)))) event.setCancelled(true);
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void retract(org.bukkit.event.block.BlockPistonRetractEvent event) {
++        if (event.getBlocks().stream().anyMatch(b -> protectedEgg(b) || protectedEgg(b.getRelative(org.bukkit.block.BlockFace.UP)))) event.setCancelled(true);
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void explode(EntityExplodeEvent event) {
++        event.blockList().removeIf(b -> protectedEgg(b) || protectedEgg(b.getRelative(org.bukkit.block.BlockFace.UP)));
++    }
++    @EventHandler(ignoreCancelled=true)
++    public void blockExplode(org.bukkit.event.block.BlockExplodeEvent event) {
++        event.blockList().removeIf(b -> protectedEgg(b) || protectedEgg(b.getRelative(org.bukkit.block.BlockFace.UP)));
++    }
++    @EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
++    public void breakEgg(org.bukkit.event.block.BlockBreakEvent event) {
++        if ((protectedEgg(event.getBlock()) || protectedEgg(event.getBlock().getRelative(org.bukkit.block.BlockFace.UP)))
++            && !event.getPlayer().hasPermission("cazajefes.admin")) event.setCancelled(true);
++    }
++    @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=true)
++    public void craft(org.bukkit.event.inventory.CraftItemEvent event) {
++        if (event.getRecipe() instanceof Keyed keyed && keyed.getKey().getNamespace().equals("cazajefes")
++            && !event.getWhoClicked().hasPermission("rareitemhunter.hunter.craft")) event.setCancelled(true);
++    }
++}
+--- recovered-0.9.7/CraftPlan.java
++++ 1.0.0/CraftPlan.java
+@@ -0,0 +1,19 @@
++package dev.cazajefes;
++
++import java.util.List;
++import java.util.function.IntPredicate;
++
++/** Plans consumption without mutating the caller's inventory. Null means insufficient ingredients. */
++final class CraftPlan {
++    static int[] remaining(int[] available, List<IntPredicate> ingredients) {
++        int[] result=available.clone();
++        for (IntPredicate ingredient:ingredients) {
++            boolean found=false;
++            for (int slot=0;slot<result.length;slot++) if (result[slot]>0 && ingredient.test(slot)) {
++                result[slot]--; found=true; break;
++            }
++            if (!found) return null;
++        }
++        return result;
++    }
++}
+--- recovered-0.9.7/HuntTracker.java
++++ 1.0.0/HuntTracker.java
+@@ -38,7 +38,7 @@
+ 
+    private void update() {
+       this.trailTick++;
+-      List var1 = this.bosses.trackedEncounters();
++      List<BossManager.TrackedEncounter> var1 = this.bosses.trackedEncounters();
+ 
+       for (Player var3 : Bukkit.getOnlinePlayers()) {
+          if (!this.hasCompass(var3)) {
+--- recovered-0.9.7/RaresMenu.java
++++ 1.0.0/RaresMenu.java
+@@ -0,0 +1,115 @@
++package dev.cazajefes;
++
++import java.util.*;
++import net.kyori.adventure.text.Component;
++import org.bukkit.*;
++import org.bukkit.command.*;
++import org.bukkit.entity.Player;
++import org.bukkit.event.*;
++import org.bukkit.event.inventory.*;
++import org.bukkit.inventory.*;
++import org.bukkit.inventory.meta.ItemMeta;
++
++/** All views and purchases use the registered recipe, never a second cost table. */
++final class RaresMenu implements CommandExecutor, Listener {
++    private final CazaJefesPlugin plugin;
++    private final RelicItems items;
++    RaresMenu(CazaJefesPlugin plugin, RelicItems items) { this.plugin = plugin; this.items = items; }
++    private static final class Menu implements InventoryHolder {
++        Inventory inventory;
++        final int page;
++        final List<ShapedRecipe> recipes;
++        final ShapedRecipe detail;
++        Menu(int page, List<ShapedRecipe> recipes, ShapedRecipe detail) { this.page=page; this.recipes=recipes; this.detail=detail; }
++        public Inventory getInventory() { return inventory; }
++    }
++    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
++        if (sender instanceof Player player) open(player, 0, null);
++        else sender.sendMessage("Este menú requiere un jugador.");
++        return true;
++    }
++    private List<ShapedRecipe> recipes() {
++        List<ShapedRecipe> result = new ArrayList<>();
++        Bukkit.recipeIterator().forEachRemaining(recipe -> {
++            if (recipe instanceof ShapedRecipe shaped && shaped.getKey().getNamespace().equals("cazajefes")) result.add(shaped);
++        });
++        result.sort(Comparator.comparing(r -> r.getKey().getKey()));
++        return result;
++    }
++    private ItemStack button(Material material, String name) {
++        ItemStack item = new ItemStack(material); ItemMeta meta = item.getItemMeta();
++        meta.displayName(Component.text(name)); item.setItemMeta(meta); return item;
++    }
++    private void open(Player player, int page, ShapedRecipe detail) {
++        List<ShapedRecipe> recipes = recipes();
++        page = Math.max(0, Math.min(page, Math.max(0, (recipes.size()-1)/45)));
++        Menu menu = new Menu(page, recipes, detail);
++        menu.inventory = Bukkit.createInventory(menu, 54, Component.text(detail == null ? "Rares · Recetas · " + (page+1) : "Forja de rares"));
++        if (detail == null) {
++            for (int i=0; i<45 && page*45+i<recipes.size(); i++) menu.inventory.setItem(i, recipes.get(page*45+i).getResult());
++            menu.inventory.setItem(45, button(Material.ARROW, "Página anterior"));
++            menu.inventory.setItem(53, button(Material.ARROW, "Página siguiente"));
++        } else {
++            String[] shape = detail.getShape(); Map<Character, RecipeChoice> choices = detail.getChoiceMap();
++            for (int row=0; row<shape.length; row++) for (int col=0; col<shape[row].length(); col++) {
++                RecipeChoice choice = choices.get(shape[row].charAt(col));
++                if (choice != null) menu.inventory.setItem(10+row*9+col, choice.getItemStack());
++            }
++            menu.inventory.setItem(25, detail.getResult());
++            menu.inventory.setItem(40, button(Material.ANVIL, "Fabricar 1 · consume materiales del inventario"));
++            menu.inventory.setItem(49, button(Material.ARROW, "Volver"));
++        }
++        player.openInventory(menu.inventory);
++    }
++    @EventHandler(priority=EventPriority.HIGHEST, ignoreCancelled=false)
++    public void click(InventoryClickEvent event) {
++        if (!(event.getView().getTopInventory().getHolder() instanceof Menu menu)) return;
++        event.setCancelled(true);
++        if (!(event.getWhoClicked() instanceof Player player) || event.getClickedInventory()!=menu.inventory || event.getClick()!=ClickType.LEFT) return;
++        int slot=event.getRawSlot();
++        if (menu.detail == null) {
++            if (slot==45) open(player, menu.page-1, null);
++            else if (slot==53) open(player, menu.page+1, null);
++            else if (slot<45 && menu.page*45+slot<menu.recipes.size()) open(player,menu.page,menu.recipes.get(menu.page*45+slot));
++        } else if (slot==49) open(player,menu.page,null);
++        else if (slot==40) craft(player,menu.detail);
++    }
++    @EventHandler public void drag(InventoryDragEvent event) {
++        if (event.getView().getTopInventory().getHolder() instanceof Menu) event.setCancelled(true);
++    }
++    private void craft(Player player, ShapedRecipe shown) {
++        if (!player.hasPermission("rareitemhunter.hunter.craft")) { player.sendMessage("No tienes permiso para fabricar."); return; }
++        // A reload invalidates old menu objects, so use the current registry entry.
++        if (!(Bukkit.getRecipe(shown.getKey()) instanceof ShapedRecipe recipe)) { player.closeInventory(); return; }
++        ItemStack[] original=player.getInventory().getStorageContents();
++        ItemStack[] planned=Arrays.stream(original).map(i -> i==null ? null : i.clone()).toArray(ItemStack[]::new);
++        Map<Character, RecipeChoice> choices=recipe.getChoiceMap();
++        java.util.List<RecipeChoice> costs = new java.util.ArrayList<>();
++        for (String row:recipe.getShape()) for (char symbol:row.toCharArray()) if (choices.get(symbol)!=null) costs.add(choices.get(symbol));
++        costs.sort(java.util.Comparator.comparingInt(c -> c instanceof RecipeChoice.ExactChoice ? 0 : 1));
++        java.util.List<java.util.function.IntPredicate> requirements = new java.util.ArrayList<>();
++        for (RecipeChoice choice:costs) requirements.add(slot -> original[slot]!=null && choice.test(original[slot])
++            && (!(choice instanceof RecipeChoice.MaterialChoice) || items.customId(original[slot])==null));
++        int[] counts=java.util.Arrays.stream(original).mapToInt(i -> i==null ? 0 : i.getAmount()).toArray();
++        int[] remainder=CraftPlan.remaining(counts,requirements);
++        if (remainder==null) { player.sendMessage("Faltan ingredientes. Los objetos de jefe deben coincidir con la receta."); return; }
++        for (int slot=0;slot<planned.length;slot++) {
++            if (remainder[slot]==0) planned[slot]=null;
++            else planned[slot].setAmount(remainder[slot]);
++        }
++        ItemStack result=recipe.getResult().clone(); int remaining=result.getAmount();
++        for (int slot=0; slot<planned.length && remaining>0; slot++) {
++            ItemStack stack=planned[slot];
++            if (stack!=null && !stack.isSimilar(result)) continue;
++            int amount=Math.min(remaining, result.getMaxStackSize()-(stack==null ? 0 : stack.getAmount()));
++            if (amount<=0) continue;
++            if (stack==null) { stack=result.clone(); stack.setAmount(amount); planned[slot]=stack; }
++            else stack.setAmount(stack.getAmount()+amount); remaining-=amount;
++        }
++        if (remaining>0) { player.sendMessage("No hay espacio para el resultado."); return; }
++        player.getInventory().setStorageContents(planned);
++        player.playSound(player.getLocation(),Sound.BLOCK_ANVIL_USE,0.5f,1.2f);
++        player.sendMessage("Objeto fabricado.");
++    }
++}
++
+--- recovered-0.9.7/RecipeSettings.java
++++ 1.0.0/RecipeSettings.java
+@@ -0,0 +1,47 @@
++package dev.cazajefes;
++
++import java.io.File;
++import java.util.*;
++import org.bukkit.Material;
++import org.bukkit.configuration.ConfigurationSection;
++import org.bukkit.configuration.file.YamlConfiguration;
++import org.bukkit.inventory.RecipeChoice;
++import org.bukkit.plugin.java.JavaPlugin;
++
++/** Overrides retain existing exact custom ingredients unless explicitly changed. */
++final class RecipeSettings {
++    private final JavaPlugin plugin;
++    private YamlConfiguration config;
++    RecipeSettings(JavaPlugin plugin) { this.plugin = plugin; reload(); }
++    void reload() {
++        File file = new File(plugin.getDataFolder(), "recipes.yml");
++        if (!file.exists()) plugin.saveResource("recipes.yml", false);
++        config = YamlConfiguration.loadConfiguration(file);
++    }
++    boolean apply(String id, String[] shape, Map<Character, RecipeChoice> choices) {
++        ConfigurationSection section = config.getConfigurationSection("recipes." + id);
++        if (section == null) return true;
++        if (!section.getBoolean("enabled", true)) return false;
++        List<String> rows = section.getStringList("shape");
++        if (!rows.isEmpty()) {
++            if (rows.size() != 3 || rows.stream().anyMatch(s -> s.length() != 3))
++                throw new IllegalArgumentException(id + ": shape debe ser 3 filas de 3 caracteres");
++            for (int i = 0; i < 3; i++) shape[i] = rows.get(i);
++        }
++        ConfigurationSection ingredients = section.getConfigurationSection("ingredients");
++        if (ingredients != null) for (String key : ingredients.getKeys(false)) {
++            if (key.length() != 1 || key.charAt(0) == ' ') throw new IllegalArgumentException(id + ": símbolo inválido");
++            Material material = Material.matchMaterial(ingredients.getString(key, ""));
++            if (material == null || !material.isItem() || material.isAir()) throw new IllegalArgumentException(id + ": material inválido " + key);
++            choices.put(key.charAt(0), new RecipeChoice.MaterialChoice(material));
++        }
++        Set<Character> used = new HashSet<>();
++        for (String row : shape) for (char c : row.toCharArray()) if (c != ' ') {
++            if (!choices.containsKey(c)) throw new IllegalArgumentException(id + ": ingrediente desconocido " + c);
++            used.add(c);
++        }
++        if (used.isEmpty()) throw new IllegalArgumentException(id + ": receta vacía");
++        choices.keySet().retainAll(used);
++        return true;
++    }
++}
+--- recovered-0.9.7/RelicItems.java
++++ 1.0.0/RelicItems.java
+@@ -80,7 +80,8 @@
+    private final NamespacedKey rareEssenceLevelKey;
+    private final NamespacedKey rareLevelsKey;
+    private final Map<UUID, RelicItems.DropGroup> dropGroups = new HashMap<>();
+-   private final FileConfiguration rareConfig;
++   private FileConfiguration rareConfig;
++   private boolean breakingConnected;
+    private final Map<String, Long> burstCooldowns = new HashMap<>();
+    private final Map<UUID, Long> passiveRepair = new HashMap<>();
+    private final Map<String, Long> passiveSaturation = new HashMap<>();
+@@ -113,7 +114,7 @@
+    }
+ 
+    public int maxLevel(String var1) {
+-      return var1.equalsIgnoreCase("haste") ? 6 : 5;
++      return Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
+    }
+ 
+    public List<String> catalogIds() {
+@@ -256,7 +257,7 @@
+       }
+    }
+ 
+-   @EventHandler(priority = EventPriority.HIGHEST)
++   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSpellUse(PlayerInteractEvent var1) {
+       if (var1.getAction() == Action.RIGHT_CLICK_AIR || var1.getAction() == Action.RIGHT_CLICK_BLOCK) {
+          ItemStack var2 = var1.getItem();
+@@ -272,7 +273,7 @@
+                Player var4 = var1.getPlayer();
+                var1.setCancelled(true);
+                long var5 = System.currentTimeMillis();
+-               if (var3.equals("burst") || var3.equals("greaterburst")) {
++               if (true) {
+                   String var7 = var4.getUniqueId() + ":" + var3;
+                   long var8 = this.burstCooldowns.getOrDefault(var7, 0L);
+                   if (var8 > var5) {
+@@ -304,13 +305,12 @@
+                if (var22 < 0.0) {
+                   var4.sendMessage(Component.text("Esta rare está desactivada.", NamedTextColor.RED));
+                } else {
+-                  int var23 = (Integer)var2.getItemMeta().getPersistentDataContainer().getOrDefault(this.rareEssenceLevelKey, PersistentDataType.INTEGER, 1);
++                  int var23 = Math.max(1, Math.min(maxLevel(var3), (Integer)var2.getItemMeta().getPersistentDataContainer().getOrDefault(this.rareEssenceLevelKey, PersistentDataType.INTEGER, 1)));
+                   if (!this.consumeSaturation(var4, var2, var3)) {
+                      var4.sendMessage(Component.text("No tienes suficiente saturación para activar esta rare.", NamedTextColor.RED));
+                   } else {
+-                     if (var3.equals("burst") || var3.equals("greaterburst")) {
+-                        this.burstCooldowns.put(var4.getUniqueId() + ":" + var3, var5 + 10000L);
+-                     }
++                     this.burstCooldowns.put(var4.getUniqueId() + ":" + var3,
++                        var5 + Math.max(0, Math.min(3600, rareConfig.getLong(var3 + ".cooldownSeconds", 10))) * 1000L);
+ 
+                      switch (var3) {
+                         case "haste":
+@@ -457,8 +457,8 @@
+                   ItemStack var27 = var7.clone();
+                   ItemMeta var15 = var27.getItemMeta();
+                   String var16 = (String)var15.getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+-                  Map var17 = this.parseLevels((String)var15.getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
+-                  byte var18 = 5;
++                  Map<String, Integer> var17 = this.parseLevels((String)var15.getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
++                  int var18 = this.maxLevel(var8);
+                   int var19 = Math.min(var18, var17.getOrDefault(var8, 0) + var9);
+                   if (var17.getOrDefault(var8, 0) >= var18) {
+                      var1.getInventory().setResult(null);
+@@ -472,7 +472,7 @@
+                      var20.add(var8);
+                      var15.getPersistentDataContainer().set(this.rareEnchantKey, PersistentDataType.STRING, String.join(",", var20));
+                      var15.getPersistentDataContainer().set(this.rareLevelsKey, PersistentDataType.STRING, this.serializeLevels(var17));
+-                     ArrayList var21 = var15.lore() == null ? new ArrayList() : new ArrayList(var15.lore());
++                     ArrayList<Component> var21 = var15.lore() == null ? new ArrayList<>() : new ArrayList<>(var15.lore());
+                      String var22 = var8.replace('_', ' ').toUpperCase();
+                      var21.removeIf(var1x -> PlainTextComponentSerializer.plainText().serialize(var1x).startsWith("Rare: " + var22));
+                      var21.add(Component.text("Rare: " + var22 + " • Nivel " + var19 + "/" + var18, NamedTextColor.GRAY).decorate(TextDecoration.BOLD));
+@@ -568,7 +568,7 @@
+          if (var14.hasItemMeta()) {
+             String var15 = (String)var14.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+             if (var15 != null) {
+-               Map var16 = this.parseLevels((String)var14.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
++               Map<String, Integer> var16 = this.parseLevels((String)var14.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
+                if (var15.contains("vampirismo") || var15.contains("vampiricregeneration")) {
+                   int var19 = Math.max(var16.getOrDefault("vampirismo", 1), var16.getOrDefault("vampiricregeneration", 1));
+                   if (Math.random() < 0.1 + var19 * 0.03
+@@ -673,7 +673,7 @@
+ 
+    private void scrambleInventory(Player var1, int var2) {
+       PlayerInventory var3 = var1.getInventory();
+-      ArrayList var4 = new ArrayList();
++      ArrayList<Integer> var4 = new ArrayList<>();
+ 
+       for (int var5 = 0; var5 < 36; var5++) {
+          var4.add(var5);
+@@ -700,6 +700,7 @@
+ 
+    @EventHandler(ignoreCancelled = true)
+    public void onToolRare(BlockBreakEvent var1) {
++      if (breakingConnected) return;
+       ItemStack var2 = var1.getPlayer().getInventory().getItemInMainHand();
+       if (var2.hasItemMeta()) {
+          String var3 = (String)var2.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
+@@ -752,8 +753,8 @@
+          if (var4 != null && Arrays.asList(var4.split(",")).contains("magneto")) {
+             var1.setCancelled(true);
+ 
+-            for (Item var6 : new ArrayList(var1.getItems())) {
+-               HashMap var7 = var2.getInventory().addItem(new ItemStack[]{var6.getItemStack().clone()});
++            for (Item var6 : new ArrayList<Item>(var1.getItems())) {
++               HashMap<Integer, ItemStack> var7 = var2.getInventory().addItem(new ItemStack[]{var6.getItemStack().clone()});
+ 
+                for (ItemStack var9 : var7.values()) {
+                   var2.getWorld().dropItemNaturally(var6.getLocation(), var9);
+@@ -804,6 +805,7 @@
+    }
+ 
+    private void breakConnected(BlockBreakEvent var1, ItemStack var2, boolean var3) {
++      if (breakingConnected) return;
+       ArrayDeque var4 = new ArrayDeque();
+       HashSet var5 = new HashSet();
+       var4.add(var1.getBlock());
+@@ -822,13 +824,10 @@
+                      if (var5.add(var12)) {
+                         boolean var13 = var3 ? Tag.LOGS.isTagged(var11.getType()) : this.isOre(var11.getType());
+                         if (var13 && var6 < 64) {
+-                           for (ItemStack var15 : var11.getDrops(var2, var1.getPlayer())) {
+-                              var11.getWorld().dropItemNaturally(var11.getLocation(), var15);
+-                           }
+-
+-                           var11.setType(Material.AIR);
+-                           var4.add(var11);
+-                           var6++;
++                           breakingConnected = true;
++                           try {
++                              if (var1.getPlayer().breakBlock(var11)) { var4.add(var11); var6++; }
++                           } finally { breakingConnected = false; }
+                         }
+                      }
+                   }
+@@ -1257,7 +1256,7 @@
+    }
+ 
+    public int dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3) {
+-      ArrayList var4 = new ArrayList();
++      ArrayList<ItemStack> var4 = new ArrayList<>();
+       int var5 = var2.tier().ordinal();
+       ThreadLocalRandom var6 = ThreadLocalRandom.current();
+       if (var2.mini() && var2.tier() == BossCatalog.Tier.COMMON) {
+@@ -1353,7 +1352,7 @@
+    private void addRiftDropClassification(ItemStack var1, BossCatalog.Tier var2) {
+       if (var1 != null && var1.hasItemMeta()) {
+          ItemMeta var3 = var1.getItemMeta();
+-         ArrayList var4 = var3.lore() == null ? new ArrayList() : new ArrayList(var3.lore());
++         ArrayList<Component> var4 = var3.lore() == null ? new ArrayList<>() : new ArrayList<>(var3.lore());
+          var4.removeIf(var0 -> {
+             String var1x = PlainTextComponentSerializer.plainText().serialize(var0);
+             return var1x.toLowerCase(Locale.ROOT).contains("clasificación:") || var1x.toLowerCase(Locale.ROOT).contains("clasificacion:");
+@@ -1446,7 +1445,17 @@
+       return var2;
+    }
+ 
++   public void reloadRares() {
++      this.rareConfig = YamlConfiguration.loadConfiguration(new File(this.plugin.getDataFolder(), "rares.yml"));
++      registerRecipes();
++   }
++
+    public void registerRecipes() {
++      java.util.List<NamespacedKey> stale = new java.util.ArrayList<>();
++      this.plugin.getServer().recipeIterator().forEachRemaining(r -> {
++         if (r instanceof Keyed keyed && keyed.getKey().getNamespace().equals("cazajefes")) stale.add(keyed.getKey());
++      });
++      stale.forEach(this.plugin.getServer()::removeRecipe);
+       for (String var2 : this.rareIds()) {
+          this.plugin.getServer().removeRecipe(new NamespacedKey(this.plugin, var2));
+       }
+@@ -1596,6 +1605,13 @@
+    }
+ 
+    private void addRecipe(String var1, ItemStack var2, String[] var3, Map<Character, RecipeChoice> var4) {
++      var3 = var3.clone();
++      var4 = new HashMap<>(var4);
++      try {
++         if (!((CazaJefesPlugin)this.plugin).recipeSettings.apply(var1, var3, var4)) return;
++      } catch (IllegalArgumentException invalid) {
++         this.plugin.getLogger().warning("Receta deshabilitada: " + invalid.getMessage()); return;
++      }
+       NamespacedKey var5 = new NamespacedKey(this.plugin, var1);
+       if (this.plugin.getServer().getRecipe(var5) == null) {
+          ShapedRecipe var6 = new ShapedRecipe(var5, var2);
+@@ -1687,7 +1703,7 @@
+          }
+       };
+ 
+-      Object var3 = var10000;
++      Material var3 = var10000_1;
+ 
+       String var4 = switch (var2 % 4) {
+          case 1 -> "Pechera";
+@@ -1955,3 +1971,4 @@
+       }
+    }
+ }
++
