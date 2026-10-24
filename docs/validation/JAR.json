@@ -1,8 +1,11 @@
 {
-  "sha256": "130414dd9c1802e20f5c5896c461fafe511a3428a9a3c819c91c0dd51060d0b3",
-  "size": 159037,
+  "version": "1.0.1",
+  "sha256": "78b273763f6a259ac00accc85d49b380be16975cc4b1fa38ddf9e95639d8fb56",
+  "size": 162401,
   "zip_crc": "OK",
   "bytecode_major": 65,
+  "tests": 13,
+  "server_executed": false,
   "entries": [
     "META-INF/",
     "META-INF/MANIFEST.MF",
@@ -30,10 +33,13 @@
     "dev/cazajefes/CazaJefesCommand$VisualRecipe.class",
     "dev/cazajefes/CazaJefesCommand.class",
     "dev/cazajefes/CazaJefesPlugin.class",
+    "dev/cazajefes/CombatAccess.class",
     "dev/cazajefes/CombatGuard.class",
     "dev/cazajefes/CraftPlan.class",
     "dev/cazajefes/HuntTracker$Session.class",
     "dev/cazajefes/HuntTracker.class",
+    "dev/cazajefes/MenuActionGate.class",
+    "dev/cazajefes/MenuActions.class",
     "dev/cazajefes/RaresMenu$Menu.class",
     "dev/cazajefes/RaresMenu.class",
     "dev/cazajefes/RecipeSettings.class",
@@ -46,7 +52,5 @@
     "recipes.yml",
     "META-INF/maven/dev.cazajefes/cazajefes/pom.xml",
     "META-INF/maven/dev.cazajefes/cazajefes/pom.properties"
-  ],
-  "server_executed": false,
-  "original_executed": false
+  ]
 }

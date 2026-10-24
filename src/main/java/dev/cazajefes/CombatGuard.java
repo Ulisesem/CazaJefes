@@ -19,6 +19,10 @@ final class CombatGuard implements Listener {
         encounter=new NamespacedKey(plugin,"encounter_id");
     }
     static boolean eligible(Player p) { return p.isOnline() && !p.isDead() && (p.getGameMode()==GameMode.SURVIVAL || p.getGameMode()==GameMode.ADVENTURE); }
+    boolean canAttackBoss(Player p) {
+        return CombatAccess.canAttackBoss(p.getGameMode(), p.isOnline(), p.isDead(), p.hasPermission("cazajefes.admin"),
+            plugin.getConfig().getBoolean("combat.allow-creative-admin-tests", true));
+    }
     private boolean combatant(Entity e) { return e.getPersistentDataContainer().has(boss,PersistentDataType.BYTE) || e.getPersistentDataContainer().has(minion,PersistentDataType.BYTE); }
     private Entity source(Entity entity) {
         return entity instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter ? shooter : entity;
@@ -28,7 +32,7 @@ final class CombatGuard implements Listener {
         Entity attacker=source(event.getDamager()), victim=event.getEntity();
         if (combatant(victim)) {
             if (attacker instanceof Player player) {
-                if (!eligible(player) || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>576
+                if (!canAttackBoss(player) || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>576
                     || !player.hasLineOfSight(victim)) event.setCancelled(true);
             } else if (!combatant(attacker)) event.setCancelled(true);
         }
@@ -40,7 +44,7 @@ final class CombatGuard implements Listener {
     public void credit(EntityDamageByEntityEvent event) { record(event); }
     void record(EntityDamageByEntityEvent event) {
         if (event.getEntity().getPersistentDataContainer().has(boss,PersistentDataType.BYTE)
-            && source(event.getDamager()) instanceof Player player && eligible(player))
+            && source(event.getDamager()) instanceof Player player && canAttackBoss(player))
             event.getEntity().getPersistentDataContainer().set(credit,PersistentDataType.LONG,System.currentTimeMillis());
     }
     void clearCredit(Entity entity) { entity.getPersistentDataContainer().remove(credit); }

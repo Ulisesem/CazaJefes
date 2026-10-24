@@ -1328,11 +1328,15 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    @EventHandler
-   public void onMenuClick(InventoryClickEvent var1) {
-      if (var1.getView().getTopInventory().getHolder() instanceof CazaJefesCommand.MenuHolder var2) {
-         var1.setCancelled(true);
-         if (var1.getWhoClicked() instanceof Player var8 && var1.getClickedInventory() == var1.getView().getTopInventory()) {
-            int var9 = var1.getSlot();
+   public void onMenuClick(InventoryClickEvent event) {
+      if (!(event.getView().getTopInventory().getHolder() instanceof MenuHolder menu)) return;
+      event.setCancelled(true);
+      int slot=event.getRawSlot();
+      if (!(event.getWhoClicked() instanceof Player player) || !MenuActions.isActivation(event.getClick(),slot,event.getView().getTopInventory().getSize())) return;
+      MenuActions.dispatch(plugin, player, menu, menu.gate, () -> handleMenuClick(menu,player,slot));
+   }
+
+   private void handleMenuClick(MenuHolder var2, Player var8, int var9) {
             if (var2.mode.equals("catalog")) {
                if (var9 == 45 && var2.page > 0) {
                   this.catalog(var8, var2.page - 1);
@@ -1440,8 +1444,6 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                   this.recipes(var8, var2.page);
                }
             }
-         }
-      }
    }
 
    private void get(CommandSender var1, String[] var2) {
@@ -1855,6 +1857,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private static final class MenuHolder implements InventoryHolder {
+      final MenuActionGate gate = new MenuActionGate();
       private final String mode;
       private final int page;
       private final String detailId;

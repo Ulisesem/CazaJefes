@@ -17,6 +17,7 @@ final class RaresMenu implements CommandExecutor, Listener {
     RaresMenu(CazaJefesPlugin plugin, RelicItems items) { this.plugin = plugin; this.items = items; }
     private static final class Menu implements InventoryHolder {
         Inventory inventory;
+        final MenuActionGate gate = new MenuActionGate();
         final int page;
         final List<ShapedRecipe> recipes;
         final ShapedRecipe detail;
@@ -65,8 +66,11 @@ final class RaresMenu implements CommandExecutor, Listener {
     public void click(InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof Menu menu)) return;
         event.setCancelled(true);
-        if (!(event.getWhoClicked() instanceof Player player) || event.getClickedInventory()!=menu.inventory || event.getClick()!=ClickType.LEFT) return;
         int slot=event.getRawSlot();
+        if (!(event.getWhoClicked() instanceof Player player) || !MenuActions.isActivation(event.getClick(),slot,event.getView().getTopInventory().getSize())) return;
+        MenuActions.dispatch(plugin, player, menu, menu.gate, () -> activate(player,menu,slot));
+    }
+    private void activate(Player player, Menu menu, int slot) {
         if (menu.detail == null) {
             if (slot==45) open(player, menu.page-1, null);
             else if (slot==53) open(player, menu.page+1, null);

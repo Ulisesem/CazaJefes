@@ -1,6 +1,12 @@
-# CazaJefes 1.0.0 — compilación de prueba
+# CazaJefes 1.0.1 — compilación de prueba
 
 Proyecto Maven para **Paper 1.21.11 / Java 21**, reconstruido a partir del adjunto `CazaJefes-0.9.7(1).jar`. No requiere MythicMobs, Vault ni otro plugin. No es compatible con Minecraft 1.8.8 ni está preparado para Folia.
+
+## Correcciones de esta versión
+
+Barra de vida visible también en creativo, pruebas de daño/drops para creativos con `cazajefes.admin`, y reparación de clics y navegación de las interfaces. Consulta [los cambios y límites de validación](docs/CORRECCIONES-1.0.1.md).
+
+`combat.allow-creative-admin-tests` es `true` por defecto, también si la clave falta en un config antiguo. Desactívalo con `false` si no quieres crédito de botín para administradores creativos. No cambia los objetivos hostiles del boss.
 
 ## Qué contiene
 
@@ -11,7 +17,7 @@ Proyecto Maven para **Paper 1.21.11 / Java 21**, reconstruido a partir del adjun
 - Se renombran 12 bosses iniciales, incluidos Gorath, Nyxara, Varkhos y los minis. Los demás nombres se conservan. Se actualizan y hacen visibles los nombres de los súbditos. Los IDs de comandos y PDC no cambian.
 - Tres fases por vida: inicial, ruptura al 65%, furia al 30%. Las transiciones invocan refuerzos y dan Fuerza temporal; el intervalo de especiales disminuye por fase. Se mantiene la variedad de ataques recuperada.
 - Los especiales tienen un aviso visual y un segundo de anticipación. El objetivo puede esquivar desplazándose más de tres bloques desde la marca; se vuelve a comprobar estado, alcance y visión antes de ejecutar el ataque. Los especiales con efectos secundarios conservan parte de su lógica original.
-- Adquisición de objetivo a un máximo de 24 bloques y con línea de visión. Solo jugadores en supervivencia/aventura. Al salir del radio de persecución, el boss vuelve al ancla y recupera vida; se borra el crédito de botín.
+- Adquisición de objetivo a un máximo de 24 bloques y con línea de visión. Los objetivos hostiles son jugadores en supervivencia/aventura; los administradores pueden probar daño y drops en creativo con la opción indicada abajo. Al salir del radio de persecución, el boss vuelve al ancla y recupera vida; se borra el crédito de botín.
 - Botín original conservado. Requiere un golpe válido de jugador en los últimos 120 segundos por defecto y marca persistente de pago para impedir repetir el reparto. Los súbditos no sueltan botín, tienen límite por encuentro, tiempo de vida y limpieza al morir el boss, descargar/recargar chunks o deshabilitar el plugin.
 - Se corrige el permiso de `/ri get`, la comprobación para despertar huevos y el permiso de fabricación. Los huevos se protegen frente a física, desplazamiento, explosiones y pistones. Se deja intacto el bloque de soporte, incluidos sus inventarios.
 - Treefeller/veinminer rompen cada bloque mediante `Player.breakBlock`, con eventos y un límite de 64; no eliminan los bloques vecinos directamente. No se afirma integración completa con plugins de regiones.
@@ -24,9 +30,9 @@ Instala JDK 21 y Maven 3.9+. Desde esta carpeta:
 mvn verify
 ```
 
-Resultado: `target/CazaJefes-1.0.0.jar`. La API de Paper tiene alcance `provided`: no se incorpora al plugin. Las dependencias se descargan del repositorio de Paper y Maven Central. No se necesita el JAR antiguo para compilar.
+Resultado: `target/CazaJefes-1.0.1.jar`. La API de Paper tiene alcance `provided`: no se incorpora al plugin. Las dependencias se descargan del repositorio de Paper y Maven Central. No se necesita el JAR antiguo para compilar.
 
-Se ejecutaron seis pruebas automatizadas: conservación del catálogo y aliases, unicidad de IDs y planificación del consumo (repeticiones, varios stacks, material incorrecto y fallo sin modificación del inventario). Esto no sustituye una prueba dentro del juego.
+Se ejecutaron trece pruebas automatizadas (incluidas reglas de creativo y clics): conservación del catálogo y aliases, unicidad de IDs y planificación del consumo (repeticiones, varios stacks, material incorrecto y fallo sin modificación del inventario). Esto no sustituye una prueba dentro del juego.
 
 ## Instalar y probar
 
@@ -72,4 +78,4 @@ No se ha añadido programación automática de spawns ni integración WorldGuard
 
 [Configuración de proyecto Paper](https://docs.papermc.io/paper/dev/project-setup/), [Java para Paper](https://docs.papermc.io/paper/getting-started/) y [API 1.21.11](https://javadocs.papermc.io/paper/1.21.11/index.html).
 
-Repositorio confirmado: [Ulisesem/CazaJefes](https://github.com/Ulisesem/CazaJefes). El JAR de prueba se incluye en [dist/CazaJefes-1.0.0.jar](dist/CazaJefes-1.0.0.jar?raw=true), con su huella SHA-256. No es una release validada en un servidor. No se asigna una licencia al código recuperado sin indicación del titular.
+Repositorio confirmado: [Ulisesem/CazaJefes](https://github.com/Ulisesem/CazaJefes). El JAR de prueba se incluye en [dist/CazaJefes-1.0.1.jar](dist/CazaJefes-1.0.1.jar?raw=true), con su huella SHA-256. No es una release validada en un servidor. No se asigna una licencia al código recuperado sin indicación del titular.
