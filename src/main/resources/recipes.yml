@@ -1,28 +1,15 @@
-# Se aplican a recetas shaped de CazaJefes; /ri reload reconstruye el registro.
-# Las claves son IDs reales. Los símbolos no redefinidos conservan ingredientes
-# ExactChoice originales (PDC, nombre y lore), incluidos núcleos y esencias.
-# shape exige tres filas de tres caracteres. ingredients admite materiales Bukkit.
-# Una receta inválida se deshabilita y deja una advertencia; no queda gratuita.
+# v2: las armas/armaduras usan cristal de su categoría, núcleo, objeto base y fragmento.
+# Conserva K (cristal), C (núcleo), B (objeto base), F (fragmento).
+# shape e ingredients son opcionales. Los símbolos originales no redefinidos conservan su ExactChoice.
+schema-version: 2
 recipes:
   hacha_sismica:
     enabled: true
-    shape: ['GMP', ' NB', ' S ']
-    ingredients:
-      N: NETHERITE_INGOT
-      S: STICK
   espada_brezal:
     enabled: true
-    shape: [' P ', 'NMB', ' F ']
-    ingredients:
-      N: NETHERITE_INGOT
   arco_ceniciento:
     enabled: true
-    shape: ['PFB', 'M B', 'PFB']
   lanza_magma:
     enabled: true
-    shape: [' P ', 'MFB', ' T ']
   mandoble_vacio:
     enabled: true
-    shape: ['HAN', 'MFM', ' T ']
-    ingredients:
-      N: NETHERITE_INGOT

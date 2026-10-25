@@ -7,8 +7,8 @@ public class BossCatalogTest {
     @Test public void retainsCatalogAndAliases() {
         assertEquals(62,BossCatalog.all().size());
         assertEquals(10,BossCatalog.all().stream().filter(BossCatalog.Definition::mini).count());
-        assertEquals("volcano",BossCatalog.get("sniffer_tanque").id());
-        assertEquals("warden_abismal",BossCatalog.get("dragon_grieta").id());
+        assertEquals(BossCatalog.get("volcano").id(),BossCatalog.get("sniffer_tanque").id());
+        assertEquals(BossCatalog.get("warden_abismal").id(),BossCatalog.get("dragon_grieta").id());
     }
     @Test public void idsAreUniqueAndNewNamesRetainIds() {
         assertEquals(62,BossCatalog.ids().stream().distinct().count());

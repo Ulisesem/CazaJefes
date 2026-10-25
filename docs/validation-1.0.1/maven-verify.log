@@ -1,0 +1,68 @@
+Acceso denegado.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< dev.cazajefes:cazajefes >-----------------------
+[INFO] Building CazaJefes 1.0.1
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ cazajefes ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ cazajefes ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 13 source files with javac [debug release 21] to target\classes
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[INFO] //workspace/CazaJefes/src/main/java/dev/cazajefes/RelicItems.java: Some input files use or override a deprecated API.
+[INFO] //workspace/CazaJefes/src/main/java/dev/cazajefes/RelicItems.java: Recompile with -Xlint:deprecation for details.
+[INFO] //workspace/CazaJefes/src/main/java/dev/cazajefes/BossCatalog.java: Some input files use unchecked or unsafe operations.
+[INFO] //workspace/CazaJefes/src/main/java/dev/cazajefes/BossCatalog.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ cazajefes ---
+[INFO] skip non existing resourceDirectory /workspace/CazaJefes\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ cazajefes ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 4 source files with javac [debug release 21] to target\test-classes
+[INFO] Annotation processing is enabled because one or more processors were found
+  on the class path. A future release of javac may disable annotation processing
+  unless at least one processor is specified by name (-processor), or a search
+  path is specified (--processor-path, --processor-module-path), or annotation
+  processing is enabled explicitly (-proc:only, -proc:full).
+  Use -Xlint:-options to suppress this message.
+  Use -proc:none to disable annotation processing.
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ cazajefes ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junit4.JUnit4Provider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running dev.cazajefes.BossCatalogTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.508 s -- in dev.cazajefes.BossCatalogTest
+[INFO] Running dev.cazajefes.CombatAccessTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in dev.cazajefes.CombatAccessTest
+[INFO] Running dev.cazajefes.CraftPlanTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.CraftPlanTest
+[INFO] Running dev.cazajefes.MenuActionsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.MenuActionsTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ cazajefes ---
+[INFO] Building jar: /workspace/CazaJefes\target\CazaJefes-1.0.1.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  8.674 s
+[INFO] Finished at: 2026-10-24T15:46:26-06:00
+[INFO] ------------------------------------------------------------------------

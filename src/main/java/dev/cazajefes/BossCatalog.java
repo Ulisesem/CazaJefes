@@ -31,7 +31,10 @@ public final class BossCatalog {
             var1 = "guardian_abismal";
          }
 
-         return DEFINITIONS.get(var1);
+         Definition exact=DEFINITIONS.get(var1);
+         if (exact!=null) return exact;
+         final String alias=var1;
+         return DEFINITIONS.values().stream().filter(d -> d.legacyId().equals(alias)).findFirst().orElse(null);
       }
    }
 
@@ -87,7 +90,7 @@ public final class BossCatalog {
       add(var1, "hongo_infernal", "Hongo Infernal", BossCatalog.Tier.EPIC, EntityType.MOOSHROOM, false);
       add(var1, "desollador_bogged", "Desollador Bogged", BossCatalog.Tier.EPIC, EntityType.BOGGED, false);
       add(var1, "anciano_coral", "Anciano Coral", BossCatalog.Tier.LEGENDARY, EntityType.ELDER_GUARDIAN, false);
-      add(var1, "devorador_ecos", "Devorador de Ecos", BossCatalog.Tier.LEGENDARY, EntityType.WARDEN, false);
+      add(var1, "devorador_ecos", "Azrath, Devorador de Ecos", BossCatalog.Tier.ABYSSAL, EntityType.WARDEN, false);
       add(var1, "espectro_fin", "Espectro del Fin", BossCatalog.Tier.LEGENDARY, EntityType.ENDERMAN, false);
       add(var1, "dragon_ceniza", "Dragón de Ceniza", BossCatalog.Tier.LEGENDARY, EntityType.BLAZE, false);
       add(var1, "reina_brezal", "Reina del Brezal", BossCatalog.Tier.LEGENDARY, EntityType.CAVE_SPIDER, false);
@@ -104,7 +107,7 @@ public final class BossCatalog {
       add(var1, "leviatan_ender", "Leviatán del End", BossCatalog.Tier.MYTHIC, EntityType.SHULKER, false);
       add(var1, "liche_noche", "Liche de la Noche", BossCatalog.Tier.MYTHIC, EntityType.WITHER_SKELETON, false);
       add(var1, "colmillo_abismal", "Colmillo Abismal", BossCatalog.Tier.ABYSSAL, EntityType.ZOGLIN, false);
-      add(var1, "warden_abismal", "Warden de la Grieta", BossCatalog.Tier.ABYSSAL, EntityType.WARDEN, false);
+      add(var1, "warden_abismal", "Nharzul, Soberano del Abismo", BossCatalog.Tier.ABYSSAL, EntityType.WARDEN, false);
       add(var1, "maestro_creaking", "Maestro Creaking", BossCatalog.Tier.ABYSSAL, EntityType.CREAKING, false);
       add(var1, "reina_piglin", "Reina Piglin", BossCatalog.Tier.ABYSSAL, EntityType.PIGLIN_BRUTE, false);
       add(var1, "guardian_abismal", "Guardián Ancestral", BossCatalog.Tier.ABYSSAL, EntityType.ELDER_GUARDIAN, false);
@@ -127,10 +130,15 @@ public final class BossCatalog {
             ? "Mini jefe de rango " + var3.display + ", especializado en perseguir y presionar a los cazadores."
             : "Jefe de rango " + var3.display + " que protege la Grieta con ataques y habilidades propias.";
       };
-      var0.add(new BossCatalog.Definition(var1, var2, var3, var4, var5, var6));
+      var0.add(new BossCatalog.Definition(canonicalId(var2), var2, var3, var4, var5, var6, var1));
    }
 
-   public record Definition(String id, String name, BossCatalog.Tier tier, EntityType entityType, boolean mini, String description) {
+   public static String canonicalId(String name) {
+      return java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD)
+         .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_|_$", "");
+   }
+
+   public record Definition(String id, String name, BossCatalog.Tier tier, EntityType entityType, boolean mini, String description, String legacyId) {
    }
 
    public static enum Tier {

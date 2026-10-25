@@ -585,72 +585,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       }
    }
 
-   private void recipes(Player var1, int var2) {
-      int var3 = Math.max(0, Math.min(4, var2 / 100));
-      int var4 = var2 % 100;
-      List var5 = this.visualRecipes().stream().filter(var2x -> this.recipeCategory(var2x) == var3).toList();
-      byte var6 = 28;
-      int var7 = Math.max(1, (var5.size() + var6 - 1) / var6);
-      int var8 = Math.max(0, Math.min(var7 - 1, var4));
-      int var9 = var3 * 100 + var8;
-      String[] var10 = new String[]{"RARES", "ARMAS", "ARMADURAS", "LIBROS", "ESENCIAS"};
-      CazaJefesCommand.MenuHolder var11 = new CazaJefesCommand.MenuHolder("recipes", var9);
-      Inventory var12 = Bukkit.createInventory(var11, 54, Component.text("RECETARIO • " + var10[var3], NamedTextColor.LIGHT_PURPLE));
-      var11.inventory = var12;
-      this.fillPremiumFrame(var12);
-      Material[] var13 = new Material[]{Material.ENCHANTED_BOOK, Material.NETHERITE_SWORD, Material.NETHERITE_CHESTPLATE, Material.BOOK, Material.MAGMA_CREAM};
-      String[] var14 = new String[]{
-         "Esencias de propiedades y rares fabricables.",
-         "Armas y herramientas que reciben rares.",
-         "Piezas de armadura y sus infusiones.",
-         "Libros de habilidades y sus recetas.",
-         "Monedas de progresión y refinamiento."
-      };
-      var12.setItem(
-         4,
-         this.menuItem(
-            Material.CRAFTING_TABLE,
-            "§d§lRECETARIO DE LA GRIETA",
-            "§7Elige una sección para ver sus recetas.",
-            "§8La cuadrícula muestra los ingredientes exactos."
-         )
-      );
-
-      for (int var15 = 0; var15 < var10.length; var15++) {
-         String var16 = var15 == var3 ? "§a§l" : "§d§l";
-         var12.setItem(
-            46 + var15, this.menuItem(var13[var15], var16 + var10[var15], "§7" + var14[var15], var15 == var3 ? "§aSección abierta" : "§eClic para abrir")
-         );
-      }
-
-      if (var8 > 0) {
-         var12.setItem(45, this.menuItem(Material.ARROW, "§d§lPÁGINA ANTERIOR", "§7Volver a la página " + var8));
-      }
-
-      if (var8 + 1 < var7) {
-         var12.setItem(53, this.menuItem(Material.ARROW, "§d§lSIGUIENTE PÁGINA", "§7Ir a la página " + (var8 + 2)));
-      }
-
-      int[] var23 = new int[]{10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
-      int var24 = var8 * var6;
-
-      for (int var17 = var24; var17 < Math.min(var24 + var6, var5.size()); var17++) {
-         CazaJefesCommand.VisualRecipe var18 = (CazaJefesCommand.VisualRecipe)var5.get(var17);
-         ItemStack var19 = var18.icon().clone();
-         ItemMeta var20 = var19.getItemMeta();
-         ArrayList var21 = var20.lore() == null ? new ArrayList() : new ArrayList(var20.lore());
-         var21.add(Component.text(" "));
-         var21.add(Component.text("RECETA DISPONIBLE", NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
-         var21.add(Component.text("Clic para ver ingredientes", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-         var20.lore(var21);
-         var19.setItemMeta(var20);
-         int var22 = var23[var17 - var24];
-         var12.setItem(var22, var19);
-         var11.recipeIdsBySlot.put(var22, var18.id());
-      }
-
-      var1.openInventory(var12);
-   }
+   private void recipes(Player player, int page) { this.plugin.getServer().dispatchCommand(player,"rares"); }
 
    private int recipeCategory(CazaJefesCommand.VisualRecipe var1) {
       String var2 = var1.id();
@@ -1583,67 +1518,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       }
    }
 
-   private void bossCatalog(Player var1, int var2) {
-      List var3 = BossCatalog.all()
-         .stream()
-         .sorted(
-            Comparator.<BossCatalog.Definition>comparingInt(var0 -> var0.tier().ordinal())
-               .thenComparing(var0 -> var0.mini() ? 0 : 1)
-               .thenComparing(BossCatalog.Definition::name, String.CASE_INSENSITIVE_ORDER)
-         )
-         .toList();
-      byte var4 = 28;
-      int var5 = Math.max(1, (var3.size() + var4 - 1) / var4);
-      int var6 = Math.max(0, Math.min(var5 - 1, var2));
-      CazaJefesCommand.MenuHolder var7 = new CazaJefesCommand.MenuHolder("boss_catalog", var6);
-      Inventory var8 = Bukkit.createInventory(var7, 54, Component.text("BESTIARIO DE LA GRIETA · " + (var6 + 1) + "/" + var5, NamedTextColor.DARK_PURPLE));
-      var7.inventory = var8;
-      this.fillPremiumFrame(var8);
-      var8.setItem(
-         4,
-         this.menuItem(
-            Material.NETHER_STAR, "§d§lBESTIARIO DE LA GRIETA", "§7" + var3.size() + " encuentros registrados.", "§8Pulsa un jefe para consultar su ficha."
-         )
-      );
-      var8.setItem(
-         49,
-         this.menuItem(Material.COMPASS, "§b§lINICIO DE CACERÍA", "§7Los huevos se rastrean con la Brújula de Caza.", "§7Usa §f/ri compass§7 para recibir una.")
-      );
-      if (var6 > 0) {
-         var8.setItem(45, this.menuItem(Material.ARROW, "§d§lPÁGINA ANTERIOR", "§7Volver a la página " + var6));
-      }
-
-      if (var6 + 1 < var5) {
-         var8.setItem(53, this.menuItem(Material.ARROW, "§d§lSIGUIENTE PÁGINA", "§7Ir a la página " + (var6 + 2)));
-      }
-
-      int[] var9 = new int[]{10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
-
-      for (int var10 = var6 * var4; var10 < Math.min((var6 + 1) * var4, var3.size()); var10++) {
-         BossCatalog.Definition var11 = (BossCatalog.Definition)var3.get(var10);
-         ItemStack var12 = this.bossHead(var11);
-         ItemMeta var13 = var12.getItemMeta();
-         var13.displayName(
-            ((TextComponent)Component.text(var11.name(), var11.tier().color).decorate(TextDecoration.BOLD)).decoration(TextDecoration.ITALIC, false)
-         );
-         ArrayList var14 = new ArrayList();
-         var14.add(
-            ((TextComponent)Component.text((var11.mini() ? "MINI JEFE" : "JEFE") + " · " + var11.tier().display.toUpperCase(), var11.tier().color)
-                  .decorate(TextDecoration.BOLD))
-               .decoration(TextDecoration.ITALIC, false)
-         );
-         var14.add(Component.text("Criatura: " + var11.entityType().name(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-         var14.add(Component.text(var11.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-         var14.add(Component.text("Clic para abrir la ficha", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-         var13.lore(var14);
-         var12.setItemMeta(var13);
-         int var15 = var9[var10 - var6 * var4];
-         var8.setItem(var15, var12);
-         var7.bossIdsBySlot.put(var15, var11.id());
-      }
-
-      var1.openInventory(var8);
-   }
+   private void bossCatalog(Player player, int page) { ((CazaJefesPlugin)plugin).bestiary.open(player); }
 
    private Material bossIcon(EntityType var1) {
       return switch (var1) {

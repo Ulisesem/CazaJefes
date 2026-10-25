@@ -14,7 +14,7 @@ final class CombatGuard implements Listener {
     private final NamespacedKey boss, minion, credit, parent, encounter;
     CombatGuard(CazaJefesPlugin plugin) {
         this.plugin=plugin;
-        boss=new NamespacedKey(plugin,"boss"); minion=new NamespacedKey(plugin,"boss_minion");
+        boss=new NamespacedKey(plugin,BossKeys.BOSS); minion=new NamespacedKey(plugin,"boss_minion");
         credit=new NamespacedKey(plugin,"last_player_hit"); parent=new NamespacedKey(plugin,"minion_parent");
         encounter=new NamespacedKey(plugin,"encounter_id");
     }

@@ -1028,7 +1028,7 @@ public final class RelicItems implements Listener {
       return this.named(
          Material.AMETHYST_SHARD,
          "fragmento_grieta",
-         "Fragmento de la Grieta",
+         "Fragmento de Tributo",
          NamedTextColor.LIGHT_PURPLE,
          var1,
          "Energía antigua cristalizada.",
@@ -1040,7 +1040,7 @@ public final class RelicItems implements Listener {
       return this.named(
          Material.EMERALD,
          "tributo_grieta",
-         "Tributo de la Grieta",
+         "Tributo del Cazador",
          NamedTextColor.AQUA,
          1,
          "Marca de una cacería victoriosa.",
@@ -1151,6 +1151,7 @@ public final class RelicItems implements Listener {
       String var4 = this.rareTier(var1);
       if (var4 != null) {
          ItemMeta var11 = var3.getItemMeta();
+         var11.displayName(Component.text("✦ " + var4 + " · ",NamedTextColor.GOLD).append(var11.displayName()==null?Component.text(var1):var11.displayName()).decoration(TextDecoration.ITALIC,false));
          ArrayList var6 = var11.lore() == null ? new ArrayList() : new ArrayList(var11.lore());
          var6.add(Component.text("Rare especial de la Grieta", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD));
 
@@ -1257,71 +1258,22 @@ public final class RelicItems implements Listener {
 
    public int dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3) {
       ArrayList<ItemStack> var4 = new ArrayList<>();
-      int var5 = var2.tier().ordinal();
-      ThreadLocalRandom var6 = ThreadLocalRandom.current();
-      if (var2.mini() && var2.tier() == BossCatalog.Tier.COMMON) {
-         var4.add(this.tribute(var2.name()));
-         var4.add(new ItemStack(Material.GOLDEN_APPLE, 1));
-         if (this.chance(0.22)) {
-            var4.add(this.weaponDrop(var2, var6.nextInt(2)));
-         }
-      } else {
-         var4.add(new ItemStack(Material.GOLDEN_APPLE, 1 + var6.nextInt(2)));
-         double var7 = var5;
-         if (var5 >= BossCatalog.Tier.LEGENDARY.ordinal()
-            && this.chance(var5 >= BossCatalog.Tier.ABYSSAL.ordinal() ? 0.14 : (var5 >= BossCatalog.Tier.MYTHIC.ordinal() ? 0.11 : 0.08))) {
-            var4.add(this.weaponDrop(var2, var6.nextInt(2)));
-         }
-
-         if (this.chance(Math.min(0.58, 0.18 + 0.1 * var7))) {
-            var4.add(this.rare(this.rareForBoss(var2)));
-         }
-
-         if (this.chance(Math.min(0.72, 0.28 + 0.08 * var7))) {
-            var4.add(this.fragment(1 + (var5 >= 3 && this.chance(0.45) ? 1 : 0)));
-         }
-
-         if (this.chance(Math.min(0.62, 0.24 + 0.075 * var7))) {
-            var4.add(this.tribute(var2.name()));
-         }
-
-         if (var5 >= BossCatalog.Tier.LEGENDARY.ordinal()
-            && this.chance(var5 >= BossCatalog.Tier.ABYSSAL.ordinal() ? 0.12 : (var5 >= BossCatalog.Tier.MYTHIC.ordinal() ? 0.09 : 0.06))) {
-            var4.add(this.essence());
-         }
-
-         if (var5 >= BossCatalog.Tier.LEGENDARY.ordinal()
-            && this.chance(var5 >= BossCatalog.Tier.ABYSSAL.ordinal() ? 0.04 : (var5 >= BossCatalog.Tier.MYTHIC.ordinal() ? 0.06 : 0.08))) {
-            var4.add(this.abyssalEssenceFromBoss());
-         }
-
-         if (this.chance(Math.min(0.75, 0.36 + 0.075 * var7))) {
-            var4.add(this.component(var2));
-         }
-
-         if (this.chance(Math.min(0.78, 0.3 + 0.09 * var7))) {
-            var4.add(this.riftMaterial(var6.nextInt(4)));
-         }
-
-         if (this.chance(Math.min(0.4, 0.1 + 0.065 * var7))) {
-            var4.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
-         }
+      for (LootRules.Reward reward:LootRules.roll(var2,ThreadLocalRandom.current())) {
+         ItemStack stack=switch(reward.kind()) {
+            case FRAGMENT -> fragment(reward.amount());
+            case TRIBUTE -> tribute("Cazador");
+            case CRYSTAL -> crystal(var2.tier(),reward.amount());
+            case CORE -> component(var2);
+            case ARMOR -> armor(var2,reward.variant());
+            case WEAPON -> weaponDrop(var2,reward.variant());
+            case RARE -> rare(rareForBoss(var2));
+            case ESSENCE -> var2.tier().ordinal()>=4 ? primordialEssence() : essence();
+            case ABYSSAL_ESSENCE -> abyssalEssence();
+            case BOOK -> rareBook(catalogIds().get(reward.variant()%catalogIds().size()),1);
+            case MATERIAL -> riftMaterial(reward.variant());
+         };
+         if (stack!=null) { stack.setAmount(reward.amount()); var4.add(stack); }
       }
-
-      if (var2.mini() && this.chance(0.04)) {
-         ItemStack var12 = this.named(
-            Material.STICK,
-            "palo_grieta_empuje_iii",
-            "Palo de Empuje III",
-            NamedTextColor.LIGHT_PURPLE,
-            1,
-            "Un golpe que aparta incluso a los rivales más pesados.",
-            "Botín poco común de los mini jefes."
-         );
-         this.enchant(var12, Enchantment.KNOCKBACK, 3);
-         var4.add(var12);
-      }
-
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
       RelicItems.DropGroup var8 = new RelicItems.DropGroup(var2.name(), var13);
       this.dropGroups.put(var3, var8);
@@ -1404,11 +1356,11 @@ public final class RelicItems implements Listener {
    }
 
    private String rareForBoss(BossCatalog.Definition var1) {
-      if (var1.id().equals("coloso")) {
+      if (var1.legacyId().equals("coloso")) {
          return "hacha_sismica";
-      } else if (var1.id().equals("viuda")) {
+      } else if (var1.legacyId().equals("viuda")) {
          return "espada_brezal";
-      } else if (var1.id().equals("centinela")) {
+      } else if (var1.legacyId().equals("centinela")) {
          return "arco_ceniciento";
       } else {
          return switch (var1.tier()) {
@@ -1423,8 +1375,8 @@ public final class RelicItems implements Listener {
    private ItemStack component(BossCatalog.Definition var1) {
       return this.named(
          Material.ECHO_SHARD,
-         "componente_" + var1.id(),
-         "Núcleo de la Grieta",
+         "componente_" + var1.legacyId(),
+         "Núcleo " + var1.tier().display + " · " + var1.name(),
          var1.tier().color,
          1,
          "Núcleo de energía condensada.",
@@ -1443,6 +1395,40 @@ public final class RelicItems implements Listener {
       ItemStack var2 = this.riftMaterial(var1);
       this.addRiftDropClassification(var2, BossCatalog.Tier.EPIC);
       return var2;
+   }
+
+   public ItemStack migrateCurrency(ItemStack stack) {
+      String id=customId(stack);if(id==null)return stack;
+      ItemStack replacement=null;
+      if(id.equals("fragmento_grieta"))replacement=fragment(stack.getAmount());
+      else if(id.equals("tributo_grieta"))replacement=tribute("Cazador");
+      else if(id.startsWith("componente_")){
+         BossCatalog.Definition definition=BossCatalog.get(id.substring("componente_".length()));if(definition!=null)replacement=component(definition);
+      }
+      if(replacement!=null){replacement.setAmount(stack.getAmount());return replacement;}return stack;
+   }
+   public void migrateCurrencies(Player player) {
+      ItemStack[] storage=player.getInventory().getStorageContents();boolean changed=false;
+      for(int slot=0;slot<storage.length;slot++){
+         ItemStack old=storage[slot],updated=migrateCurrency(old);
+         if(old!=null&&!old.equals(updated)){storage[slot]=updated;changed=true;}
+      }
+      if(changed)player.getInventory().setStorageContents(storage);
+   }
+
+   public ItemStack crystal(BossCatalog.Tier tier, int amount) {
+      ItemStack stack=named(Material.AMETHYST_SHARD,"cristal_encantado_"+tier.name().toLowerCase(java.util.Locale.ROOT),
+         "✦ Cristal Encantado · "+tier.display,tier.color,amount,"Forja de categoría "+tier.display+".","Recurso de progresión de los cazadores.");
+      ItemMeta meta=stack.getItemMeta();meta.setEnchantmentGlintOverride(true);stack.setItemMeta(meta);return stack;
+   }
+   public void registerCrystalRecipes() {
+      addRecipe("tributo_cazador",tribute("Cazador"),new String[]{"FFF","FFF","FFF"},Map.of('F',new ExactChoice(fragment(1))));
+      for (BossCatalog.Tier tier:BossCatalog.Tier.values()) {
+         RecipeChoice previous=tier.ordinal()==0 ? new ExactChoice(fragment(1)) : new ExactChoice(crystal(BossCatalog.Tier.values()[tier.ordinal()-1],1));
+         addRecipe("cristal_"+tier.name().toLowerCase(java.util.Locale.ROOT),crystal(tier,1),
+            tier.ordinal()==0 ? new String[]{" F ","FTF"," F "} : new String[]{" F ","FT ","   "},
+            Map.of('F',previous,'T',new ExactChoice(tribute("Cazador"))));
+      }
    }
 
    public void reloadRares() {
@@ -1589,6 +1575,7 @@ public final class RelicItems implements Listener {
             this.plugin.getServer().addRecipe(var27);
          }
       }
+      registerCrystalRecipes();
    }
 
    private int rareCatalystVariant(String var1) {
@@ -1604,7 +1591,26 @@ public final class RelicItems implements Listener {
       }
    }
 
+   private BossCatalog.Tier equipmentTier(ItemStack stack) {
+      String id=customId(stack);
+      if(id!=null&&id.startsWith("armadura_")){
+         int last=id.lastIndexOf('_');BossCatalog.Definition definition=BossCatalog.get(id.substring("armadura_".length(),last));
+         if(definition!=null)return definition.tier();
+      }
+      return BossCatalog.Tier.MYTHIC;
+   }
+
    private void addRecipe(String var1, ItemStack var2, String[] var3, Map<Character, RecipeChoice> var4) {
+      if (rareIds().contains(var1) || var1.startsWith("armadura_grieta_")) {
+         BossCatalog.Tier rank=var1.startsWith("armadura_") ? equipmentTier(var2) : switch(var1) {
+            case "espada_brezal" -> BossCatalog.Tier.RARE;
+            case "hacha_sismica" -> BossCatalog.Tier.EPIC;
+            case "arco_ceniciento", "lanza_magma" -> BossCatalog.Tier.LEGENDARY;
+            default -> BossCatalog.Tier.MYTHIC;
+         };
+         var3=new String[]{" K ","CBC"," F "};
+         var4=Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(var2.getType()),'F',new ExactChoice(fragment(1)));
+      }
       var3 = var3.clone();
       var4 = new HashMap<>(var4);
       try {
@@ -1713,8 +1719,8 @@ public final class RelicItems implements Listener {
       };
       ItemStack var5 = this.named(
          (Material)var3,
-         "armadura_" + var1.id() + "_" + var2,
-         var4 + " de " + var1.name(),
+         "armadura_" + var1.legacyId() + "_" + var2,
+         var4 + " · " + var1.tier().display + " · " + var1.name(),
          var1.tier().color,
          1,
          "Armadura encantada de la Grieta.",
@@ -1731,7 +1737,7 @@ public final class RelicItems implements Listener {
          this.enchant(var5, Enchantment.THORNS, 3);
       }
 
-      String var7 = var1.id();
+      String var7 = var1.legacyId();
       switch (var7) {
          case "viuda":
          case "reina_brezal":
@@ -1792,7 +1798,7 @@ public final class RelicItems implements Listener {
          this.enchant(var5, Enchantment.SWIFT_SNEAK, Math.min(3, var1.tier().ordinal()));
       }
 
-      int var9 = Math.floorMod(var1.id().hashCode(), 3);
+      int var9 = Math.floorMod(var1.legacyId().hashCode(), 3);
       int var10 = Math.min(3, 1 + var1.tier().ordinal() / 2);
       if (var2 == 0) {
          this.enchant(
@@ -1835,8 +1841,8 @@ public final class RelicItems implements Listener {
       String var4 = var3.name().endsWith("AXE") ? "Hacha" : "Espada";
       ItemStack var5 = this.named(
          var3,
-         "arma_" + var1.id() + "_" + var2,
-         var4 + " de la Grieta",
+         "arma_" + var1.legacyId() + "_" + var2,
+         var4 + " · " + var1.tier().display + " · " + var1.name(),
          var1.tier().color,
          1,
          "Arma encantada de la Grieta.",
@@ -1853,15 +1859,15 @@ public final class RelicItems implements Listener {
          this.enchant(var5, Enchantment.MENDING, 1);
       }
 
-      if (var1.id().contains("wither") || var1.id().contains("liche")) {
+      if (var1.legacyId().contains("wither") || var1.legacyId().contains("liche")) {
          this.enchant(var5, Enchantment.LOOTING, 3);
       }
 
-      if (var1.id().contains("coloso") || var1.id().contains("golem") || var1.id().contains("titan")) {
+      if (var1.legacyId().contains("coloso") || var1.legacyId().contains("golem") || var1.legacyId().contains("titan")) {
          this.enchant(var5, Enchantment.KNOCKBACK, 2);
       }
 
-      if (var1.id().contains("viuda") || var1.id().contains("aracnido") || var1.id().contains("reina")) {
+      if (var1.legacyId().contains("viuda") || var1.legacyId().contains("aracnido") || var1.legacyId().contains("reina")) {
          this.enchant(var5, Enchantment.SWEEPING_EDGE, 3);
       }
 
