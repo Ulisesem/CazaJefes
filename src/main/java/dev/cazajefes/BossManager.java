@@ -326,6 +326,7 @@ public final class BossManager implements Listener {
    }
 
    private void startBossSystems(UUID var1, LivingEntity var2, BossCatalog.Definition var3, long var4) {
+      ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);
       if (!this.attacks.containsKey(var1)) {
          if (var2 instanceof Mob var6) {
             var6.setAware(true);
@@ -940,7 +941,6 @@ public final class BossManager implements Listener {
       private int phase = 1;
       private final BossTactics tactics;
       private final BossStages stages;
-      private int visualTick;
       private final Map<UUID, Long> meleeCooldowns = new HashMap<>();
       private final Map<UUID, Long> hotbarCooldowns = new HashMap<>();
 
@@ -962,7 +962,6 @@ public final class BossManager implements Listener {
             PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
             if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,100,speed,true,false));}
             stages.update();
-            if(++visualTick%2==0)CombatVisuals.aura(boss,definition,visualTick*0.15);
             Player var2=tactics.pickTarget();
             if (var2 != null) {
                if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
