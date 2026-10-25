@@ -1,10 +1,13 @@
 name: CazaJefes
-version: '1.3.0'
+version: '1.4.0'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
 description: Jefes grandes con ataques especiales, botín y recetas.
 authors: [CazaJefes]
 commands:
+  cjequipo:
+    description: Entrega equipo por categoría a administradores.
+    usage: /cjequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]
   mercado:
     description: Mercado de la Grieta por categorías.
     aliases: [grieta]
@@ -19,6 +22,9 @@ commands:
     usage: /ri <help|egg|boss|compass|essence|book|fragment|tribute|rare>
     aliases: [cazajefes]
 permissions:
+  cazajefes.admin:
+    description: Entrega conjuntos mediante /cjequipo.
+    default: op
   cazajefes.admin:
     description: Permite invocar jefes de CazaJefes.
     default: op

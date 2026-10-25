@@ -165,6 +165,7 @@ public final class BossManager implements Listener {
    public boolean placeEggNear(String id,Player player) {
       Block target=player.getTargetBlockExact(8);
       if(target!=null&&placeEgg(id,target.getRelative(BlockFace.UP).getLocation()))return true;
+      if(target==null&&placeEgg(id,player.getEyeLocation().add(player.getEyeLocation().getDirection().multiply(4)).getBlock().getLocation()))return true;
       Location base=player.getLocation().getBlock().getLocation();
       for(int[] offset:new int[][]{{2,0},{-2,0},{0,2},{0,-2},{2,2},{-2,-2}})
          for(int dy:new int[]{0,-1,1})if(placeEgg(id,base.clone().add(offset[0],dy,offset[1])))return true;
@@ -181,7 +182,7 @@ public final class BossManager implements Listener {
          } else {
             Block var5 = var4.getRelative(BlockFace.DOWN);
             String var6 = var5.getBlockData().getAsString();
-            if (!EggPlacement.allowed(var4.isEmpty(),var4.getRelative(BlockFace.UP).isEmpty(),var5.getType().isOccluding(),var5.getState() instanceof org.bukkit.block.TileState,
+            if (!EggPlacement.allowed(var4.isEmpty(),var4.getRelative(BlockFace.UP).isEmpty(),EggPlacement.support(var5.isEmpty(),var5.getType().isOccluding(),var5.getState() instanceof org.bukkit.block.TileState),var5.getState() instanceof org.bukkit.block.TileState,
                 this.eggsByBlock.containsKey(this.key(var5.getLocation())) || this.eggsByBlock.containsKey(this.key(var4.getRelative(BlockFace.UP).getLocation())))) return false;
             var5.setType(Material.BEDROCK,false);
             var4.setType(Material.DRAGON_EGG, false);
@@ -534,7 +535,7 @@ public final class BossManager implements Listener {
             case MYTHIC -> 12.0;
             case ABYSSAL -> 16.0;
          };
-         if(!LightningRetaliation.isActive())var1.setDamage(var18+BattleRules.STRENGTH_BONUS);
+         if(!LightningRetaliation.isActive())var1.setDamage(var18+(var15==null?6:BattleRules.strengthBonus(var15)));
       }
 
       if (var9 != null && var9.getPersistentDataContainer().has(this.bossKey, PersistentDataType.BYTE) && !(var1.getEntity() instanceof Player)) {
@@ -872,6 +873,7 @@ public final class BossManager implements Listener {
                               && var1.location.getBlock().getType() == Material.DRAGON_EGG) {
                               Location var1x = var1.location.clone().add(0.5, 0.7, 0.5);
                               this.angle += Math.PI / 12;
+                              CombatVisuals.egg(var1x,var1.definition.tier(),this.angle);
                               var1.location.getWorld().spawnParticle(Particle.PORTAL, var1x, 10, 0.45, 0.55, 0.45, 0.05);
                               var1.location
                                  .getWorld()
@@ -1125,6 +1127,7 @@ public final class BossManager implements Listener {
       }
 
       private void executeSpecial(Player var1, int var2) {
+         CombatVisuals.special(boss,definition.tier());
          switch (var2) {
             case 0:
                this.shockwave(var1);
@@ -1362,6 +1365,7 @@ public final class BossManager implements Listener {
                      var11.getPersistentDataContainer().set(new NamespacedKey(plugin, "minion_parent"), PersistentDataType.STRING,
                         boss.getPersistentDataContainer().get(new NamespacedKey(plugin, "encounter_id"), PersistentDataType.STRING));
                      this.strengthenMinion(var11, "generic");
+                     CombatVisuals.summon(var10,this.definition.tier());
                      if (var11 instanceof Mob var12) {
                         var12.setTarget(var1);
                         var12.setPersistent(false);
@@ -1383,7 +1387,7 @@ public final class BossManager implements Listener {
                this.boss.getWorld().playSound(this.boss.getLocation(), Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1.0F, 0.8F);
             }
          } else {
-            this.summonCustom(EntityType.SPIDER, var1, 2, "spider_guard");
+            this.summonCustom(EntityType.CAVE_SPIDER, var1, 3, "spider_guard");
          }
       }
 
@@ -1420,7 +1424,7 @@ public final class BossManager implements Listener {
                      } else if (var4.equals("spider_guard")) {
                         var11.setTarget(var2);
                         var11.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 4, true, false));
-                        var11.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 1200, 1, true, false));
+                        var11.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 1200, 0, true, false));
                      } else {
                         var11.setTarget(var2);
                         if (var11 instanceof Bee var16) {
@@ -1429,6 +1433,8 @@ public final class BossManager implements Listener {
                      }
                   }
 
+                  if(var9 instanceof LivingEntity minion){minion.removePotionEffect(PotionEffectType.STRENGTH);minion.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,1200,0,true,false));}
+                  CombatVisuals.summon(var8,this.definition.tier());
                   if (!var4.equals("fox_sheep")) {
                      this.strengthenMinion(var9, var4);
                   }
@@ -1496,7 +1502,7 @@ public final class BossManager implements Listener {
                                        }
 
                                        if (var1x.getLocation().distanceSquared(var9.getLocation()) < 7.839999999999999) {
-                                          var1x.damage(8.0, BossAttackTask.this.boss);
+                                          var1x.damage(8.0, (LivingEntity)var9);
                                           var1x.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
                                        }
                                     }
@@ -1527,6 +1533,8 @@ public final class BossManager implements Listener {
 
       private void strengthenMinion(Entity var1, String var2) {
          if (var1 instanceof LivingEntity var3) {
+            var3.removePotionEffect(PotionEffectType.STRENGTH);var3.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,1200,0,true,false));
+            if(var2.equals("spider_guard")){var size=var3.getAttribute(Attribute.SCALE);if(size!=null)size.setBaseValue(0.55);var damage=var3.getAttribute(Attribute.ATTACK_DAMAGE);if(damage!=null)damage.setBaseValue(6+definition.tier().ordinal()*1.5);}
             double var4 = var2.equals("abeja_enfurecida") ? 100.0 : (var2.equals("sniffer_young") ? 100.0 : (var2.equals("spider_guard") ? 120.0 : 70.0));
             AttributeInstance var6 = var3.getAttribute(Attribute.MAX_HEALTH);
             if (var6 != null) {
@@ -1536,7 +1544,7 @@ public final class BossManager implements Listener {
 
             AttributeInstance var7 = var3.getAttribute(Attribute.ARMOR);
             if (var7 != null) {
-               var7.setBaseValue(0.0);
+               var7.setBaseValue(var2.equals("spider_guard")?8:0);
             }
 
             AttributeInstance var8 = var3.getAttribute(Attribute.KNOCKBACK_RESISTANCE);

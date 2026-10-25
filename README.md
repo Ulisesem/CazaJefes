@@ -1,82 +1,46 @@
-# CazaJefes 1.3.0 · La Grieta
+# CazaJefes 1.4.0
 
-Plugin de prueba para Paper 1.21.11 / Java 21. [Descargar JAR](dist/CazaJefes-1.3.0.jar?raw=true).
+Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
-## Novedades 1.3.0
+## Equipo por categoría
 
-- Fuerza V y Prisa VI mantenidas en todos los bosses activos. Se suma el bono de Fuerza al daño normalizado; no queda solo como un efecto visual. El controlador funciona cada 5–10 ticks y el ataque cercano manual de todos los bosses tiene espera de 500 ms, alcance y visión. No se eliminan los frames normales de inmunidad para cada ataque de cuerpo a cuerpo.
-- Represalia de rayos en fase 3 según el daño efectivo que cada jugador inflige al boss. Se carga con 40 puntos por defecto; espera global de cuatro segundos por jugador. Daño base 12 + 0,3 por punto acumulado, máximo 30 por defecto, antes de mitigaciones. Es un efecto de rayo acompañado de daño LIGHTNING_BOLT atribuido al boss. La represalia evita duplicar Fuerza/fases y reinicia la inmunidad del golpe para no ser absorbida por el ataque cercano; restaura esa inmunidad si la represalia no aplica daño. Los plugins de protección pueden cancelar los eventos normales.
-- El Fragmento de Tributo conserva su imagen de disco, pero tiene nombre de objeto propio y oculta el tooltip adicional del material nativo. Las monedas anteriores se actualizan al entrar/abrir inventarios.
-- Nuevo Sello del Renacer y Amuleto del Fénix Astral (tótem real de Minecraft). 64 fragmentos → un sello; cuatro sellos + ocho tributos → un amuleto. Los precios son configurables. Se retira el viejo canje directo del amuleto por 32 fragmentos. Sus IDs internos anteriores se conservan por compatibilidad; no son sus nombres visibles.
-- `/mercado`, alias `/grieta`, y `/ri trade` o `/ri canjear`: seis departamentos, bóveda de monedas, precio por oferta y confirmación antes de comprar. Incluye Santuario del Renacer, Materiales, Armería, Armaduras, Infusiones y Grimorios. Conserva las demás ofertas del catálogo anterior.
-- El canje comprueba saldo y espacio antes de actualizar el inventario, y revalida ofertas/precios tras recargas. Los nombres falsificados sin PDC no son moneda. Existe navegación directa entre mercado y forja.
-
-[Detalle de cambios y pruebas pendientes](docs/CAMBIOS-1.3.0.md).
-
-## Funciones conservadas de 1.2.0
-
-- El botón del huevo en la ficha del bestiario ya coloca un huevo real sobre bedrock. Requiere OP, cazajefes.admin o rareitemhunter.admin.egg. Haz clic derecho en ese huevo para despertar al boss. Se busca una superficie cercana segura; no se sustituyen cofres, bloques con inventario ni soportes parciales. El bloque original se guarda y se restaura al eclosionar o retirar el huevo si el pedestal sigue intacto.
-- Fragmentos de Tributo representados por DISC_FRAGMENT_5, con brillo. Los antiguos con PDC del plugin se convierten al abrir inventarios/entrar; los fragmentos de disco vanilla no son moneda del plugin.
-- Brillo visual en objetos del plugin sin añadir encantamientos falsos. La brújula nueva no tiene Unbreaking 10 y las existentes se actualizan al entrar/abrir inventarios. Los encantamientos reales del equipo se conservan.
-- Corazón del Mar como corazón encantado de cada boss principal: RARE con probabilidad base del 1 %, configurable en loot.boss-heart-chance. No cae de minijefes, no tiene receta y no añade poderes activos. La galería muestra los 52 corazones posibles.
-- Persecución mediante pathfinder y movimiento de apoyo para bosses pasivos; ataque cercano manual limitado por cooldown y visión, también para gigantes. No cambia la exclusión de creativo/espectador como objetivos hostiles.
-- Una sola publicación del botín completo al morir el boss. Recoger objetos normales no publica mensajes; adquirir una rare del boss anuncia al jugador una vez por entidad de drop. También reconoce libros/esencias de propiedades y el corazón como rares. Los objetos soltados manualmente por jugadores no reactivan ese anuncio.
-- Forja ampliada a siete secciones de recetas más Guía de materiales y Galería de corazones. La creación muestra pasos y requisitos de espacio.
-
-[Detalle de cambios y pruebas pendientes](docs/CAMBIOS-1.2.0.md).
-
-## Interfaces
-
-`/bestiario`, `/bestirio`, `/bestiary`, `/ri bosses`, `/ri jefes` y `/ri bestiario`: seis capítulos exclusivos (Minijefes, Raros, Épicos, Legendarios, Míticos y Abismales), con los 62 bosses, bordes de categoría, sellos luminosos, iconos de criaturas y fichas de fases/botín.
-
-`/rares` y el recetario anterior abren la forja por categorías: Tesorería, Cristales, Armería, Armaduras, Infusiones, Grimorios y Recetario completo, más guía y galería. Muestra recetas registradas y fabrica una unidad con comprobación de materiales/espacio. La infusión equipo + esencias sigue en mesa shapeless.
-
-## Progresión
-
-- Todos los minijefes: solo 1–2 Tributos del Cazador y 1–3 Fragmentos de Tributo. Sin equipo, manzanas, cristales ni libros.
-- Bosses principales: fragmentos y un Cristal Encantado de su categoría garantizados; el resto puede incluir equipo, rares, núcleos, esencias, libros y materiales.
-- Mobs hostiles ordinarios matados por jugador: 1 % de fragmento. Se excluyen bosses/súbditos y spawns marcados como spawner, huevo, comando o CUSTOM. El marcado empieza con esta versión; la procedencia de mobs antiguos sin marca no está garantizada.
-- Súbditos matados por jugador: 0,5 % de fragmento; eliminarlos por tiempo de vida no recompensa.
-- Equipo nuevo con nombre de categoría y origen. Cristales de seis rangos con brillo y PDC propio.
-
-Cristal Común: cuatro fragmentos + un tributo. Cada rango siguiente: dos cristales del anterior + un tributo. Nueve fragmentos se convierten en un tributo. Las armas y armaduras de forja requieren un cristal del rango del resultado, dos núcleos, una pieza base del mismo material y un fragmento.
-
-## Fases
-
-| Fase | Vida | Daño causado | Daño recibido |
+| Categoría | Colección | Protección | Filo |
 |---|---|---|---|
-| I | Más del 65 % | ×1,00 | ×1,00 |
-| II | 30–65 % | ×1,35 | ×0,82 |
-| III | Hasta 30 % | ×1,80 | ×0,65 |
+| Épica | Velo Astral | IV | IV |
+| Legendaria | Juramento Solar | V | V |
+| Mítica | Corona del Vacío | VI | VI |
+| Abismal | Eclipse Eterno | VII | VII |
 
-Desde la segunda fase: debilidad y lentitud al golpear. En la última: marchitar u oscuridad para wardens; espera de seis segundos por jugador entre aplicaciones.
+24 piezas: cuatro armaduras, espada y hacha por categoría, con brillo y descripción gris. Épico/Legendario: diamante. Mítico/Abismal: netherita.
 
-Solo en la última fase: 2 % por tirada para rotar hasta cuatro posiciones ocupadas del inventario principal. Máximo una tirada cada diez segundos de golpes y un éxito por minuto. No toca armadura/offhand ni actúa con otra interfaz/cursor ocupado, en creativo o espectador. No crea ni elimina objetos.
+`/cjequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]`
 
-Nharzul, Soberano del Abismo (`nharzul_soberano_del_abismo`) y Azrath, Devorador de Ecos son Abismales. Salud base nominal mínima de 14000/10000 (sujeta al límite de atributos del servidor), reducción adicional de daño del 15 %, daño adicional ×1,35 e ira mantenida hacia objetivos válidos.
+Ejemplo: `/cjequipo abismal todo`. Sin pieza: todo. Desde consola indica pieza y jugador. Permiso `cazajefes.admin`, operadores por defecto. Entrega completa o nada si falta espacio.
 
-La barra es visible en creativo. OP o `cazajefes.admin` permite probar daño/drops en creativo con `combat.allow-creative-admin-tests: true`. Los bosses siguen atacando solo a supervivencia/aventura.
+## Bosses y drops
 
-## Instalar y migrar
+76 encuentros: 10 minijefes y 20 abismales. Quince nuevos abismales y un Warden duplicado retirado. Sus alias antiguos apuntan a Nharzul. Los nuevos bosses usan ataques por tipo de entidad y sistemas comunes; no todos tienen habilidades exclusivas.
 
-1. Copia la carpeta del plugin y el mundo. Detén el servidor y sustituye el JAR anterior por 1.3.0; no mantengas dos versiones.
-2. Inicia normalmente. Se respaldan config.yml y recipes.yml antiguos como `*-before-1.1.0.yml` antes de migrar.
-3. Los IDs nuevos corresponden al nombre visible sin acentos y con guiones bajos. Todos los IDs antiguos siguen como alias. Los atributos guardados por ID anterior se copian al ID nuevo conservando tus valores; los de una instalación antigua pueden ser menores que los valores nuevos.
-4. Los cinco patrones de armas v1 y sus ingredientes personalizados se retiran para adoptar K/C/B/F (cristal/núcleo/base/fragmento); permanecen en el respaldo para trasladarlos manualmente. Se conservan enabled y las demás recetas.
-5. Tributos, fragmentos y núcleos del inventario principal se actualizan al entrar o abrir inventarios. Se conservan sus IDs. No se recrea equipo ya existente ni se borran sus mejoras.
+Fuerza II minis, III raros, IV épicos, V legendarios, VI míticos, VII abismales. Prisa VI. Fases al 65% y 30% aumentan daño y resistencia. Fase final añade Fatiga minera II, Hambre II y Náusea, conservando los rayos según daño y la alteración infrecuente de casillas.
 
-Las entidades cargadas actualizan su boss_type; huevos guardados aceptan ambos formatos. Para volver a una versión anterior restaura también mundo/datos: esa versión no reconoce los IDs nuevos. No se reconstruye contenido de contenedores perdido por 0.9.7.
+Arañitas: escala 0,55; 120 vida; 8 armadura; daño base 6 + 1,5 por rango. Todos los súbditos: Fuerza I. Partículas en especiales, invocaciones y huevos. Huevos colocables apuntando al aire con bedrock temporal y restauración del bloque original.
 
-## Configuración y compilación
+Minijefes: 1–2 tributos, 1–3 fragmentos y un cristal común. Solo los minis dejan cristales. Los superiores se fabrican con dos del rango anterior y un tributo; el común no tiene receta. Los bosses mayores conservan fragmentos garantizados y tiradas de otros materiales. Equipo de colección desde Épico. Corazones encantados: 1% predeterminado configurable.
 
-En config.yml: `loot.mob-fragment-chance: 0.01`, `loot.minion-fragment-chance: 0.005`, `combat.final-inventory-chance: 0.02`. Probabilidades limitadas a 0–1; valores no finitos equivalen a cero.
+Hardy en pechera da Fuerza I–V según nivel y saturación. Durability repara piezas equipadas con esa propiedad: 2 por nivel cada cinco segundos, incluso quieto, sujeto a saturación y daño real. No cura la vida del jugador.
 
-recipes.yml v2 permite enabled, shape e ingredientes de recetas shaped existentes; símbolos no redefinidos conservan su ingrediente exacto. rares.yml conserva costes y niveles; cooldownSeconds controla los hechizos activables, no todos los pasivos. `/ri reload` recarga archivos/recetas. Reinicia para cambiar intervalos de encuentros existentes.
+## Interfaces y recetas
 
-JDK 21 + Maven 3.9+: `mvn verify`; resultado `target/CazaJefes-1.3.0.jar`.
+`/rares`: cristales, armas y armaduras por rango, paginación e ingredientes reales. `/mercado`: departamentos y confirmaciones. `/bestiario` o `/bestirio`: todos los bosses.
 
-42 pruebas unitarias aprobadas, más ZIP/CRC y bytecode Java 21 comprobados. Cubren catálogo/alias, categorías completas, botín simulado, granjas, fases, probabilidad/cooldown, consumo, clics, compuertas y YAML. No se ejecutó Paper ni cliente Minecraft; falta validar interfaces, eventos, botín real, balance y plugins externos en juego.
+44 recetas temáticas: 39 propiedades/hechizos y cinco armas Rare. Combinan poción normal exacta, reactivo vanilla, núcleo de boss, cristal, fragmento y esencia/equipo base. Las pociones extendidas, potenciadas, arrojadizas y persistentes no sustituyen a las normales. Más 24 recetas de conjuntos.
 
-Detalles: [cambios](docs/CAMBIOS-1.1.0.md), [IDs completos](docs/BOSSES-IDS-1.1.0.csv) y [pruebas pendientes](docs/PRUEBAS-1.1.0.md). Los informes 1.0.x, 1.1.0 y 1.2.0 son históricos. No se asignó licencia sin indicación del titular.
+Son diseños propios, inspirados en referencias oficiales: [membrana de phantom y reparación](https://www.minecraft.net/nl-nl/article/taking-inventory--phantom-membrane), [polvo de blaze y alquimia](https://www.minecraft.net/nl-nl/article/taking-inventory--blaze-powder).
 
-[Paper InventoryClickEvent](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/event/inventory/InventoryClickEvent.html) · [Paper Warden](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/entity/Warden.html).
+## Actualizar y compilar
+
+Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
+
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.4.0.jar`. 48 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+
+Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.

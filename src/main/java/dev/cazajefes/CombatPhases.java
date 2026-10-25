@@ -30,6 +30,11 @@ final class CombatPhases implements Listener {
    target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,phase==3?100:60,phase==3?1:0));
    target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,phase==3?80:40,0));
    if(phase==3)target.addPotionEffect(new PotionEffect(warden(attacker)?PotionEffectType.DARKNESS:PotionEffectType.WITHER,warden(attacker)?80:60,0));
+   if(phase==3){
+    target.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE,80,1));
+    target.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER,100,1));
+    target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA,60,0));
+   }
    effects.put(id,now+6000);
   }
   boolean free=target.getOpenInventory().getType()==org.bukkit.event.inventory.InventoryType.CRAFTING&&target.getItemOnCursor().getType().isAir();

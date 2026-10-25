@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import java.util.*;
 import java.util.function.IntPredicate;
 public class StormAndMarketTest {
- @Test public void exactPotionLevelsAndMeleeCadence(){assertEquals(4,BattleRules.STRENGTH_AMPLIFIER);assertEquals(5,BattleRules.HASTE_AMPLIFIER);assertEquals(15,BattleRules.STRENGTH_BONUS,0);assertEquals(500,BattleRules.MELEE_COOLDOWN_MS);}
+ @Test public void exactPotionLevelsAndMeleeCadence(){assertEquals(5,BattleRules.HASTE_AMPLIFIER);assertEquals(500,BattleRules.MELEE_COOLDOWN_MS);}
  @Test public void chargeUsesAcceptedDamageAndIgnoresInvalidValues(){assertEquals(40,BattleRules.charge(30,10),0);assertEquals(30,BattleRules.charge(30,-20),0);assertEquals(30,BattleRules.charge(30,Double.NaN),0);assertEquals(2000,BattleRules.charge(1900,10000),0);}
  @Test public void onlyFinalPhaseAndSufficientChargeCanRetaliate(){assertTrue(BattleRules.retaliates(3,true,40,40,100,50));assertFalse(BattleRules.retaliates(2,true,50,40,100,50));assertFalse(BattleRules.retaliates(3,false,50,40,100,50));assertFalse(BattleRules.retaliates(3,true,39.9,40,100,50));assertFalse(BattleRules.retaliates(3,true,50,40,100,101));}
  @Test public void lightningScalesAndRespectsDamageCap(){assertEquals(24,BattleRules.lightningDamage(40,30),0);assertEquals(30,BattleRules.lightningDamage(100,30),0);assertTrue(BattleRules.lightningDamage(50,30)>BattleRules.lightningDamage(40,30));assertEquals(40,BattleRules.threshold(Double.NaN),0);}

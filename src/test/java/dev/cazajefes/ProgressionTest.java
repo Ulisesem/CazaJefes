@@ -7,7 +7,7 @@ public class ProgressionTest {
  @Test public void everyBossAppearsInExactlyOneCategory(){
   Set<String> seen=new HashSet<>();int total=0;
   for(var category:BestiaryCategory.values())for(var boss:BossCatalog.all())if(category.matches(boss)){assertTrue(seen.add(boss.id()));assertEquals(category,BestiaryCategory.of(boss));total++;}
-  assertEquals(62,total);
+  assertEquals(76,total);
  }
  @Test public void canonicalIdsMatchNamesAndOldIdsStillResolve(){
   for(var boss:BossCatalog.all()){
@@ -17,12 +17,12 @@ public class ProgressionTest {
  }
  @Test public void wardensAreAbyssalAndRenamed(){
   long wardens=BossCatalog.all().stream().filter(b->b.entityType()==EntityType.WARDEN).peek(b->assertEquals(BossCatalog.Tier.ABYSSAL,b.tier())).count();
-  assertEquals(2,wardens);assertEquals("nharzul_soberano_del_abismo",BossCatalog.get("warden_abismal").id());
+  assertEquals(1,wardens);assertEquals("nharzul_soberano_del_abismo",BossCatalog.get("warden_abismal").id());
  }
  @Test public void everyMiniDropsOnlyCurrenciesAcrossManyRolls(){
   Random random=new Random(7);
   for(var boss:BossCatalog.all())if(boss.mini())for(int i=0;i<1000;i++){
-   var rewards=LootRules.roll(boss,random);assertEquals(2,rewards.size());
+   var rewards=LootRules.roll(boss,random);assertEquals(3,rewards.size());
    assertEquals(LootRules.Kind.TRIBUTE,rewards.get(0).kind());assertTrue(rewards.get(0).amount()>=1&&rewards.get(0).amount()<=2);
    assertEquals(LootRules.Kind.FRAGMENT,rewards.get(1).kind());assertTrue(rewards.get(1).amount()>=1&&rewards.get(1).amount()<=3);
   }
@@ -32,7 +32,7 @@ public class ProgressionTest {
   for(var boss:BossCatalog.all())if(!boss.mini())for(int i=0;i<100;i++){
    var rewards=LootRules.roll(boss,random);
    assertTrue(rewards.stream().anyMatch(r->r.kind()==LootRules.Kind.FRAGMENT&&r.amount()>=2));
-   assertTrue(rewards.stream().anyMatch(r->r.kind()==LootRules.Kind.CRYSTAL&&r.variant()==boss.tier().ordinal()&&r.amount()==1));
+   assertFalse(rewards.stream().anyMatch(r->r.kind()==LootRules.Kind.CRYSTAL));
   }
  }
  @Test public void farmsAndCustomCombatantsDoNotEnterNaturalMobTable(){

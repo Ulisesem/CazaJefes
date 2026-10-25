@@ -515,6 +515,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
    private List<CazaJefesCommand.GearTierSpec> gearTierSpecs() {
       return List.of(
+         new CazaJefesCommand.GearTierSpec("epico","Épico",BossCatalog.Tier.EPIC,12,3,1),
          new CazaJefesCommand.GearTierSpec("legendario", "Legendario", BossCatalog.Tier.LEGENDARY, 20, 4, 1),
          new CazaJefesCommand.GearTierSpec("mitico", "Mítico", BossCatalog.Tier.MYTHIC, 30, 6, 2),
          new CazaJefesCommand.GearTierSpec("abismal", "Abismal", BossCatalog.Tier.ABYSSAL, 45, 9, 3)
@@ -1208,7 +1209,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          case "nofalldamage" -> "Reduce daño de caída.";
          case "doublejump" -> "Salto adicional en el aire.";
          case "fly" -> "Vuelo con coste configurable.";
-         case "hardy" -> "Salud extra; solo pechera.";
+         case "hardy" -> "Fuerza según nivel; solo pechera.";
          case "saturacion" -> "Recupera saturación pasivamente cada cinco segundos.";
          default -> "Efecto visual de llamas en casco.";
       };
