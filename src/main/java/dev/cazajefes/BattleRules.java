@@ -1,7 +1,8 @@
 package dev.cazajefes;
 final class BattleRules {
- static final int STRENGTH_AMPLIFIER=4,HASTE_AMPLIFIER=5;
- static final double STRENGTH_BONUS=15;
+ static final int HASTE_AMPLIFIER=5;
+ static int strength(BossCatalog.Definition boss){return boss.mini()?2:boss.tier().ordinal()+2;}
+ static double strengthBonus(BossCatalog.Definition boss){return 3.0*strength(boss);}
  static final long MELEE_COOLDOWN_MS=500;
  static double threshold(double configured){return Double.isFinite(configured)?Math.max(1,Math.min(2000,configured)):40;}
  static double charge(double current,double damage){return Math.max(0,Math.min(2000,(Double.isFinite(current)?Math.max(0,current):0)+(Double.isFinite(damage)?Math.max(0,damage):0)));}

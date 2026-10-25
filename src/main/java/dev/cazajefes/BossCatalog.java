@@ -31,6 +31,7 @@ public final class BossCatalog {
             var1 = "guardian_abismal";
          }
 
+         if(var1.equals("devorador_ecos")||var1.equals("azrath_devorador_de_ecos"))var1="nharzul_soberano_del_abismo";
          Definition exact=DEFINITIONS.get(var1);
          if (exact!=null) return exact;
          final String alias=var1;
@@ -90,7 +91,6 @@ public final class BossCatalog {
       add(var1, "hongo_infernal", "Hongo Infernal", BossCatalog.Tier.EPIC, EntityType.MOOSHROOM, false);
       add(var1, "desollador_bogged", "Desollador Bogged", BossCatalog.Tier.EPIC, EntityType.BOGGED, false);
       add(var1, "anciano_coral", "Anciano Coral", BossCatalog.Tier.LEGENDARY, EntityType.ELDER_GUARDIAN, false);
-      add(var1, "devorador_ecos", "Azrath, Devorador de Ecos", BossCatalog.Tier.ABYSSAL, EntityType.WARDEN, false);
       add(var1, "espectro_fin", "Espectro del Fin", BossCatalog.Tier.LEGENDARY, EntityType.ENDERMAN, false);
       add(var1, "dragon_ceniza", "Dragón de Ceniza", BossCatalog.Tier.LEGENDARY, EntityType.BLAZE, false);
       add(var1, "reina_brezal", "Reina del Brezal", BossCatalog.Tier.LEGENDARY, EntityType.CAVE_SPIDER, false);
@@ -111,6 +111,21 @@ public final class BossCatalog {
       add(var1, "maestro_creaking", "Maestro Creaking", BossCatalog.Tier.ABYSSAL, EntityType.CREAKING, false);
       add(var1, "reina_piglin", "Reina Piglin", BossCatalog.Tier.ABYSSAL, EntityType.PIGLIN_BRUTE, false);
       add(var1, "guardian_abismal", "Guardián Ancestral", BossCatalog.Tier.ABYSSAL, EntityType.ELDER_GUARDIAN, false);
+      add(var1, "xalther", "Xalther, Emperador del Vacío", BossCatalog.Tier.ABYSSAL, EntityType.ZOMBIE, false);
+      add(var1, "morvex", "Morvex, Arquero del Ocaso", BossCatalog.Tier.ABYSSAL, EntityType.SKELETON, false);
+      add(var1, "kaelthar", "Kaelthar, Puño del Averno", BossCatalog.Tier.ABYSSAL, EntityType.PIGLIN_BRUTE, false);
+      add(var1, "vaelora", "Vaelora, Oráculo de las Sombras", BossCatalog.Tier.ABYSSAL, EntityType.EVOKER, false);
+      add(var1, "draxion", "Draxion, Devastador Eterno", BossCatalog.Tier.ABYSSAL, EntityType.RAVAGER, false);
+      add(var1, "tharok", "Tharok, Segador de Almas", BossCatalog.Tier.ABYSSAL, EntityType.WITHER_SKELETON, false);
+      add(var1, "ignaroth", "Ignaroth, Sol Negro", BossCatalog.Tier.ABYSSAL, EntityType.BLAZE, false);
+      add(var1, "zyrakk", "Zyrakk, Custodio del Umbral", BossCatalog.Tier.ABYSSAL, EntityType.SHULKER, false);
+      add(var1, "thalassar", "Thalassar, Monarca del Abismo", BossCatalog.Tier.ABYSSAL, EntityType.ELDER_GUARDIAN, false);
+      add(var1, "aerthos", "Aerthos, Ciclón de la Ruina", BossCatalog.Tier.ABYSSAL, EntityType.BREEZE, false);
+      add(var1, "nyssara", "Nyssara, Matriarca de la Penumbra", BossCatalog.Tier.ABYSSAL, EntityType.CAVE_SPIDER, false);
+      add(var1, "velkaris", "Velkaris, Caminante del Vacío", BossCatalog.Tier.ABYSSAL, EntityType.ENDERMAN, false);
+      add(var1, "brumgor", "Brumgor, Colmillo del Eclipse", BossCatalog.Tier.ABYSSAL, EntityType.HOGLIN, false);
+      add(var1, "korvath", "Korvath, Verdugo del Silencio", BossCatalog.Tier.ABYSSAL, EntityType.VINDICATOR, false);
+      add(var1, "ossyra", "Ossyra, Plaga de la Medianoche", BossCatalog.Tier.ABYSSAL, EntityType.BOGGED, false);
       var1.forEach(var1x -> var0.put(var1x.id(), var1x));
       return Collections.unmodifiableMap(var0);
    }

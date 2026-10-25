@@ -1,7 +1,7 @@
 # v2: las armas/armaduras usan cristal de su categoría, núcleo, objeto base y fragmento.
 # Conserva K (cristal), C (núcleo), B (objeto base), F (fragmento).
 # shape e ingredients son opcionales. Los símbolos originales no redefinidos conservan su ExactChoice.
-schema-version: 2
+schema-version: 3
 recipes:
   hacha_sismica:
     enabled: true

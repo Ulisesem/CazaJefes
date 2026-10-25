@@ -102,6 +102,7 @@ public final class RelicItems implements Listener {
 
       this.rareConfig = YamlConfiguration.loadConfiguration(var3);
       var1.getServer().getScheduler().runTaskTimer(var1, this::restoreArmorSaturation, 100L, 100L);
+      var1.getServer().getScheduler().runTaskTimer(var1, this::tickArmorProperties, 20L, 20L);
    }
 
    public List<String> enchantIds() {
@@ -234,6 +235,30 @@ public final class RelicItems implements Listener {
          case "saturacion" -> "Saturación";
          default -> var1.replace('_', ' ').toUpperCase();
       };
+   }
+
+   private int activePropertyLevel(ItemStack item,String property){
+      if(item==null||!item.hasItemMeta())return 0;
+      String properties=item.getItemMeta().getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);
+      return properties!=null&&Arrays.asList(properties.split(",")).contains(property)?propertyLevel(item,property):0;
+   }
+   public ItemStack armorSet(BossCatalog.Tier tier,int slot){return EquipmentSets.armor(tier,slot,itemKey);}
+   public ItemStack weaponSet(BossCatalog.Tier tier,int slot){return EquipmentSets.weapon(tier,slot,itemKey);}
+   private void tickArmorProperties(){
+      long now=System.currentTimeMillis();
+      for(Player player:plugin.getServer().getOnlinePlayers()){
+         ItemStack chest=player.getInventory().getChestplate();int hardy=activePropertyLevel(chest,"hardy");
+         if(hardy>0&&consumePassiveSaturation(player,chest,"hardy"))player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,40,Math.min(5,hardy)-1,true,false,true));
+         if(now-passiveRepair.getOrDefault(player.getUniqueId(),0L)<5000)continue;
+         boolean repaired=false;
+         for(ItemStack piece:player.getInventory().getArmorContents()){
+            int level=activePropertyLevel(piece,"durability");
+            if(level>0&&piece.getItemMeta() instanceof Damageable meta&&meta.getDamage()>0&&consumePassiveSaturation(player,piece,"durability")){
+               meta.setDamage(Math.max(0,meta.getDamage()-ArmorPropertyRules.repair(level)));piece.setItemMeta(meta);repaired=true;
+            }
+         }
+         if(repaired)passiveRepair.put(player.getUniqueId(),now);
+      }
    }
 
    private void restoreArmorSaturation() {
@@ -946,23 +971,9 @@ public final class RelicItems implements Listener {
                   var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, 0, true, false, true));
                }
 
-               if (var26 != null && var26.contains("hardy") && this.consumePassiveSaturation(var1.getPlayer(), var25, "hardy")) {
-                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, 40, 0, true, false, true));
-               }
 
-               if (var26 != null
-                  && var26.contains("durability")
-                  && System.currentTimeMillis() - this.passiveRepair.getOrDefault(var1.getPlayer().getUniqueId(), 0L) > 5000L
-                  && this.consumeSaturation(var1.getPlayer(), var25, "durability")) {
-                  this.passiveRepair.put(var1.getPlayer().getUniqueId(), System.currentTimeMillis());
 
-                  for (ItemStack var15 : var1.getPlayer().getInventory().getArmorContents()) {
-                     if (var15 != null && var15.getItemMeta() instanceof Damageable var16 && var16.getDamage() > 0) {
-                        var16.setDamage(var16.getDamage() - 1);
-                        var15.setItemMeta(var16);
-                     }
-                  }
-               }
+
             }
          }
 
@@ -1154,6 +1165,7 @@ public final class RelicItems implements Listener {
             this.enchant(var3, Enchantment.UNBREAKING, 3);
       }
 
+      if(var3.getType().name().endsWith("SWORD")||var3.getType().name().endsWith("AXE"))var3.addUnsafeEnchantment(Enchantment.SHARPNESS,EquipmentSets.protection(RecipeAlchemy.profile(var1).rank()));
       String var4 = this.rareTier(var1);
       if (var4 != null) {
          ItemMeta var11 = var3.getItemMeta();
@@ -1182,15 +1194,7 @@ public final class RelicItems implements Listener {
       return List.of("espada_brezal", "hacha_sismica", "arco_ceniciento", "lanza_magma", "mandoble_vacio");
    }
 
-   public String rareTier(String var1) {
-      return switch (var1) {
-         case "espada_brezal" -> "RARO";
-         case "hacha_sismica" -> "ÉPICO";
-         case "arco_ceniciento", "lanza_magma" -> "LEGENDARIO";
-         case "mandoble_vacio" -> "MÍTICO";
-         default -> null;
-      };
-   }
+   public String rareTier(String id){return rareIds().contains(id)?RecipeAlchemy.profile(id).rank().display.toUpperCase(Locale.ROOT):null;}
 
    public boolean isTracker(ItemStack var1) {
       return "tracking_compass".equals(this.customId(var1));
@@ -1270,7 +1274,7 @@ public final class RelicItems implements Listener {
          ItemStack stack=switch(reward.kind()) {
             case FRAGMENT -> fragment(reward.amount());
             case TRIBUTE -> tribute("Cazador");
-            case CRYSTAL -> crystal(var2.tier(),reward.amount());
+            case CRYSTAL -> crystal(BossCatalog.Tier.values()[reward.variant()],reward.amount());
             case CORE -> component(var2);
             case ARMOR -> armor(var2,reward.variant());
             case WEAPON -> weaponDrop(var2,reward.variant());
@@ -1417,6 +1421,8 @@ public final class RelicItems implements Listener {
       else if(id.startsWith("componente_")){
          BossCatalog.Definition definition=BossCatalog.get(id.substring("componente_".length()));if(definition!=null)replacement=component(definition);
       }
+      if(id.startsWith("armadura_"))return EquipmentSets.migrateArmor(stack,id,itemKey);
+      if(id.startsWith("arma_"))return EquipmentSets.migrateWeapon(stack,id,itemKey);
       if(id.equals("tracking_compass"))replacement=compass();
       if(id.equals("amuleto_coloso"))replacement=amulet();
       if(replacement!=null){replacement.setAmount(stack.getAmount());return replacement;}
@@ -1448,6 +1454,7 @@ public final class RelicItems implements Listener {
    public void registerCrystalRecipes() {
       addRecipe("tributo_cazador",tribute("Cazador"),new String[]{"FFF","FFF","FFF"},Map.of('F',new ExactChoice(fragment(1))));
       for (BossCatalog.Tier tier:BossCatalog.Tier.values()) {
+         if(tier==BossCatalog.Tier.COMMON)continue;
          RecipeChoice previous=tier.ordinal()==0 ? new ExactChoice(fragment(1)) : new ExactChoice(crystal(BossCatalog.Tier.values()[tier.ordinal()-1],1));
          addRecipe("cristal_"+tier.name().toLowerCase(java.util.Locale.ROOT),crystal(tier,1),
             tier.ordinal()==0 ? new String[]{" F ","FTF"," F "} : new String[]{" F ","FT ","   "},
@@ -1553,14 +1560,11 @@ public final class RelicItems implements Listener {
          new String[]{"HAN", "MFM", " T "},
          Map.of('H', var34, 'A', var16, 'N', var12, 'M', var31, 'F', var29, 'T', var15)
       );
-      BossCatalog.Definition var17 = BossCatalog.get("warden_abismal");
-      BossCatalog.Definition var18 = BossCatalog.get("coloso");
-      BossCatalog.Definition var19 = BossCatalog.get("leviatan_ender");
-      BossCatalog.Definition var20 = BossCatalog.get("rey_brasas");
-      this.addRecipe("armadura_grieta_yelmo", this.armor(var17, 0), new String[]{"MHM", "N N", "F F"}, Map.of('M', var31, 'H', var34, 'N', var12, 'F', var29));
-      this.addRecipe("armadura_grieta_pechera", this.armor(var18, 1), new String[]{"N N", "MGM", "NPN"}, Map.of('N', var12, 'M', var31, 'G', var32, 'P', var33));
-      this.addRecipe("armadura_grieta_grebas", this.armor(var19, 2), new String[]{"NPN", "M M", "F F"}, Map.of('N', var12, 'P', var33, 'M', var31, 'F', var29));
-      this.addRecipe("armadura_grieta_botas", this.armor(var20, 3), new String[]{"P P", "M M", "B B"}, Map.of('P', var33, 'M', var31, 'B', var11));
+      for(BossCatalog.Tier rank:EquipmentSets.RANKS){
+         BossCatalog.Definition boss=BossCatalog.all().stream().filter(d->d.tier()==rank&&!d.mini()).findFirst().orElseThrow();
+         for(int slot=0;slot<4;slot++)addRecipe("armadura_set_"+rank.name().toLowerCase(Locale.ROOT)+"_"+slot,armor(boss,slot),new String[]{" K ","CBC"," F "},Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(armor(boss,slot).getType()),'F',new ExactChoice(fragment(1))));
+         for(int slot=0;slot<2;slot++)addRecipe("arma_set_"+rank.name().toLowerCase(Locale.ROOT)+"_"+slot,weaponDrop(boss,slot),new String[]{" K ","CBC"," F "},Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(weaponDrop(boss,slot).getType()),'F',new ExactChoice(fragment(1))));
+      }
       ArrayList var21 = new ArrayList();
 
       for (Material var25 : Material.values()) {
@@ -1615,25 +1619,22 @@ public final class RelicItems implements Listener {
       }
    }
 
-   private BossCatalog.Tier equipmentTier(ItemStack stack) {
-      String id=customId(stack);
-      if(id!=null&&id.startsWith("armadura_")){
-         int last=id.lastIndexOf('_');BossCatalog.Definition definition=BossCatalog.get(id.substring("armadura_".length(),last));
-         if(definition!=null)return definition.tier();
-      }
-      return BossCatalog.Tier.MYTHIC;
+   BossCatalog.Tier equipmentTier(ItemStack stack){
+      BossCatalog.Tier rank=EquipmentSets.tier(customId(stack));return rank==null?BossCatalog.Tier.COMMON:rank;
    }
 
    private void addRecipe(String var1, ItemStack var2, String[] var3, Map<Character, RecipeChoice> var4) {
-      if (rareIds().contains(var1) || var1.startsWith("armadura_grieta_")) {
-         BossCatalog.Tier rank=var1.startsWith("armadura_") ? equipmentTier(var2) : switch(var1) {
-            case "espada_brezal" -> BossCatalog.Tier.RARE;
-            case "hacha_sismica" -> BossCatalog.Tier.EPIC;
-            case "arco_ceniciento", "lanza_magma" -> BossCatalog.Tier.LEGENDARY;
-            default -> BossCatalog.Tier.MYTHIC;
-         };
+      if (var1.startsWith("armadura_set_") || var1.startsWith("arma_set_")) {
+         BossCatalog.Tier rank=equipmentTier(var2);
          var3=new String[]{" K ","CBC"," F "};
          var4=Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(var2.getType()),'F',new ExactChoice(fragment(1)));
+      }
+      if(var1.startsWith("crear_esencia_rare_")||var1.startsWith("crear_libro_rare_")||rareIds().contains(var1)){
+         String property=var1.startsWith("crear_esencia_rare_")?var1.substring("crear_esencia_rare_".length()):var1.startsWith("crear_libro_rare_")?var1.substring("crear_libro_rare_".length()):var1;
+         RecipeAlchemy.Profile profile=RecipeAlchemy.profile(property);
+         var3=new String[]{" P ","CKR"," FB"};
+         var4=Map.of('P',RecipeAlchemy.potionChoice(profile.potion()),'C',bossCoreChoice(),'K',new ExactChoice(crystal(profile.rank(),1)),
+            'R',new MaterialChoice(profile.reagent()),'F',new ExactChoice(fragment(1)),'B',rareIds().contains(var1)?new MaterialChoice(var2.getType()):new ExactChoice(essence()));
       }
       var3 = var3.clone();
       var4 = new HashMap<>(var4);
@@ -1669,234 +1670,9 @@ public final class RelicItems implements Listener {
       return new ExactChoice(var1);
    }
 
-   private ItemStack armor(BossCatalog.Definition var1, int var2) {
-      Material var10000_1 = switch (var1.tier()) {
-         case COMMON -> {
-            switch (var2 % 4) {
-               case 1:
-                  yield Material.DIAMOND_CHESTPLATE;
-               case 2:
-                  yield Material.DIAMOND_LEGGINGS;
-               case 3:
-                  yield Material.DIAMOND_BOOTS;
-               default:
-                  yield Material.DIAMOND_HELMET;
-            }
-         }
-         case RARE -> {
-            switch (var2 % 4) {
-               case 1:
-                  yield Material.IRON_CHESTPLATE;
-               case 2:
-                  yield Material.IRON_LEGGINGS;
-               case 3:
-                  yield Material.IRON_BOOTS;
-               default:
-                  yield Material.IRON_HELMET;
-            }
-         }
-         case EPIC -> {
-            switch (var2 % 4) {
-               case 1:
-                  yield Material.DIAMOND_CHESTPLATE;
-               case 2:
-                  yield Material.DIAMOND_LEGGINGS;
-               case 3:
-                  yield Material.DIAMOND_BOOTS;
-               default:
-                  yield Material.DIAMOND_HELMET;
-            }
-         }
-         case LEGENDARY -> {
-            switch (var2 % 4) {
-               case 1:
-                  yield Material.DIAMOND_CHESTPLATE;
-               case 2:
-                  yield Material.DIAMOND_LEGGINGS;
-               case 3:
-                  yield Material.DIAMOND_BOOTS;
-               default:
-                  yield Material.DIAMOND_HELMET;
-            }
-         }
-         case MYTHIC, ABYSSAL -> {
-            switch (var2 % 4) {
-               case 1:
-                  yield Material.NETHERITE_CHESTPLATE;
-               case 2:
-                  yield Material.NETHERITE_LEGGINGS;
-               case 3:
-                  yield Material.NETHERITE_BOOTS;
-               default:
-                  yield Material.NETHERITE_HELMET;
-            }
-         }
-      };
+   private ItemStack armor(BossCatalog.Definition boss,int slot){return EquipmentSets.armor(boss.tier(),slot,itemKey);}
 
-      Material var3 = var10000_1;
-
-      String var4 = switch (var2 % 4) {
-         case 1 -> "Pechera";
-         case 2 -> "Grebas";
-         case 3 -> "Botas";
-         default -> "Yelmo";
-      };
-      ItemStack var5 = this.named(
-         (Material)var3,
-         "armadura_" + var1.legacyId() + "_" + var2,
-         var4 + " · " + var1.tier().display + " · " + var1.name(),
-         var1.tier().color,
-         1,
-         "Armadura encantada de la Grieta.",
-         "Forjada con la energía de " + var1.name() + "."
-      );
-      int var6 = 2 + var1.tier().ordinal();
-      this.enchant(var5, Enchantment.PROTECTION, var6);
-      this.enchant(var5, Enchantment.UNBREAKING, var6);
-      if (var1.tier().ordinal() >= 3) {
-         this.enchant(var5, Enchantment.MENDING, 1);
-      }
-
-      if (var1.tier().ordinal() >= BossCatalog.Tier.MYTHIC.ordinal()) {
-         this.enchant(var5, Enchantment.THORNS, 3);
-      }
-
-      String var7 = var1.legacyId();
-      switch (var7) {
-         case "viuda":
-         case "reina_brezal":
-         case "aracnido_cristal":
-            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, Math.min(4, 1 + var1.tier().ordinal() / 2));
-            break;
-         case "centinela":
-         case "arquero_invernal":
-         case "serpiente_pillager":
-         case "cuervo_carmesi":
-         case "desollador_bogged":
-            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, 4);
-            break;
-         case "coloso":
-         case "golem_grieta":
-         case "titan_barro":
-            this.enchant(var5, Enchantment.BLAST_PROTECTION, Math.min(4, 2 + var1.tier().ordinal() / 2));
-            break;
-         case "rey_brasas":
-         case "dragon_ceniza":
-         case "guardian_abismal":
-         case "sapo_fuego":
-         case "hongo_infernal":
-            this.enchant(var5, Enchantment.FIRE_PROTECTION, 4);
-            break;
-         case "leviatan_ender":
-         case "espectro_fin":
-         case "warden_abismal":
-            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, 3);
-            break;
-         case "devorador_ecos":
-         case "liche_noche":
-         case "caballero_wither":
-         case "verdugo_necrotico":
-            this.enchant(var5, Enchantment.BLAST_PROTECTION, Math.min(4, 1 + var1.tier().ordinal()));
-            break;
-         case "anciano_coral":
-         case "ahogado_abisal":
-         case "vigia_prismarina":
-            this.enchant(var5, Enchantment.RESPIRATION, Math.min(3, 1 + var1.tier().ordinal() / 2));
-            break;
-         case "brisa_cortante":
-         case "tormenta_breeze":
-         case "murcielago_fosa":
-            this.enchant(var5, Enchantment.FEATHER_FALLING, Math.min(5, 2 + var1.tier().ordinal()));
-            break;
-         case "cazador_oxidado":
-         case "saqueador_gris":
-         case "reina_piglin":
-            this.enchant(var5, Enchantment.PROJECTILE_PROTECTION, Math.min(4, 1 + var1.tier().ordinal()));
-      }
-
-      if (var2 == 0 && var1.tier().ordinal() >= 2) {
-         this.enchant(var5, Enchantment.RESPIRATION, Math.min(3, var1.tier().ordinal()));
-      }
-
-      if (var2 == 2 && var1.tier().ordinal() >= 2) {
-         this.enchant(var5, Enchantment.SWIFT_SNEAK, Math.min(3, var1.tier().ordinal()));
-      }
-
-      int var9 = Math.floorMod(var1.legacyId().hashCode(), 3);
-      int var10 = Math.min(3, 1 + var1.tier().ordinal() / 2);
-      if (var2 == 0) {
-         this.enchant(
-            var5, var9 == 0 ? Enchantment.AQUA_AFFINITY : (var9 == 1 ? Enchantment.PROJECTILE_PROTECTION : Enchantment.FIRE_PROTECTION), var9 == 0 ? 1 : var10
-         );
-      } else if (var2 == 1) {
-         this.enchant(
-            var5,
-            var9 == 0 ? Enchantment.THORNS : (var9 == 1 ? Enchantment.BLAST_PROTECTION : Enchantment.FIRE_PROTECTION),
-            var9 == 0 ? Math.min(3, var10) : var10
-         );
-      } else if (var2 == 2) {
-         this.enchant(
-            var5,
-            var9 == 0 ? Enchantment.SWIFT_SNEAK : (var9 == 1 ? Enchantment.PROJECTILE_PROTECTION : Enchantment.BLAST_PROTECTION),
-            var9 == 0 ? var10 : var10
-         );
-      } else {
-         this.enchant(
-            var5,
-            var9 == 0 ? Enchantment.SOUL_SPEED : (var9 == 1 ? Enchantment.DEPTH_STRIDER : Enchantment.FROST_WALKER),
-            var9 == 0 ? var10 : Math.min(2, var10)
-         );
-      }
-
-      if (var3 == Material.NETHERITE_BOOTS || var3 == Material.DIAMOND_BOOTS || var3 == Material.IRON_BOOTS || var3 == Material.CHAINMAIL_BOOTS) {
-         this.enchant(var5, Enchantment.FEATHER_FALLING, var6);
-      }
-
-      return var5;
-   }
-
-   private ItemStack weaponDrop(BossCatalog.Definition var1, int var2) {
-      Material var3 = switch (var1.tier()) {
-         case COMMON -> var2 % 2 == 0 ? Material.DIAMOND_SWORD : Material.DIAMOND_AXE;
-         case RARE -> var2 % 2 == 0 ? Material.DIAMOND_SWORD : Material.DIAMOND_AXE;
-         case EPIC -> var2 % 2 == 0 ? Material.DIAMOND_SWORD : Material.DIAMOND_AXE;
-         case LEGENDARY, MYTHIC, ABYSSAL -> var2 % 2 == 0 ? Material.NETHERITE_SWORD : Material.NETHERITE_AXE;
-      };
-      String var4 = var3.name().endsWith("AXE") ? "Hacha" : "Espada";
-      ItemStack var5 = this.named(
-         var3,
-         "arma_" + var1.legacyId() + "_" + var2,
-         var4 + " · " + var1.tier().display + " · " + var1.name(),
-         var1.tier().color,
-         1,
-         "Arma encantada de la Grieta.",
-         "Reliquia de combate con encantamientos de cazador."
-      );
-      int var6 = 2 + var1.tier().ordinal();
-      this.enchant(var5, Enchantment.SHARPNESS, var6);
-      this.enchant(var5, Enchantment.UNBREAKING, var6);
-      if (var1.tier().ordinal() >= 2) {
-         this.enchant(var5, Enchantment.FIRE_ASPECT, Math.min(2, 1 + var1.tier().ordinal() - 2));
-      }
-
-      if (var1.tier().ordinal() >= 3) {
-         this.enchant(var5, Enchantment.MENDING, 1);
-      }
-
-      if (var1.legacyId().contains("wither") || var1.legacyId().contains("liche")) {
-         this.enchant(var5, Enchantment.LOOTING, 3);
-      }
-
-      if (var1.legacyId().contains("coloso") || var1.legacyId().contains("golem") || var1.legacyId().contains("titan")) {
-         this.enchant(var5, Enchantment.KNOCKBACK, 2);
-      }
-
-      if (var1.legacyId().contains("viuda") || var1.legacyId().contains("aracnido") || var1.legacyId().contains("reina")) {
-         this.enchant(var5, Enchantment.SWEEPING_EDGE, 3);
-      }
-
-      return var5;
-   }
+   private ItemStack weaponDrop(BossCatalog.Definition boss,int slot){return EquipmentSets.weapon(boss.tier(),slot,itemKey);}
 
    private void enchant(ItemStack var1, Enchantment var2, int var3) {
       var1.addUnsafeEnchantment(var2, var3);
