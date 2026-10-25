@@ -2,7 +2,7 @@ Acceso denegado.
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] ----------------------< dev.cazajefes:cazajefes >-----------------------
-[INFO] Building CazaJefes 1.4.0
+[INFO] Building CazaJefes 1.4.1
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
@@ -45,23 +45,23 @@ Acceso denegado.
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running dev.cazajefes.BossCatalogTest
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.465 s -- in dev.cazajefes.BossCatalogTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.511 s -- in dev.cazajefes.BossCatalogTest
 [INFO] Running dev.cazajefes.CombatAccessTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.CombatAccessTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in dev.cazajefes.CombatAccessTest
 [INFO] Running dev.cazajefes.CraftPlanTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.CraftPlanTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.CraftPlanTest
 [INFO] Running dev.cazajefes.ExpansionTest
-[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.410 s -- in dev.cazajefes.ExpansionTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.422 s -- in dev.cazajefes.ExpansionTest
 [INFO] Running dev.cazajefes.InteractionRegressionTest
 [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.InteractionRegressionTest
 [INFO] Running dev.cazajefes.MenuActionsTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in dev.cazajefes.MenuActionsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.MenuActionsTest
 [INFO] Running dev.cazajefes.ProgressionTest
-[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in dev.cazajefes.ProgressionTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s -- in dev.cazajefes.ProgressionTest
 [INFO] Running dev.cazajefes.ResourcesTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.106 s -- in dev.cazajefes.ResourcesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.143 s -- in dev.cazajefes.ResourcesTest
 [INFO] Running dev.cazajefes.StormAndMarketTest
-[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in dev.cazajefes.StormAndMarketTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in dev.cazajefes.StormAndMarketTest
 [INFO] 
 [INFO] Results:
 [INFO] 
@@ -69,10 +69,10 @@ Acceso denegado.
 [INFO] 
 [INFO] 
 [INFO] --- jar:3.4.2:jar (default-jar) @ cazajefes ---
-[INFO] Building jar: /workspace/CazaJefes\target\CazaJefes-1.4.0.jar
+[INFO] Building jar: /workspace/CazaJefes\target\CazaJefes-1.4.1.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  10.336 s
-[INFO] Finished at: 2026-10-25T09:59:50-06:00
+[INFO] Total time:  9.203 s
+[INFO] Finished at: 2026-10-25T10:03:12-06:00
 [INFO] ------------------------------------------------------------------------

@@ -62,31 +62,15 @@ public final class HuntTracker implements Listener {
    }
 
    private boolean hasCompass(Player var1) {
-      return this.items.isTracker(var1.getInventory().getItemInMainHand());
+      return this.items.isTracker(var1.getInventory().getItemInMainHand())||this.items.isTracker(var1.getInventory().getItemInOffHand());
    }
 
-   private void drawTrail(Player var1, Location var2) {
-      Location var3 = var1.getLocation().add(0.0, 0.9, 0.0);
-      if (!(var3.distanceSquared(var2) > 14400.0)) {
-         double var4 = var3.distance(var2);
-         int var6 = Math.min(28, (int)var4);
-         if (var6 > 1) {
-            double var7 = this.trailTick % 32 / 32.0;
-
-            for (int var9 = 0; var9 < 8; var9++) {
-               double var10 = (var7 + var9 / 8.0) % 1.0;
-               Location var12 = var3.clone()
-                  .add(
-                     (var2.getX() - var3.getX()) * var10,
-                     (var2.getY() - var3.getY()) * var10 + Math.sin(var10 * Math.PI) * 0.6,
-                     (var2.getZ() - var3.getZ()) * var10
-                  );
-               var1.spawnParticle(Particle.ENCHANT, var12, 1, 0.02, 0.03, 0.02, 0.0);
-            }
-
-            var2.getWorld().spawnParticle(Particle.END_ROD, var2, 2, 0.35, 0.45, 0.35, 0.01);
-         }
-      }
+   private void drawTrail(Player player,Location target){
+      Location start=player.getLocation().add(0,.65,0);org.bukkit.util.Vector delta=target.toVector().subtract(start.toVector());double distance=delta.length();if(distance<.5)return;
+      org.bukkit.util.Vector direction=delta.normalize();double length=Math.min(18,distance);double pulse=(trailTick%10)/10.0;
+      for(double step=.8+pulse;step<length;step+=1.1){Location point=start.clone().add(direction.clone().multiply(step));point.add(0,Math.sin(step*.6+trailTick*.2)*.15,0);player.spawnParticle(Particle.DUST,point,1,0,.02,0,0,new org.bukkit.Particle.DustOptions(org.bukkit.Color.AQUA,1.2f));}
+      Location arrow=start.clone().add(direction.clone().multiply(Math.min(4,distance)));org.bukkit.util.Vector side=new org.bukkit.util.Vector(-direction.getZ(),0,direction.getX());for(int sign:new int[]{-1,1})for(double k=.2;k<=.8;k+=.2)player.spawnParticle(Particle.END_ROD,arrow.clone().subtract(direction.clone().multiply(k)).add(side.clone().multiply(sign*k*.6)),1,0,0,0,0);
+      if(distance<48)player.spawnParticle(Particle.ENCHANT,target,3,.3,.4,.3,0);
    }
 
    private void showTarget(Player var1, BossManager.TrackedEncounter var2, Location var3) {
@@ -100,7 +84,7 @@ public final class HuntTracker implements Listener {
          "§8────────────"
       );
       this.setLines(var4, var5);
-      var1.sendActionBar(Component.text("Rastro activo hacia " + var2.name(), NamedTextColor.AQUA));
+      var1.sendActionBar(Component.text("➜ " + var2.name()+" · "+(int)var1.getLocation().distance(var3)+" m", NamedTextColor.AQUA));
    }
 
    private void showNoSignal(Player var1) {
