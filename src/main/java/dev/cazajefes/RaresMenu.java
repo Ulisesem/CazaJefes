@@ -12,10 +12,10 @@ final class RaresMenu implements CommandExecutor,Listener {
  private final CazaJefesPlugin plugin;private final RelicItems items;
  RaresMenu(CazaJefesPlugin plugin,RelicItems items){this.plugin=plugin;this.items=items;}
  enum Category {
-  PROGRESSION("Tributos y cristales",Material.AMETHYST_CLUSTER),WEAPONS("Armas de élite",Material.NETHERITE_SWORD),ARMOR("Armaduras",Material.NETHERITE_CHESTPLATE),ESSENCES("Esencias",Material.MAGMA_CREAM),SPELLS("Hechizos",Material.ENCHANTED_BOOK),ALL("Todo el arsenal",Material.NETHER_STAR);
+  CURRENCIES("Tesorería de tributos",Material.DISC_FRAGMENT_5),CRYSTALS("Altar de cristales",Material.AMETHYST_CLUSTER),WEAPONS("Armería de élite",Material.NETHERITE_SWORD),ARMOR("Armaduras de categoría",Material.NETHERITE_CHESTPLATE),ESSENCES("Cámara de infusiones",Material.MAGMA_CREAM),SPELLS("Biblioteca de grimorios",Material.ENCHANTED_BOOK),ALL("Recetario completo",Material.NETHER_STAR);
   final String title;final Material icon;Category(String title,Material icon){this.title=title;this.icon=icon;}
   boolean matches(String key){return this==ALL||this==category(key);}
-  static Category category(String key){if(key.startsWith("armadura_"))return ARMOR;if(key.startsWith("crear_libro_"))return SPELLS;if(key.startsWith("crear_esencia_"))return ESSENCES;if(List.of("hacha_sismica","espada_brezal","arco_ceniciento","lanza_magma","mandoble_vacio").contains(key))return WEAPONS;return PROGRESSION;}
+  static Category category(String key){if(key.startsWith("armadura_"))return ARMOR;if(key.startsWith("crear_libro_"))return SPELLS;if(key.startsWith("crear_esencia_"))return ESSENCES;if(List.of("hacha_sismica","espada_brezal","arco_ceniciento","lanza_magma","mandoble_vacio").contains(key))return WEAPONS;return key.startsWith("cristal_")?CRYSTALS:CURRENCIES;}
  }
  private static final class Menu implements InventoryHolder {
   Inventory inventory;final MenuActionGate gate=new MenuActionGate();final Category category;final int page;final ShapedRecipe detail;final Map<Integer,ShapedRecipe> recipes=new HashMap<>();
@@ -28,15 +28,19 @@ final class RaresMenu implements CommandExecutor,Listener {
   List<ShapedRecipe> list=recipes().stream().filter(r->category==null||category.matches(r.getKey().getKey())).toList();int pages=Math.max(1,(list.size()+27)/28);page=Math.max(0,Math.min(page,pages-1));
   Menu menu=new Menu(category,page,detail);menu.inventory=Bukkit.createInventory(menu,54,Component.text(detail!=null?"✦ FORJA · SELLO DE CREACIÓN":category==null?"✦ LA FORJA DE LA GRIETA":"✦ "+category.title+" · "+(page+1)+"/"+pages,NamedTextColor.GOLD));Inventory inv=menu.inventory;
   PremiumStyle.frame(inv,Material.CYAN_STAINED_GLASS_PANE);inv.setItem(4,PremiumStyle.tile(Material.ENCHANTING_TABLE,"✦ FORJA DE LOS CAZADORES ✦",NamedTextColor.GOLD,true,"Recetas reales • materiales originales","Selecciona una categoría de progresión"));
-  if(category==null){int[] slots={20,22,24,29,31,33};int i=0;for(var c:Category.values())inv.setItem(slots[i++],PremiumStyle.tile(c.icon,c.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.AQUA,true,list.stream().filter(r->c.matches(r.getKey().getKey())).count()+" recetas disponibles","Clic para explorar"));
+  if(category==null){int[] slots={10,12,14,16,29,31,33};int i=0;for(var c:Category.values())inv.setItem(slots[i++],PremiumStyle.tile(c.icon,c.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.AQUA,true,list.stream().filter(r->c.matches(r.getKey().getKey())).count()+" recetas disponibles","Clic para explorar"));
+   inv.setItem(39,PremiumStyle.tile(Material.BOOK,"GUÍA DE MATERIALES",NamedTextColor.AQUA,true,"Tributos, fragmentos, cristales y brújula","Clic para consultar la progresión"));
+   inv.setItem(41,PremiumStyle.tile(Material.HEART_OF_THE_SEA,"GALERÍA DE CORAZONES",NamedTextColor.GOLD,true,"Trofeos RARE de los bosses","Clic para explorar; no tienen receta"));
    inv.setItem(49,PremiumStyle.tile(Material.ANVIL,"INFUSIÓN DE EQUIPO",NamedTextColor.LIGHT_PURPLE,true,"En una mesa: equipo compatible + 1–3 esencias","La fusión conserva el equipo y respeta su nivel máximo"));
   }else if(detail==null){
    for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){int slot=PremiumStyle.GRID[i-page*28];inv.setItem(slot,list.get(i).getResult());menu.recipes.put(slot,list.get(i));}
    if(page>0)inv.setItem(45,PremiumStyle.tile(Material.ARROW,"ANTERIOR",NamedTextColor.AQUA,false));if(page+1<pages)inv.setItem(53,PremiumStyle.tile(Material.ARROW,"SIGUIENTE",NamedTextColor.AQUA,false));
    inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER A CATEGORÍAS",NamedTextColor.GOLD,true));
   }else{
-   inv.setItem(4,PremiumStyle.tile(Material.ENCHANTED_BOOK,"SELLO DE CREACIÓN",NamedTextColor.GOLD,true,"Cada símbolo consume una unidad por posición","Las alternativas exactas son intercambiables"));
+   inv.setItem(4,PremiumStyle.tile(Material.ENCHANTED_BOOK,category.title.toUpperCase(java.util.Locale.ROOT)+" · CREACIÓN",NamedTextColor.GOLD,true,"Cada símbolo consume una unidad por posición","Las alternativas exactas son intercambiables"));
    String[] shape=detail.getShape();Map<Character,RecipeChoice> choices=detail.getChoiceMap();for(int row=0;row<shape.length;row++)for(int col=0;col<shape[row].length();col++){RecipeChoice choice=choices.get(shape[row].charAt(col));if(choice!=null)inv.setItem(10+row*9+col,choice.getItemStack());}
+   inv.setItem(16,PremiumStyle.tile(category.icon,"PASO 1 · REÚNE LOS INGREDIENTES",NamedTextColor.AQUA,true,"Un objeto por posición ocupada","Se aceptan núcleos alternativos válidos"));
+   inv.setItem(34,PremiumStyle.tile(Material.CHEST,"PASO 2 · RESERVA ESPACIO",NamedTextColor.GOLD,false,"El resultado debe caber en tu inventario","No se consume nada si falta espacio"));
    inv.setItem(23,PremiumStyle.tile(Material.SPECTRAL_ARROW,"FORJAR",NamedTextColor.GOLD,true));inv.setItem(25,detail.getResult());
    inv.setItem(40,PremiumStyle.tile(Material.ANVIL,"✦ FABRICAR UNA UNIDAD ✦",NamedTextColor.GREEN,true,"Consume los ingredientes de tu inventario","Solo se confirma si hay materiales y espacio"));
    inv.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A "+category.title,NamedTextColor.AQUA,false));
@@ -45,7 +49,7 @@ final class RaresMenu implements CommandExecutor,Listener {
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)public void click(InventoryClickEvent event){
   if(!(event.getView().getTopInventory().getHolder() instanceof Menu menu))return;event.setCancelled(true);int slot=event.getRawSlot();if(!(event.getWhoClicked() instanceof Player player)||!MenuActions.isActivation(event.getClick(),slot,54))return;
   MenuActions.dispatch(plugin,player,menu,menu.gate,()->{
-   if(menu.category==null){int[] slots={20,22,24,29,31,33};for(int i=0;i<slots.length;i++)if(slot==slots[i])open(player,Category.values()[i],0,null);}
+   if(menu.category==null){if(slot==39){plugin.trophies.open(player,true,0);return;}if(slot==41){plugin.trophies.open(player,false,0);return;}int[] slots={10,12,14,16,29,31,33};for(int i=0;i<slots.length;i++)if(slot==slots[i])open(player,Category.values()[i],0,null);}
    else if(menu.detail!=null){if(slot==49)open(player,menu.category,menu.page,null);else if(slot==40)craft(player,menu.detail);}
    else if(slot==49)open(player,null,0,null);else if(slot==45)open(player,menu.category,menu.page-1,null);else if(slot==53)open(player,menu.category,menu.page+1,null);else if(menu.recipes.containsKey(slot))open(player,menu.category,menu.page,menu.recipes.get(slot));
   });

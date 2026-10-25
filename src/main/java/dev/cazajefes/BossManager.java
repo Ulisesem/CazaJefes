@@ -162,16 +162,28 @@ public final class BossManager implements Listener {
       return var2 == null ? null : var2.name();
    }
 
+   public boolean placeEggNear(String id,Player player) {
+      Block target=player.getTargetBlockExact(8);
+      if(target!=null&&placeEgg(id,target.getRelative(BlockFace.UP).getLocation()))return true;
+      Location base=player.getLocation().getBlock().getLocation();
+      for(int[] offset:new int[][]{{2,0},{-2,0},{0,2},{0,-2},{2,2},{-2,-2}})
+         for(int dy:new int[]{0,-1,1})if(placeEgg(id,base.clone().add(offset[0],dy,offset[1])))return true;
+      return false;
+   }
+
    public boolean placeEgg(String var1, Location var2) {
+      if(var2.getWorld()==null||var2.getY()<=var2.getWorld().getMinHeight()||var2.getY()+1>=var2.getWorld().getMaxHeight())return false;
       BossCatalog.Definition var3 = BossCatalog.get(var1);
       if (var3 != null && var2.getWorld() != null) {
          Block var4 = var2.getBlock();
-         if (!var4.isEmpty() || this.eggsByBlock.containsKey(this.key(var2))) {
+         if (!var4.isEmpty() || !var4.getRelative(BlockFace.UP).isEmpty() || this.eggsByBlock.containsKey(this.key(var2))) {
             return false;
          } else {
             Block var5 = var4.getRelative(BlockFace.DOWN);
             String var6 = var5.getBlockData().getAsString();
-            // Preserve support blocks and their container contents; no bedrock substitution.
+            if (!EggPlacement.allowed(var4.isEmpty(),var4.getRelative(BlockFace.UP).isEmpty(),var5.getType().isOccluding(),var5.getState() instanceof org.bukkit.block.TileState,
+                this.eggsByBlock.containsKey(this.key(var5.getLocation())) || this.eggsByBlock.containsKey(this.key(var4.getRelative(BlockFace.UP).getLocation())))) return false;
+            var5.setType(Material.BEDROCK,false);
             var4.setType(Material.DRAGON_EGG, false);
             UUID var7 = UUID.randomUUID();
             BossManager.Encounter var8 = new BossManager.Encounter(var7, var3, var4.getLocation(), null, "", var6);
@@ -771,10 +783,9 @@ public final class BossManager implements Listener {
          NamespacedKey paid = new NamespacedKey(plugin,"loot_paid");
          if (var3.has(paid, PersistentDataType.BYTE)) return;
          var3.set(paid, PersistentDataType.BYTE,(byte)1);
-         int var9 = ((CazaJefesPlugin)plugin).guard.canDrop(var2) ? this.relicItems.dropBossLoot(var2.getLocation(), var7, var4) : 0;
-         this.plugin
-            .getServer()
-            .broadcast(Component.text(var8 + " derrotó a " + var7.name() + " y dejó " + var9 + " objetos.", var7.tier().color).decorate(TextDecoration.BOLD));
+         RelicItems.LootResult result=((CazaJefesPlugin)plugin).guard.canDrop(var2)
+            ?this.relicItems.dropBossLoot(var2.getLocation(),var7,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
+         this.plugin.getServer().broadcast(Component.text("✦ "+var8+" derrotó a "+var7.name()+" · Botín: ",var7.tier().color).append(result.summary()));
          var2.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
          var2.getWorld().playSound(var2.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0F, 1.25F);
       }
@@ -886,7 +897,12 @@ public final class BossManager implements Listener {
    }
 
    private void restoreSupport(BossManager.Encounter encounter) {
-      // Support blocks are left intact in 1.0.0, including inventories and tile data.
+      if(encounter.location.getWorld()==null||encounter.supportData==null)return;
+      Block support=encounter.location.getBlock().getRelative(BlockFace.DOWN);
+      if(support.getType()==Material.BEDROCK) {
+         try { support.setBlockData(Bukkit.createBlockData(encounter.supportData),false); }
+         catch(IllegalArgumentException invalid) { plugin.getLogger().warning("No se pudo restaurar el pedestal: datos guardados inválidos."); }
+      }
    }
 
    @EventHandler(ignoreCancelled = true)
@@ -990,6 +1006,7 @@ public final class BossManager implements Listener {
                      }
                   } else {
                      this.pursue(var2);
+                     if(PassiveCombat.assist(boss.getType(),boss instanceof org.bukkit.entity.Enemy))this.attackNearby(var2);
                      this.attacks++;
                      if (var3 >= this.nextSpecialAt) {
                         this.miniSpecial(var2, this.specialRotation++ % 5);
@@ -1019,14 +1036,16 @@ public final class BossManager implements Listener {
             var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
          }
 
+         if(PassiveCombat.assist(boss.getType(),boss instanceof org.bukkit.entity.Enemy)&&boss instanceof Mob passive&&boss.getLocation().distanceSquared(var1.getLocation())>9)passive.getPathfinder().moveTo(var1,1.45);
          Vector var2 = var1.getLocation().toVector().subtract(this.boss.getLocation().toVector());
          double var3 = var2.length();
-         if ((!(var3 <= 6.0) || this.definition.mini()) && var3 != 0.0) {
+         if ((var3>2.5 || this.definition.mini() || PassiveCombat.assist(boss.getType(),boss instanceof org.bukkit.entity.Enemy)) && var3>0.25) {
             Vector var5 = this.boss.getVelocity();
             double var6 = this.definition.legacyId().equals("zorro_salvaje")
                ? 0.72
                : (this.definition.legacyId().equals("jabali_infernal") ? 0.55 : (this.definition.mini() ? 0.48 : 0.32 + this.definition.tier().ordinal() * 0.1));
-            Vector var8 = var2.setY(0).normalize().multiply(var6);
+            Vector horizontal=var2.clone().setY(0);if(horizontal.lengthSquared()<0.01)return;
+            Vector var8 = horizontal.normalize().multiply(var6);
             double var9 = var5.getY();
             if (var1.getLocation().getY() > this.boss.getLocation().getY() + 2.0) {
                var9 = Math.max(var9, 0.24);
@@ -1038,7 +1057,7 @@ public final class BossManager implements Listener {
 
       private void attackNearby(Player var1) {
          long var2 = System.currentTimeMillis();
-         if (!(var1.getLocation().distanceSquared(this.boss.getLocation()) > 14.44) && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
+         if (boss.hasLineOfSight(var1) && !(var1.getLocation().distanceSquared(this.boss.getLocation()) > 14.44) && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
             String var6 = this.definition.legacyId();
 
             double var4 = switch (var6) {

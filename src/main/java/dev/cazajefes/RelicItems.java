@@ -79,7 +79,6 @@ public final class RelicItems implements Listener {
    private final NamespacedKey rareEnchantKey;
    private final NamespacedKey rareEssenceLevelKey;
    private final NamespacedKey rareLevelsKey;
-   private final Map<UUID, RelicItems.DropGroup> dropGroups = new HashMap<>();
    private FileConfiguration rareConfig;
    private boolean breakingConnected;
    private final Map<String, Long> burstCooldowns = new HashMap<>();
@@ -1026,7 +1025,7 @@ public final class RelicItems implements Listener {
 
    public ItemStack fragment(int var1) {
       return this.named(
-         Material.AMETHYST_SHARD,
+         Material.DISC_FRAGMENT_5,
          "fragmento_grieta",
          "Fragmento de Tributo",
          NamedTextColor.LIGHT_PURPLE,
@@ -1058,7 +1057,7 @@ public final class RelicItems implements Listener {
          "Sigue el rastro del jefe más cercano.",
          "Actívala al seleccionarla en la hotbar."
       );
-      var1.addUnsafeEnchantment(Enchantment.UNBREAKING, 10);
+      // Visual glint only; no artificial Unbreaking level.
       return var1;
    }
 
@@ -1256,7 +1255,9 @@ public final class RelicItems implements Listener {
       }
    }
 
-   public int dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3) {
+   public record LootResult(int count,Component summary) {}
+
+   public LootResult dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3) {
       ArrayList<ItemStack> var4 = new ArrayList<>();
       for (LootRules.Reward reward:LootRules.roll(var2,ThreadLocalRandom.current())) {
          ItemStack stack=switch(reward.kind()) {
@@ -1274,9 +1275,13 @@ public final class RelicItems implements Listener {
          };
          if (stack!=null) { stack.setAmount(reward.amount()); var4.add(stack); }
       }
+      if(LootRules.heartEligible(var2.mini(),Math.random(),plugin.getConfig().getDouble("loot.boss-heart-chance",0.01)))var4.add(bossHeart(var2));
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
-      RelicItems.DropGroup var8 = new RelicItems.DropGroup(var2.name(), var13);
-      this.dropGroups.put(var3, var8);
+      Component summary=Component.empty();
+      for(int i=0;i<var4.size();i++){
+         ItemStack stack=var4.get(i);if(i>0)summary=summary.append(Component.text(" • ",NamedTextColor.DARK_GRAY));
+         Component name=stack.getItemMeta().displayName();summary=summary.append(Component.text(stack.getAmount()+"× ",NamedTextColor.GRAY)).append(name==null?Component.text(stack.getType().name()):name);
+      }
 
       Particle var9 = switch (var2.tier()) {
          case COMMON -> Particle.CRIT;
@@ -1294,7 +1299,7 @@ public final class RelicItems implements Listener {
 
       var1.getWorld().playSound(var1, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0F, 0.85F);
       var1.getWorld().spawnParticle(Particle.FIREWORK, var1.clone().add(0.0, 1.0, 0.0), 50, 0.9, 0.8, 0.9, 0.12);
-      return var13;
+      return new LootResult(var13,summary);
    }
 
    private boolean chance(double var1) {
@@ -1405,7 +1410,9 @@ public final class RelicItems implements Listener {
       else if(id.startsWith("componente_")){
          BossCatalog.Definition definition=BossCatalog.get(id.substring("componente_".length()));if(definition!=null)replacement=component(definition);
       }
-      if(replacement!=null){replacement.setAmount(stack.getAmount());return replacement;}return stack;
+      if(id.equals("tracking_compass"))replacement=compass();
+      if(replacement!=null){replacement.setAmount(stack.getAmount());return replacement;}
+      ItemStack glowing=stack.clone();ItemMeta meta=glowing.getItemMeta();meta.setEnchantmentGlintOverride(true);glowing.setItemMeta(meta);return glowing;
    }
    public void migrateCurrencies(Player player) {
       ItemStack[] storage=player.getInventory().getStorageContents();boolean changed=false;
@@ -1414,6 +1421,15 @@ public final class RelicItems implements Listener {
          if(old!=null&&!old.equals(updated)){storage[slot]=updated;changed=true;}
       }
       if(changed)player.getInventory().setStorageContents(storage);
+   }
+
+   public ItemStack bossHeart(BossCatalog.Definition boss) {
+      ItemStack stack=named(Material.HEART_OF_THE_SEA,"corazon_boss_"+boss.legacyId(),"✦ Corazón de "+boss.name(),boss.tier().color,1,
+         "RARE · Trofeo "+boss.tier().display,"Solo puede caer de un boss principal.","Un corazón encantado de la Grieta.");
+      ItemMeta meta=stack.getItemMeta();meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"boss_rare"),PersistentDataType.BYTE,(byte)1);stack.setItemMeta(meta);return stack;
+   }
+   private boolean rareLoot(ItemStack stack) {
+      return rareIds().contains(customId(stack)) || stack.hasItemMeta()&&(stack.getItemMeta().getPersistentDataContainer().has(rareBookKey,PersistentDataType.STRING)||stack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"boss_rare"),PersistentDataType.BYTE));
    }
 
    public ItemStack crystal(BossCatalog.Tier tier, int amount) {
@@ -1890,6 +1906,7 @@ public final class RelicItems implements Listener {
       }
 
       var8.lore(var9);
+      var8.setEnchantmentGlintOverride(true);
       var8.getPersistentDataContainer().set(this.itemKey, PersistentDataType.STRING, var2);
       var7.setItemMeta(var8);
       return var7;
@@ -1937,44 +1954,13 @@ public final class RelicItems implements Listener {
    }
 
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-   public void onLootPickup(EntityPickupItemEvent var1) {
-      if (var1.getEntity() instanceof Player var2) {
-         String var9 = (String)var1.getItem().getPersistentDataContainer().get(this.dropEncounterKey, PersistentDataType.STRING);
-         if (var9 != null) {
-            UUID var4;
-            try {
-               var4 = UUID.fromString(var9);
-            } catch (IllegalArgumentException var8) {
-               return;
-            }
-
-            RelicItems.DropGroup var5 = this.dropGroups.get(var4);
-            if (var5 != null) {
-               var5.remaining = Math.max(0, var5.remaining - var1.getItem().getItemStack().getAmount());
-               ItemMeta var6 = var1.getItem().getItemStack().getItemMeta();
-               Object var7 = var6.displayName() == null ? Component.text(var1.getItem().getItemStack().getType().name()) : var6.displayName();
-               this.plugin
-                  .getServer()
-                  .broadcast(
-                     ((TextComponent)Component.text(var2.getName() + " recogió ", NamedTextColor.AQUA).append((Component)var7))
-                        .append(Component.text(" de " + var5.bossName + " • quedan " + var5.remaining + " objetos", NamedTextColor.GRAY))
-                  );
-               if (var5.remaining == 0) {
-                  this.dropGroups.remove(var4);
-               }
-            }
-         }
-      }
-   }
-
-   private static final class DropGroup {
-      private final String bossName;
-      private int remaining;
-
-      private DropGroup(String var1, int var2) {
-         this.bossName = var1;
-         this.remaining = var2;
-      }
+   public void onLootPickup(EntityPickupItemEvent event) {
+      if(!(event.getEntity() instanceof Player player))return;
+      Item item=event.getItem();ItemStack stack=item.getItemStack();
+      NamespacedKey announced=new NamespacedKey(plugin,"rare_announced");
+      if(!LootNotices.announceRare(item.getPersistentDataContainer().has(dropEncounterKey,PersistentDataType.STRING),rareLoot(stack),stack.getAmount(),event.getRemaining(),item.getPersistentDataContainer().has(announced,PersistentDataType.BYTE)))return;
+      item.getPersistentDataContainer().set(announced,PersistentDataType.BYTE,(byte)1);
+      Component name=stack.getItemMeta().displayName();
+      plugin.getServer().broadcast(Component.text("✦ "+player.getName()+" ha recogido una RARE: ",NamedTextColor.GOLD).append(name==null?Component.text(stack.getType().name()):name));
    }
 }
-

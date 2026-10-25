@@ -55,7 +55,7 @@ public class ProgressionTest {
   assertFalse(PhaseRules.mayDisrupt(3,true,false,100,50,50,0,0.02));assertFalse(PhaseRules.mayDisrupt(3,true,true,100,101,50,0,0.02));assertFalse(PhaseRules.mayDisrupt(3,true,true,100,50,101,0,0.02));assertFalse(PhaseRules.mayDisrupt(3,true,true,100,50,50,0.02,0.02));
  }
  @Test public void recipeCategoriesKeepCrystalsAndEquipmentApart(){
-  assertEquals(RaresMenu.Category.PROGRESSION,RaresMenu.Category.category("cristal_abyssal"));
+  assertEquals(RaresMenu.Category.CRYSTALS,RaresMenu.Category.category("cristal_abyssal"));
   assertEquals(RaresMenu.Category.WEAPONS,RaresMenu.Category.category("mandoble_vacio"));
   assertEquals(RaresMenu.Category.ARMOR,RaresMenu.Category.category("armadura_grieta_yelmo"));
   assertEquals(RaresMenu.Category.SPELLS,RaresMenu.Category.category("crear_libro_rare_burst"));
