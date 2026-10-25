@@ -46,7 +46,8 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    int rank=detail.tier().ordinal();
    inv.setItem(24,PremiumStyle.tile(Material.CHEST,"TESOROS DEL ENCUENTRO",color,true,detail.mini()?"1–2 tributos + 1–3 fragmentos":"Cristal "+detail.tier().display+" + fragmentos garantizados",detail.mini()?"Sin armas, armaduras ni otros objetos":"Armadura: "+Math.round((0.08+rank*0.035)*100)+" % · arma: "+Math.round((0.06+rank*0.025)*100)+" %",detail.mini()?"Primer peldaño de la progresión":"Rares, núcleos, esencias y materiales posibles"));
    inv.setItem(31,detail.mini()?items.tribute("Cazador"):items.crystal(detail.tier(),1));
-   if(player.hasPermission("cazajefes.admin"))inv.setItem(40,PremiumStyle.tile(Material.DRAGON_EGG,"COMANDO DE PRUEBA",NamedTextColor.RED,false,"/ri boss "+detail.id()+" here","El nombre anterior también funciona."));
+   if(!detail.mini())inv.setItem(33,items.bossHeart(detail));
+   if(player.hasPermission("cazajefes.admin")||player.hasPermission("rareitemhunter.admin.egg"))inv.setItem(40,PremiumStyle.tile(Material.DRAGON_EGG,"✦ COLOCAR HUEVO DEL BOSS ✦",NamedTextColor.RED,true,"Clic para colocarlo junto a ti","Aparece sobre un pedestal de bedrock","Clic derecho en el huevo para despertar al boss"));
    inv.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A "+category.title.toUpperCase(java.util.Locale.ROOT),color,false));
   }
   player.openInventory(inv);
@@ -56,7 +57,14 @@ final class BestiaryMenu implements CommandExecutor,Listener {
   int slot=event.getRawSlot();if(!(event.getWhoClicked() instanceof Player player)||!MenuActions.isActivation(event.getClick(),slot,54))return;
   MenuActions.dispatch(plugin,player,view,view.gate,()->{
    if(view.category==null){int[] slots={20,22,24,29,31,33};for(int i=0;i<slots.length;i++)if(slot==slots[i])show(player,BestiaryCategory.values()[i],0,null);}
-   else if(view.detail!=null){if(slot==49)show(player,view.category,view.page,null);}
+   else if(view.detail!=null){
+    if(slot==49)show(player,view.category,view.page,null);
+    else if(slot==40){
+     if(!player.hasPermission("cazajefes.admin")&&!player.hasPermission("rareitemhunter.admin.egg")){player.sendMessage("No tienes permiso para colocar huevos.");return;}
+     if(manager.placeEggNear(view.detail.id(),player)){player.closeInventory();player.sendMessage("✦ Huevo colocado sobre bedrock. Haz clic derecho para despertar al boss.");}
+     else player.sendMessage("No hay una superficie segura y libre cerca. No se sustituyen cofres ni otros contenedores.");
+    }
+   }
    else if(slot==49)open(player);else if(slot==45)show(player,view.category,view.page-1,null);else if(slot==53)show(player,view.category,view.page+1,null);else if(view.bosses.containsKey(slot))show(player,view.category,view.page,view.bosses.get(slot));
   });
  }

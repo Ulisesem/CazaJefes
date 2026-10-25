@@ -26,6 +26,7 @@ final class LootRules {
  private static void add(List<Reward> out,RandomGenerator random,Kind kind,double chance,int amount,int variant) {
   if(random.nextDouble()<probability(chance))out.add(new Reward(kind,amount,variant));
  }
+ static boolean heartEligible(boolean mini,double roll,double chance){return !mini&&roll<probability(chance);}
  static boolean eligibleMob(boolean playerKill,boolean hostile,boolean farmSpawn,boolean boss,boolean minion) {
   return playerKill&&hostile&&!farmSpawn&&!boss&&!minion;
  }

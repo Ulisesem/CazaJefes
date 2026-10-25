@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class CazaJefesPlugin extends JavaPlugin {
    BestiaryMenu bestiary;
+   TrophyMenu trophies;
    RecipeSettings recipeSettings;
    CombatGuard guard;
    private NamespacedKey itemKey;
@@ -36,6 +37,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getServer().getPluginManager().registerEvents(new CombatPhases(this),this);
       this.getServer().getPluginManager().registerEvents(new WorldMobLoot(this,relicItems),this);
       this.getServer().getPluginManager().registerEvents(new CurrencyMigration(this,relicItems),this);
+      this.trophies=new TrophyMenu(this,relicItems);
+      this.getServer().getPluginManager().registerEvents(trophies,this);
       RaresMenu raresMenu = new RaresMenu(this, this.relicItems);
       this.getCommand("rares").setExecutor(raresMenu);
       this.getServer().getPluginManager().registerEvents(raresMenu, this);

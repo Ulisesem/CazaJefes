@@ -26,5 +26,6 @@ combat:
   final-inventory-chance: 0.02
 
 loot:
+  boss-heart-chance: 0.01
   mob-fragment-chance: 0.01
   minion-fragment-chance: 0.005
