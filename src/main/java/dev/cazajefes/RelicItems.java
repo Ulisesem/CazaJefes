@@ -1194,7 +1194,7 @@ public final class RelicItems implements Listener {
       return List.of("espada_brezal", "hacha_sismica", "arco_ceniciento", "lanza_magma", "mandoble_vacio");
    }
 
-   public String rareTier(String id){return rareIds().contains(id)?RecipeAlchemy.profile(id).rank().display.toUpperCase(Locale.ROOT):null;}
+   public String rareTier(String id){return id!=null&&rareIds().contains(id)?RecipeAlchemy.profile(id).rank().display.toUpperCase(Locale.ROOT):null;}
 
    public boolean isTracker(ItemStack var1) {
       return "tracking_compass".equals(this.customId(var1));
@@ -1444,7 +1444,9 @@ public final class RelicItems implements Listener {
       ItemMeta meta=stack.getItemMeta();meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"boss_rare"),PersistentDataType.BYTE,(byte)1);stack.setItemMeta(meta);return stack;
    }
    private boolean rareLoot(ItemStack stack) {
-      return rareIds().contains(customId(stack)) || stack.hasItemMeta()&&(stack.getItemMeta().getPersistentDataContainer().has(rareBookKey,PersistentDataType.STRING)||stack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"boss_rare"),PersistentDataType.BYTE));
+      if(stack==null||stack.getType().isAir()||!stack.hasItemMeta())return false;
+      ItemMeta meta=stack.getItemMeta();
+      return LootNotices.isRare(customId(stack),rareIds(),meta.getPersistentDataContainer().has(rareBookKey,PersistentDataType.STRING),meta.getPersistentDataContainer().has(new NamespacedKey(plugin,"boss_rare"),PersistentDataType.BYTE));
    }
 
    public ItemStack crystal(BossCatalog.Tier tier, int amount) {
@@ -1745,9 +1747,11 @@ public final class RelicItems implements Listener {
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
    public void onLootPickup(EntityPickupItemEvent event) {
       if(!(event.getEntity() instanceof Player player))return;
-      Item item=event.getItem();ItemStack stack=item.getItemStack();
+      Item item=event.getItem();
+      if(!item.getPersistentDataContainer().has(dropEncounterKey,PersistentDataType.STRING))return;
+      ItemStack stack=item.getItemStack();
       NamespacedKey announced=new NamespacedKey(plugin,"rare_announced");
-      if(!LootNotices.announceRare(item.getPersistentDataContainer().has(dropEncounterKey,PersistentDataType.STRING),rareLoot(stack),stack.getAmount(),event.getRemaining(),item.getPersistentDataContainer().has(announced,PersistentDataType.BYTE)))return;
+      if(!LootNotices.announceRare(true,rareLoot(stack),stack.getAmount(),event.getRemaining(),item.getPersistentDataContainer().has(announced,PersistentDataType.BYTE)))return;
       item.getPersistentDataContainer().set(announced,PersistentDataType.BYTE,(byte)1);
       Component name=stack.getItemMeta().displayName();
       plugin.getServer().broadcast(Component.text("✦ "+player.getName()+" ha recogido una RARE: ",NamedTextColor.GOLD).append(name==null?Component.text(stack.getType().name()):name));

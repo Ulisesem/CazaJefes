@@ -1,4 +1,4 @@
-# CazaJefes 1.6.0
+# CazaJefes 1.6.1
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.6.0.jar`. 62 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.6.1.jar`. 65 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -78,4 +78,9 @@ Los definitivos tienen dos a cuatro pulsos, separados por un segundo, y recargan
 
 La selección de objetivo conserva foco durante dos segundos y prioriza jugadores participantes cercanos. Se mantienen persecución táctica, movimiento acuático, especiales y daño de contacto de minijefes.
 
-Validación: 62 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
+Validación: 65 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
+
+
+## Corrección 1.6.1
+
+Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 65 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
