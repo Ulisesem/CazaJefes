@@ -1,4 +1,4 @@
-# CazaJefes 1.7.0
+# CazaJefes 1.7.1
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.0.jar`. 74 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.1.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -78,12 +78,12 @@ Los definitivos tienen dos a cuatro pulsos, separados por un segundo, y recargan
 
 La selección de objetivo conserva foco durante dos segundos y prioriza jugadores participantes cercanos. Se mantienen persecución táctica, movimiento acuático, especiales y daño de contacto de minijefes.
 
-Validación: 74 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
+Validación: 78 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
 
 
 ## Corrección 1.6.1
 
-Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 74 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
+Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 78 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
 
 
 ## Auras y guardianes zombis en 1.6.2
@@ -94,7 +94,7 @@ Los bosses zombis (Zombie, Husk, Drowned, Zombie Villager, Zombified Piglin y Gi
 
 El equipo visible no forma parte del botín normal: probabilidad de caída cero, sin recoger objetos del suelo y protegido contra extracción por Disarm. Disarm retira temporalmente el arma principal y la devuelve después de tres segundos si la mano sigue vacía. Se conservan las tablas de drops existentes.
 
-Validación: 74 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se inspeccionó el efecto dentro de Minecraft. Referencias: [partículas de Paper](https://docs.papermc.io/paper/dev/particles/) y [equipo de entidades 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/inventory/EntityEquipment.html).
+Validación: 78 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se inspeccionó el efecto dentro de Minecraft. Referencias: [partículas de Paper](https://docs.papermc.io/paper/dev/particles/) y [equipo de entidades 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/inventory/EntityEquipment.html).
 
 
 ## Muerte, renacimiento y vampirismo en 1.7.0
@@ -109,4 +109,14 @@ Todos los bosses, incluidos minijefes, obtienen vampirismo en etapa 3. Al causar
 
 Las auras se amplían a 72 puntos: anillo exterior, doble hélice, corona y un segundo anillo a media altura. Más grosor y alcance exterior; acentos dorados al renacer. Continúan adaptándose al tamaño real del mob.
 
-Validación: 74 pruebas y compilación Java 21. No se ejecutó Paper ni se validaron las mecánicas en un cliente Minecraft. Referencia: [efecto de protección de muerte de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/EntityEffect.html).
+Validación: 78 pruebas y compilación Java 21. No se ejecutó Paper ni se validaron las mecánicas en un cliente Minecraft. Referencia: [efecto de protección de muerte de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/EntityEffect.html).
+
+## Daño bajo y animación de muerte en 1.7.1
+
+Se elimina Debilidad II de los golpes de etapa 3: al combinarse con armadura encantada y resistencia de fase podía anular ataques débiles o reducirlos a cantidades difíciles de ver. Los demás efectos finales permanecen. Los golpes de jugador permitidos con daño positivo en etapa 3 tienen un suelo de daño final de hasta 1 HP (15% del daño base si es menor). Se recalcula mediante los modificadores normales de Bukkit; no se resta vida directamente ni se deshacen eventos cancelados. No se inventa daño cuando el golpe original es cero. La barra muestra un decimal en lugar de redondear hacia arriba.
+
+El vampirismo conserva su recarga y extracción, con un presupuesto adicional: puede devolver como máximo el 35% del daño que los jugadores hayan causado recientemente en etapa 3. El presupuesto caduca después de diez segundos sin daño entrante y se descarta al curarse, impidiendo que anule todo el progreso. El renacimiento del tótem sigue siendo único y separado.
+
+La animación de elevación vuelve como una representación temporal del mob después de su muerte real: sube hasta cuatro bloques en 32 ticks, baja en 16 y desaparece con partículas. Copia tamaño y equipo, sin IA, daño, XP ni botín. Su invulnerabilidad solo afecta a la representación, que no tiene los identificadores de boss. El boss real ya ha muerto y entregado el botín antes de empezar; un fallo visual no lo deja bloqueado en 1 HP. Las tareas se limpian al terminar o desactivar el plugin.
+
+Validación: 78 pruebas y compilación. No se ejecutó Paper: confirma la pérdida de vida y la elevación en tu servidor. Las cancelaciones de daño por otros plugins se siguen respetando. API: [Paper RegionAccessor](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/RegionAccessor.html).
