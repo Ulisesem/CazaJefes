@@ -4,6 +4,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class CazaJefesPlugin extends JavaPlugin {
+   BestiaryMenu bestiary;
    RecipeSettings recipeSettings;
    CombatGuard guard;
    private NamespacedKey itemKey;
@@ -13,6 +14,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
 
    public void onEnable() {
       this.saveDefaultConfig();
+      ConfigMigration.run(this);
       this.recipeSettings = new RecipeSettings(this);
       this.guard = new CombatGuard(this);
       getServer().getPluginManager().registerEvents(guard, this);
@@ -28,6 +30,12 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getCommand("ri").setTabCompleter(var1);
       this.getServer().getPluginManager().registerEvents(var1, this);
       this.relicItems.registerRecipes();
+      this.bestiary=new BestiaryMenu(this,bossManager,relicItems);
+      this.getCommand("bestiario").setExecutor(bestiary);
+      this.getServer().getPluginManager().registerEvents(bestiary,this);
+      this.getServer().getPluginManager().registerEvents(new CombatPhases(this),this);
+      this.getServer().getPluginManager().registerEvents(new WorldMobLoot(this,relicItems),this);
+      this.getServer().getPluginManager().registerEvents(new CurrencyMigration(this,relicItems),this);
       RaresMenu raresMenu = new RaresMenu(this, this.relicItems);
       this.getCommand("rares").setExecutor(raresMenu);
       this.getServer().getPluginManager().registerEvents(raresMenu, this);

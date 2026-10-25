@@ -16,7 +16,7 @@ final class RecipeSettings {
     void reload() {
         File file = new File(plugin.getDataFolder(), "recipes.yml");
         if (!file.exists()) plugin.saveResource("recipes.yml", false);
-        config = YamlConfiguration.loadConfiguration(file);
+        config = ConfigMigration.recipes((CazaJefesPlugin)plugin,file,YamlConfiguration.loadConfiguration(file));
     }
     boolean apply(String id, String[] shape, Map<Character, RecipeChoice> choices) {
         ConfigurationSection section = config.getConfigurationSection("recipes." + id);

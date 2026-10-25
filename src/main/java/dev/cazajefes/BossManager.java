@@ -81,7 +81,7 @@ public final class BossManager implements Listener {
    public BossManager(JavaPlugin var1, NamespacedKey var2, RelicItems var3) {
       this.plugin = var1;
       this.relicItems = var3;
-      this.bossKey = new NamespacedKey(var1, "is_boss");
+      this.bossKey = new NamespacedKey(var1, BossKeys.BOSS);
       this.encounterKey = new NamespacedKey(var1, "encounter_id");
       this.typeKey = new NamespacedKey(var1, "boss_type");
       this.awakenerKey = new NamespacedKey(var1, "awakened_by");
@@ -102,6 +102,7 @@ public final class BossManager implements Listener {
                      var7.setBaseValue(0.0);
                   }
 
+                  resumeBoss(var5);
                   var5.setInvulnerable(false);
                   if (var5 instanceof Mob var8) {
                      var8.setAI(true);
@@ -124,48 +125,32 @@ public final class BossManager implements Listener {
    }
 
    @EventHandler
-   public void onChunkLoad(ChunkLoadEvent var1) {
-      for (Entity var5 : var1.getChunk().getEntities()) {
-         if (var5 instanceof LivingEntity var6) {
-            PersistentDataContainer var7 = var6.getPersistentDataContainer();
-            if (var7.has(this.minionKey, PersistentDataType.BYTE)) {
-               var6.removePotionEffect(PotionEffectType.RESISTANCE);
-               AttributeInstance var8 = var6.getAttribute(Attribute.ARMOR);
-               if (var8 != null) {
-                  var8.setBaseValue(0.0);
-               }
-
-               AttributeInstance var9 = var6.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
-               if (var9 != null) {
-                  var9.setBaseValue(0.1);
-               }
-            }
-
-            if (var7.has(this.bossKey, PersistentDataType.BYTE)) {
-               var6.removePotionEffect(PotionEffectType.RESISTANCE);
-               AttributeInstance var13 = var6.getAttribute(Attribute.ARMOR);
-               if (var13 != null) {
-                  var13.setBaseValue(0.0);
-               }
-
-               var6.setInvulnerable(false);
-               if (var6 instanceof Mob var14) {
-                  var14.setAI(true);
-               }
-
-               try {
-                  UUID var15 = UUID.fromString((String)var7.get(this.encounterKey, PersistentDataType.STRING));
-                  BossCatalog.Definition var10 = BossCatalog.get((String)var7.get(this.typeKey, PersistentDataType.STRING));
-                  if (var10 != null) {
-                     String var11 = (String)var7.get(this.awakenerKey, PersistentDataType.STRING);
-                     this.encounters.put(var15, new BossManager.Encounter(var15, var10, var6.getLocation(), var6, var11 == null ? "" : var11));
-                     this.startBossSystems(var15, var6, var10, this.plugin.getConfig().getLong("bosses.attack-interval-ticks", 50L));
-                  }
-               } catch (Exception var12) {
-               }
-            }
-         }
+   public void onChunkLoad(ChunkLoadEvent event) {
+      for (Entity entity:event.getChunk().getEntities()) if (entity instanceof LivingEntity living
+          && entity.getPersistentDataContainer().has(bossKey,PersistentDataType.BYTE)) resumeBoss(living);
+   }
+   @EventHandler
+   public void onChunkUnload(org.bukkit.event.world.ChunkUnloadEvent event) {
+      for (Entity entity:event.getChunk().getEntities()) if (entity instanceof LivingEntity living
+          && entity.getPersistentDataContainer().has(bossKey,PersistentDataType.BYTE)) {
+         try {
+            UUID id=UUID.fromString(entity.getPersistentDataContainer().get(encounterKey,PersistentDataType.STRING));
+            BukkitTask task=attacks.remove(id);if(task!=null)task.cancel();removeBossBar(id);encounters.remove(id);
+            BukkitTask death=deathSequences.remove(id);if(death!=null)death.cancel();finishingDeaths.remove(id);
+            living.setInvulnerable(false);living.setAI(true);
+         } catch (IllegalArgumentException invalid) { plugin.getLogger().warning("Boss con encuentro inválido al descargar chunk"); }
       }
+   }
+   private void resumeBoss(LivingEntity boss) {
+      PersistentDataContainer data=boss.getPersistentDataContainer();
+      BossCatalog.Definition definition=BossCatalog.get(data.get(typeKey,PersistentDataType.STRING));
+      if (definition==null) return;
+      try {
+         UUID id=UUID.fromString(data.get(encounterKey,PersistentDataType.STRING));
+         data.set(typeKey,PersistentDataType.STRING,definition.id()); boss.customName(bossDisplay(definition));
+         encounters.put(id,new Encounter(id,definition,boss.getLocation(),boss,data.getOrDefault(awakenerKey,PersistentDataType.STRING,"")));
+         startBossSystems(id,boss,definition,plugin.getConfig().getLong("bosses.attack-interval-ticks",10));
+      } catch (IllegalArgumentException invalid) { plugin.getLogger().warning("Boss con identificador de encuentro inválido: " + boss.getUniqueId()); }
    }
 
    public List<String> bossIds() {
@@ -233,75 +218,76 @@ public final class BossManager implements Listener {
          double var8 = var4.mini() ? 1.35 + var4.tier().ordinal() * 0.12 : var4.tier().scale;
          double var10 = var4.tier().health * (var4.mini() ? 0.62 : 1.0);
          double var12 = var4.tier().damage * (var4.mini() ? 0.72 : 1.0);
-         if (var4.id().equals("reina_abeja")) {
+         if (var4.legacyId().equals("reina_abeja")) {
             var8 = 1.45;
             var10 = 520.0;
             var12 = 16.0;
          }
 
-         if (var4.id().equals("zorro_salvaje")) {
+         if (var4.legacyId().equals("zorro_salvaje")) {
             var8 = 1.38;
             var10 = 530.0;
             var12 = 25.0;
          }
 
-         if (var4.id().equals("jabali_infernal")) {
+         if (var4.legacyId().equals("jabali_infernal")) {
             var8 = 1.22;
             var10 = 680.0;
             var12 = 30.0;
          }
 
-         if (var4.id().equals("volcano")) {
+         if (var4.legacyId().equals("volcano")) {
             var8 = 1.6;
             var10 = 2000.0;
             var12 = 38.0;
          }
 
-         if (var4.id().equals("oso_tundra")) {
+         if (var4.legacyId().equals("oso_tundra")) {
             var8 = 1.55;
             var10 = 620.0;
             var12 = 27.0;
          }
 
-         if (var4.id().equals("lobo_ceniza")) {
+         if (var4.legacyId().equals("lobo_ceniza")) {
             var8 = 1.28;
             var10 = 480.0;
             var12 = 25.0;
          }
 
-         if (var4.id().equals("cabra_quebrada")) {
+         if (var4.legacyId().equals("cabra_quebrada")) {
             var8 = 1.45;
             var10 = 540.0;
             var12 = 28.0;
          }
 
-         if (var4.id().equals("tortuga_baluarte")) {
+         if (var4.legacyId().equals("tortuga_baluarte")) {
             var8 = 1.8;
             var10 = 900.0;
             var12 = 30.0;
          }
 
-         if (var4.id().equals("llama_saqueadora")) {
+         if (var4.legacyId().equals("llama_saqueadora")) {
             var8 = 1.42;
             var10 = 560.0;
             var12 = 26.0;
          }
 
-         var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var1 + ".scale", var8)));
-         var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var1 + ".health", var10)));
-         var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var1 + ".damage", var12)));
+         var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".scale", var8)));
+         var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".health", var10)));
+         var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".damage", var12)));
+         if (var4.entityType()==EntityType.WARDEN) { var10=Math.max(var10, var4.legacyId().equals("warden_abismal") ? 14000 : 10000); var12=Math.max(var12,90); }
          this.setAttribute(var5, Attribute.MAX_HEALTH, var10);
          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));
-         double var14 = var4.id().equals("zorro_salvaje")
+         double var14 = var4.legacyId().equals("zorro_salvaje")
             ? 0.62
             : (
-               var4.id().equals("reina_abeja")
+               var4.legacyId().equals("reina_abeja")
                   ? 0.38
-                  : (var4.id().equals("jabali_infernal") ? 0.43 : (var4.id().equals("volcano") ? 0.27 : 0.28 + var4.tier().ordinal() * 0.025))
+                  : (var4.legacyId().equals("jabali_infernal") ? 0.43 : (var4.legacyId().equals("volcano") ? 0.27 : 0.28 + var4.tier().ordinal() * 0.025))
             );
          this.setAttribute(var5, Attribute.MOVEMENT_SPEED, var14);
-         if (var5 instanceof Bee var16 && var4.id().equals("reina_abeja")) {
+         if (var5 instanceof Bee var16 && var4.legacyId().equals("reina_abeja")) {
             var16.setAnger(24000);
          }
 
@@ -752,6 +738,8 @@ public final class BossManager implements Listener {
 
          var1.getDrops().clear();
          var1.setDroppedExp(0);
+         if (var2.getKiller()!=null && ((CazaJefesPlugin)plugin).guard.canAttackBoss(var2.getKiller())
+             && Math.random()<LootRules.probability(plugin.getConfig().getDouble("loot.minion-fragment-chance",0.005))) var1.getDrops().add(relicItems.fragment(1));
       } else if (var3.has(this.bossKey, PersistentDataType.BYTE)) {
          UUID var4;
          try {
@@ -972,6 +960,7 @@ public final class BossManager implements Listener {
                )
                .orElse(null);
             if (var2 != null) {
+               if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
                double ratio = boss.getHealth() / boss.getAttribute(Attribute.MAX_HEALTH).getValue();
                int nextPhase = ratio <= 0.30 ? 3 : ratio <= 0.65 ? 2 : 1;
                if (nextPhase > phase) {
@@ -981,7 +970,7 @@ public final class BossManager implements Listener {
                   var2.sendMessage(Component.text(definition.name() + " · Fase " + phase + (phase == 3 ? " · Furia del Eclipse" : " · Ruptura de la Grieta"), definition.tier().color));
                }
                long var3 = System.currentTimeMillis();
-               if (this.definition.id().equals("zorro_salvaje") && this.huntSpawnedSheep()) {
+               if (this.definition.legacyId().equals("zorro_salvaje") && this.huntSpawnedSheep()) {
                   if (var3 >= this.nextSpecialAt) {
                      this.miniSpecial(var2, this.specialRotation++ % 5);
                      this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
@@ -1011,9 +1000,7 @@ public final class BossManager implements Listener {
                         this.summonMinions(var2);
                      }
 
-                     if (this.attacks % 100 == 0) {
-                        this.tryScrambleHotbar(var2);
-                     }
+                     // Final-phase inventory disruption is handled centrally by CombatPhases.
                   }
                }
             }
@@ -1021,14 +1008,14 @@ public final class BossManager implements Listener {
       }
 
       private void pursue(Player var1) {
-         if (this.definition.id().equals("jabali_infernal")) {
+         if (this.definition.legacyId().equals("jabali_infernal")) {
             var1.setFireTicks(Math.max(var1.getFireTicks(), 60));
             var1.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 70, 0));
             var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
-         } else if (this.definition.id().equals("reina_abeja")) {
+         } else if (this.definition.legacyId().equals("reina_abeja")) {
             var1.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 50, 0));
             var1.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 50, 0));
-         } else if (this.definition.id().equals("zorro_salvaje") && this.attacks % 2 == 0) {
+         } else if (this.definition.legacyId().equals("zorro_salvaje") && this.attacks % 2 == 0) {
             var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
          }
 
@@ -1036,9 +1023,9 @@ public final class BossManager implements Listener {
          double var3 = var2.length();
          if ((!(var3 <= 6.0) || this.definition.mini()) && var3 != 0.0) {
             Vector var5 = this.boss.getVelocity();
-            double var6 = this.definition.id().equals("zorro_salvaje")
+            double var6 = this.definition.legacyId().equals("zorro_salvaje")
                ? 0.72
-               : (this.definition.id().equals("jabali_infernal") ? 0.55 : (this.definition.mini() ? 0.48 : 0.32 + this.definition.tier().ordinal() * 0.1));
+               : (this.definition.legacyId().equals("jabali_infernal") ? 0.55 : (this.definition.mini() ? 0.48 : 0.32 + this.definition.tier().ordinal() * 0.1));
             Vector var8 = var2.setY(0).normalize().multiply(var6);
             double var9 = var5.getY();
             if (var1.getLocation().getY() > this.boss.getLocation().getY() + 2.0) {
@@ -1052,7 +1039,7 @@ public final class BossManager implements Listener {
       private void attackNearby(Player var1) {
          long var2 = System.currentTimeMillis();
          if (!(var1.getLocation().distanceSquared(this.boss.getLocation()) > 14.44) && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
-            String var6 = this.definition.id();
+            String var6 = this.definition.legacyId();
 
             double var4 = switch (var6) {
                case "reina_abeja" -> 9.0;
@@ -1162,7 +1149,7 @@ public final class BossManager implements Listener {
 
       private void signatureSpecial(Player var1) {
          Location var2 = this.boss.getLocation();
-         String var3 = this.definition.id();
+         String var3 = this.definition.legacyId();
          Particle var4 = var3.equals("reina_abeja")
             ? Particle.HAPPY_VILLAGER
             : (var3.equals("zorro_salvaje") ? Particle.CRIT : (var3.equals("jabali_infernal") ? Particle.FLAME : Particle.CLOUD));
@@ -1315,53 +1302,14 @@ public final class BossManager implements Listener {
          }
       }
 
-      private void tryScrambleHotbar(Player var1) {
-         long var2 = System.currentTimeMillis();
-         if (var2 >= this.hotbarCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
-            double var4 = switch (this.definition.tier()) {
-               case COMMON -> 0.005;
-               case RARE -> 0.0075;
-               case EPIC -> 0.01;
-               case LEGENDARY -> 0.0125;
-               case MYTHIC -> 0.015;
-               case ABYSSAL -> 0.02;
-            };
-            if (!(Math.random() >= var4)) {
-               ArrayList<Integer> var6 = new ArrayList<>();
-
-               for (int var7 = 0; var7 < 9; var7++) {
-                  var6.add(var7);
-               }
-
-               Collections.shuffle(var6);
-               ArrayList var11 = new ArrayList();
-
-               for (int var9 : var6) {
-                  ItemStack var10 = var1.getInventory().getItem(var9);
-                  var11.add(var10 == null ? null : var10.clone());
-               }
-
-               Collections.shuffle(var11);
-
-               for (int var12 = 0; var12 < var6.size(); var12++) {
-                  var1.getInventory().setItem((Integer)var6.get(var12), (ItemStack)var11.get(var12));
-               }
-
-               var1.getWorld().spawnParticle(Particle.WITCH, var1.getLocation().add(0.0, 1.0, 0.0), 18, 0.4, 0.5, 0.4, 0.06);
-               var1.sendActionBar(Component.text("¡" + this.definition.name() + " desordenó tu hotbar!", this.definition.tier().color));
-               this.hotbarCooldowns.put(var1.getUniqueId(), var2 + 10000L);
-            }
-         }
-      }
-
       private void summonMinions(Player var1) {
-         if (this.definition.id().equals("reina_abeja")) {
+         if (this.definition.legacyId().equals("reina_abeja")) {
             this.summonCustom(EntityType.BEE, var1, 2, "abeja_enfurecida");
-         } else if (this.definition.id().equals("zorro_salvaje")) {
+         } else if (this.definition.legacyId().equals("zorro_salvaje")) {
             this.summonCustom(EntityType.SHEEP, var1, 2, "fox_sheep");
-         } else if (this.definition.id().equals("jabali_infernal")) {
+         } else if (this.definition.legacyId().equals("jabali_infernal")) {
             this.summonCustom(EntityType.PIGLIN, var1, 2, "hoglin_guard");
-         } else if (this.definition.id().equals("volcano")) {
+         } else if (this.definition.legacyId().equals("volcano")) {
             this.summonCustom(EntityType.SNIFFER, var1, 2, "sniffer_young");
          } else if (this.definition.entityType() != EntityType.SPIDER && this.definition.entityType() != EntityType.CAVE_SPIDER) {
             int var2 = this.definition.mini() ? 1 : 2 + this.definition.tier().ordinal();

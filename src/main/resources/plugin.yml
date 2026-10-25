@@ -1,10 +1,13 @@
 name: CazaJefes
-version: '1.0.1'
+version: '1.1.0'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
 description: Jefes grandes con ataques especiales, botín y recetas.
 authors: [CazaJefes]
 commands:
+  bestiario:
+    description: Bestiario por categorías.
+    aliases: [bestirio, bestiary]
   rares:
     description: Abre recetas y forja de rares.
     usage: /rares
