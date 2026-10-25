@@ -12,6 +12,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    ShulkerCombat shulkers;
    BossAbilities abilities;
    BossAuras auras;
+   BossRebirth rebirth;
    BossParticipation participation;
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -30,6 +31,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
+      getServer().getPluginManager().registerEvents(new BossVampirism(),this);
+      this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
       this.auras=new BossAuras(this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);

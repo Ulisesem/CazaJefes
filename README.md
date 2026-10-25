@@ -1,4 +1,4 @@
-# CazaJefes 1.6.2
+# CazaJefes 1.7.0
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.6.2.jar`. 68 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.0.jar`. 74 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -78,12 +78,12 @@ Los definitivos tienen dos a cuatro pulsos, separados por un segundo, y recargan
 
 La selección de objetivo conserva foco durante dos segundos y prioriza jugadores participantes cercanos. Se mantienen persecución táctica, movimiento acuático, especiales y daño de contacto de minijefes.
 
-Validación: 68 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
+Validación: 74 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
 
 
 ## Corrección 1.6.1
 
-Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 68 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
+Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 74 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
 
 
 ## Auras y guardianes zombis en 1.6.2
@@ -94,4 +94,19 @@ Los bosses zombis (Zombie, Husk, Drowned, Zombie Villager, Zombified Piglin y Gi
 
 El equipo visible no forma parte del botín normal: probabilidad de caída cero, sin recoger objetos del suelo y protegido contra extracción por Disarm. Disarm retira temporalmente el arma principal y la devuelve después de tres segundos si la mano sigue vacía. Se conservan las tablas de drops existentes.
 
-Validación: 68 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se inspeccionó el efecto dentro de Minecraft. Referencias: [partículas de Paper](https://docs.papermc.io/paper/dev/particles/) y [equipo de entidades 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/inventory/EntityEquipment.html).
+Validación: 74 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se inspeccionó el efecto dentro de Minecraft. Referencias: [partículas de Paper](https://docs.papermc.io/paper/dev/particles/) y [equipo de entidades 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/inventory/EntityEquipment.html).
+
+
+## Muerte, renacimiento y vampirismo en 1.7.0
+
+Se elimina la antigua secuencia de muerte que cancelaba el golpe letal, dejaba al boss en 1 HP, desactivaba su IA y lo hacía invulnerable hasta terminar una tarea de animación. La muerte vuelve al flujo normal del servidor y conserva el botín y la tabla de daño. No depende de teletransportes ni temporizadores para morir. Reiniciar con esta versión también recupera IA y vulnerabilidad de los bosses cargados, incluidos los que quedaron bloqueados antes.
+
+Los zombis mantienen la armadura encantada, pero ahora escogen aleatoriamente espada o hacha para la mano principal una vez por aparición. La elección persiste al recargar el chunk. En la otra mano llevan Suspiro del Renacido, un tótem de renacimiento de NPC. En el primer golpe letal se consume, reproduce el efecto y sonido de protección de muerte y restaura exactamente el 65% de la vida máxima. No se concede invulnerabilidad ni se reinicia la etapa. El aviso se envía a participantes conectados y jugadores cercanos. El golpe letal inicial se registra en la tabla de daño.
+
+Después del renacimiento, todo daño del boss a jugadores se duplica respecto al resultado de las reglas de combate actuales, incluidos proyectiles y habilidades. La marca de renacimiento se conserva en el boss y el tótem no vuelve al reiniciar o cargar su chunk. El siguiente golpe letal permite la muerte normal. El equipo y el tótem de NPC no se añaden como drops.
+
+Todos los bosses, incluidos minijefes, obtienen vampirismo en etapa 3. Al causar daño permitido a un jugador, recuperan el 50% de ese daño efectivo, limitado a la vida del jugador antes del golpe, la vida que le falta al boss y el 3% de su vida máxima. Recarga de diez segundos por boss, persistente al recargar. Los golpes cancelados o sin daño no curan. Un rayo de partículas rojas hacia el boss y corazones señalan la extracción; el aviso sobre la hotbar respeta la prioridad de los definitivos.
+
+Las auras se amplían a 72 puntos: anillo exterior, doble hélice, corona y un segundo anillo a media altura. Más grosor y alcance exterior; acentos dorados al renacer. Continúan adaptándose al tamaño real del mob.
+
+Validación: 74 pruebas y compilación Java 21. No se ejecutó Paper ni se validaron las mecánicas en un cliente Minecraft. Referencia: [efecto de protección de muerte de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/EntityEffect.html).

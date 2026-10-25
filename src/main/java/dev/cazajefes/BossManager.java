@@ -75,8 +75,6 @@ public final class BossManager implements Listener {
    private final Map<UUID, BukkitTask> barTasks = new HashMap<>();
    private final Map<UUID, BukkitTask> eggEffects = new HashMap<>();
    private final Map<UUID, BossBar> healthBars = new HashMap<>();
-   private final Map<UUID, BukkitTask> deathSequences = new HashMap<>();
-   private final Set<UUID> finishingDeaths = new HashSet<>();
 
    public BossManager(JavaPlugin var1, NamespacedKey var2, RelicItems var3) {
       this.plugin = var1;
@@ -136,7 +134,6 @@ public final class BossManager implements Listener {
          try {
             UUID id=UUID.fromString(entity.getPersistentDataContainer().get(encounterKey,PersistentDataType.STRING));
             BukkitTask task=attacks.remove(id);if(task!=null)task.cancel();removeBossBar(id);encounters.remove(id);
-            BukkitTask death=deathSequences.remove(id);if(death!=null)death.cancel();finishingDeaths.remove(id);
             living.setInvulnerable(false);living.setAI(true);
          } catch (IllegalArgumentException invalid) { plugin.getLogger().warning("Boss con encuentro inválido al descargar chunk"); }
       }
@@ -598,138 +595,9 @@ public final class BossManager implements Listener {
       }
    }
 
-   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-   public void onBossLethalDamage(EntityDamageEvent var1) {
-      if (var1.getEntity() instanceof LivingEntity var2) {
-         PersistentDataContainer var14 = var2.getPersistentDataContainer();
-         if (var14.has(this.bossKey, PersistentDataType.BYTE)) {
-            final UUID var4;
-            try {
-               var4 = UUID.fromString((String)var14.get(this.encounterKey, PersistentDataType.STRING));
-            } catch (Exception var13) {
-               return;
-            }
-
-            if (!this.finishingDeaths.contains(var4)) {
-               if (this.deathSequences.containsKey(var4)) {
-                  var1.setCancelled(true);
-               } else if (!(var2.getHealth() - var1.getFinalDamage() > 0.0)) {
-                  if (var1 instanceof EntityDamageByEntityEvent hit){((CazaJefesPlugin)plugin).guard.record(hit);((CazaJefesPlugin)plugin).participation.record(hit);}
-                  var1.setCancelled(true);
-                  var2.setHealth(1.0);
-                  BukkitTask var5 = this.attacks.remove(var4);
-                  if (var5 != null) {
-                     var5.cancel();
-                  }
-
-                  if (var2 instanceof Mob var6) {
-                     var6.setAI(false);
-                  }
-
-                  var2.setInvulnerable(true);
-                  final Location var15 = var2.getLocation().clone();
-                  final double var7 = Math.min(15.0, Math.max(0.5, var2.getWorld().getMaxHeight() - var15.getY() - 1.5));
-                  BossManager.Encounter var9 = this.encounters.get(var4);
-                  BossCatalog.Definition recoveredDefinition = var9 == null
-                     ? BossCatalog.get((String)var14.get(this.typeKey, PersistentDataType.STRING))
-                     : var9.definition;
-                  final BossCatalog.Definition var10 = recoveredDefinition == null ? BossCatalog.get("coloso") : recoveredDefinition;
-
-                  var2.getWorld().playSound(var15, Sound.ENTITY_WARDEN_SONIC_BOOM, 1.1F, 0.55F);
-                  var2.getWorld().spawnParticle(Particle.REVERSE_PORTAL, var15.clone().add(0.0, 1.0, 0.0), 55, 0.8, 1.0, 0.8, 0.12);
-                  final BukkitTask[] var12 = new BukkitTask[1];
-                  var12[0] = this.plugin
-                     .getServer()
-                     .getScheduler()
-                     .runTaskTimer(
-                        this.plugin,
-                        new Runnable() {
-                           int tick;
-
-                           @Override
-                           public void run() {
-                              if (var2.isValid() && !var2.isDead()) {
-                                 this.tick++;
-                                 Location var1x = var15.clone();
-                                 if (this.tick <= 40) {
-                                    var1x.add(0.0, var7 * this.tick / 40.0, 0.0);
-                                    var2.teleport(var1x);
-                                    var2.getWorld().spawnParticle(Particle.END_ROD, var1x.clone().add(0.0, 0.7, 0.0), 16, 0.7, 0.7, 0.7, 0.035);
-                                    var2.getWorld().spawnParticle(Particle.SOUL, var1x, 10, 0.55, 0.6, 0.55, 0.06);
-                                    var2.getWorld().spawnParticle(Particle.REVERSE_PORTAL, var1x, 8, 0.5, 0.5, 0.5, 0.08);
-                                    if (this.tick == 40) {
-                                       var2.getWorld().playSound(var1x, Sound.ENTITY_WARDEN_HEARTBEAT, 1.5F, 0.55F);
-                                    }
-                                 } else if (this.tick <= 52) {
-                                    var1x.add(0.0, var7 * (52 - this.tick) / 12.0, 0.0);
-                                    var2.teleport(var1x);
-                                    var2.getWorld().spawnParticle(Particle.CLOUD, var1x, 18, 0.5, 0.5, 0.5, 0.05);
-                                    var2.getWorld().spawnParticle(Particle.FLAME, var1x, 14, 0.35, 0.35, 0.35, 0.02);
-                                    var2.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, var1x, 8, 0.25, 0.25, 0.25, 0.015);
-                                 } else {
-                                    var2.teleport(var15);
-                                    var2.getWorld().playSound(var15, Sound.BLOCK_ANVIL_LAND, 1.5F, 0.55F);
-                                    var2.getWorld().playSound(var15, Sound.ENTITY_GENERIC_EXPLODE, 1.8F, 0.65F);
-                                    var2.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, var15.clone().add(0.0, 1.0, 0.0), 1);
-                                    var2.getWorld().spawnParticle(Particle.FLAME, var15.clone().add(0.0, 0.3, 0.0), 100, 2.2, 0.4, 2.2, 0.12);
-                                    var2.getWorld().spawnParticle(Particle.FIREWORK, var15.clone().add(0.0, 0.8, 0.0), 70, 1.8, 0.9, 1.8, 0.18);
-                                    var2.getWorld().spawnParticle(Particle.END_ROD, var15.clone().add(0.0, 1.0, 0.0), 60, 1.5, 0.7, 1.5, 0.1);
-                                    double var2x = 10.0 + var10.tier().ordinal();
-                                    double var4x = 18.0 + var10.tier().ordinal() * 8.0;
-                                    double var6 = 8.0 + var10.tier().ordinal() * 4.0;
-
-                                    for (Player var9x : var15.getWorld().getPlayers()) {
-            if (!CombatGuard.eligible(var9x)) continue;
-                                       if (!(var9x.getLocation().distanceSquared(var15) > var2x * var2x)) {
-                                          var9x.getWorld().strikeLightningEffect(var9x.getLocation());
-                                          var9x.damage(var4x + var6, var2);
-                                          var9x.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 50, 1));
-                                          var9x.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 1));
-                                          if (var10.tier().ordinal() >= BossCatalog.Tier.EPIC.ordinal()) {
-                                             var9x.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60 + var10.tier().ordinal() * 10, 0));
-                                          }
-
-                                          if (var10.tier() == BossCatalog.Tier.MYTHIC) {
-                                             var9x.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 45, 0));
-                                          }
-
-                                          Vector var10x = var9x.getLocation().toVector().subtract(var15.toVector());
-                                          if (var10x.lengthSquared() < 0.01) {
-                                             var10x = var15.getDirection();
-                                          }
-
-                                          var10x.normalize().multiply(1.15 + var10.tier().ordinal() * 0.18).setY(0.9 + var10.tier().ordinal() * 0.12);
-                                          var9x.setVelocity(var10x);
-                                          var9x.getWorld()
-                                             .spawnParticle(Particle.DAMAGE_INDICATOR, var9x.getLocation().add(0.0, 1.0, 0.0), 12, 0.35, 0.45, 0.35, 0.12);
-                                       }
-                                    }
-
-                                    var12[0].cancel();
-                                    BossManager.this.deathSequences.remove(var4);
-                                    if (var2 instanceof Mob var11) {
-                                       var11.setAI(true);
-                                    }
-
-                                    BossManager.this.finishingDeaths.add(var4);
-                                    var2.setInvulnerable(false);
-                                    var2.setNoDamageTicks(0);
-                                    var2.damage(1000000.0);
-                                 }
-                              } else {
-                                 var12[0].cancel();
-                                 BossManager.this.deathSequences.remove(var4);
-                              }
-                           }
-                        },
-                        1L,
-                        1L
-                     );
-                  this.deathSequences.put(var4, var12[0]);
-               }
-            }
-         }
-      }
+   @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+   public void onBossLethalDamage(EntityDamageEvent event){
+      ((CazaJefesPlugin)plugin).rebirth.tryRebirth(event);
    }
 
    @EventHandler
@@ -763,7 +631,6 @@ public final class BossManager implements Listener {
             return;
          }
 
-         this.finishingDeaths.remove(var4);
          BossManager.Encounter var5 = this.encounters.remove(var4);
          BukkitTask var6 = this.attacks.remove(var4);
          if (var6 != null) {
@@ -925,8 +792,6 @@ public final class BossManager implements Listener {
    public void stopAllAttacks() {
       this.attacks.values().forEach(BukkitTask::cancel);
       this.attacks.clear();
-      this.deathSequences.values().forEach(BukkitTask::cancel);
-      this.deathSequences.clear();
       new ArrayList<>(this.healthBars.keySet()).forEach(this::removeBossBar);
    }
 
