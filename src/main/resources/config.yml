@@ -21,7 +21,7 @@ combat:
   # Creative damage/loot tests require cazajefes.admin; survival targeting is unchanged.
   allow-creative-admin-tests: true
   # No se aplica regreso al origen: bosses libres también en el agua.
-  special-cooldown-seconds: 15
+  # Especiales: 10 s. Definitivos: 15 s desde el final de su ejecución.
   loot-credit-seconds: 120
   final-inventory-chance: 0.02
   phase3-lightning:

@@ -1,4 +1,4 @@
-# CazaJefes 1.5.0
+# CazaJefes 1.6.0
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,11 +41,11 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.5.0.jar`. 58 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.6.0.jar`. 62 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
-## Cambios de combate en 1.5.0
+## Cambios de combate en 1.6.0
 
 Se elimina el regreso al origen; `combat.leash-radius` deja de utilizarse aunque figure en un archivo antiguo. No se rellena la vida ni se reinicia la etapa por desplazamiento. Los bosses permanecen en el agua: respiración acuática, gracia de delfín, eficiencia de movimiento acuático y persecución en tres dimensiones. No se fuerza la salida a superficie. Se cancelan teletransportes nativos que los expulsarían del agua; el Shulker combate allí con proyectiles sin saltar a tierra.
 
@@ -61,3 +61,21 @@ API utilizada: [proyectiles Shulker de Paper 1.21.11](https://javadocs.papermc.i
 
 
 El anuncio único de derrota usa dorado y aqua con separadores, botín real y tabla de daño descendente de todos los jugadores registrados, incluido quien esté desconectado al morir el boss. Cuenta daño final permitido directo o de proyectiles de jugador, limitado a la vida restante para no sumar exceso del golpe final; daños ambientales y efectos sin autor atribuible no se asignan. Los totales y nombres se guardan en el boss. La tipografía sigue siendo la normal de Minecraft; no requiere paquete de recursos.
+
+## Combate y presentación de 1.6.0
+
+La brújula sustituye el rastro continuo por tres flechas de partículas orientadas al objetivo, emitidas en una sola tanda cada diez segundos por jugador. Cambiar de casilla no reinicia el plazo. Su dirección se calcula en tres dimensiones y sigue siendo una guía directa, sin buscar una ruta entre paredes.
+
+Los bosses activos conservan aura orbital, color propio y motivo de partículas. La presentación del botín usa negrita en dorado y aqua, con una línea por objeto y cantidad; conserva la tabla de daño por jugador.
+
+Los especiales comunes se amplían de cinco a ocho variantes y usan diez segundos entre activaciones: ondas, embestidas, explosiones marcadas, invocaciones, efectos de área y los nuevos cortes cruzados, barridos en cono y runas ascendentes. Shulkers reciben esas tres variantes nuevas, además de sus proyectiles y teletransportes. Los disparos nativos o ataques cuerpo a cuerpo no son especiales y conservan su frecuencia propia.
+
+Cada uno de los 76 bosses tiene un definitivo definido en `BossAbilityCatalog`, con nombre exclusivo y combinación propia de patrón, efecto, radio, pulsos y orientación. Comparten doce familias de ejecución: anillos expansivos, cruz, cono, espiral, meteoros marcados, vórtice, carriles, tablero alternado, géiseres, nova, corredor de embestida y jaula que se cierra. Son perfiles personalizados sobre un motor común; no son 76 motores de ataque independientes. Consulta `docs/DEFINITIVOS-1.6.0.csv` para revisar cada uno.
+
+Solo se activan en etapa 3. La carga dura tres segundos y muestra PRECAUCIÓN / CARGANDO ATAQUE FINAL, nombre y cuenta regresiva sobre la hotbar, junto con zonas de partículas. Se avisa a jugadores cercanos expuestos al peligro; los mensajes de etapa continúan limitados a participantes. La brújula y las represalias de rayos ceden prioridad a esa advertencia.
+
+Los definitivos tienen dos a cuatro pulsos, separados por un segundo, y recargan quince segundos desde el fin de la ejecución. No se superponen dos cargas del mismo boss. El plazo del definitivo se guarda en los datos del boss; sus tareas se cancelan al morir, descargar el chunk o apagar el plugin. Los patrones dejan espacios para esquivar y se fijan al comenzar la carga. El daño requiere jugador válido, distancia y línea de visión; no rompe bloques ni elimina la inmunidad normal a golpes consecutivos. Los efectos secundarios se aplican cuando se pierde salud o absorción.
+
+La selección de objetivo conserva foco durante dos segundos y prioriza jugadores participantes cercanos. Se mantienen persecución táctica, movimiento acuático, especiales y daño de contacto de minijefes.
+
+Validación: 62 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.

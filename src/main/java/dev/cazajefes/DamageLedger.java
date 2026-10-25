@@ -14,12 +14,12 @@ final class DamageLedger {
  static String encode(Map<UUID,Entry> data){return String.join(";",sorted(data).stream().map(e->e.id()+":"+e.name()+":"+e.damage()).toList());}
  static void record(LivingEntity boss,Player player,double damage){double value=accepted(damage,boss.getHealth());if(value<=0||boss.isInvulnerable())return;Map<UUID,Entry> data=parse(boss.getPersistentDataContainer().get(KEY,PersistentDataType.STRING));Entry old=data.get(player.getUniqueId());data.put(player.getUniqueId(),new Entry(player.getUniqueId(),player.getName(),value+(old==null?0:old.damage())));boss.getPersistentDataContainer().set(KEY,PersistentDataType.STRING,encode(data));}
  static Component report(LivingEntity boss,BossCatalog.Definition definition,String winner,RelicItems.LootResult loot){
-  Component out=gold("━━━━━━━━ ✦ VICTORIA ✦ ━━━━━━━━").append(Component.newline()).append(aqua(winner)).append(gold(" derrotó a ")).append(aqua(definition.name())).append(Component.newline()).append(gold("✧ BOTÍN · ")).append(loot.summary().color(NamedTextColor.AQUA)).append(Component.newline()).append(gold("⚔ DAÑO DE LOS CAZADORES"));
+  Component out=gold("━━━━━━━━ ✦ VICTORIA ✦ ━━━━━━━━").append(Component.newline()).append(aqua(winner)).append(gold(" derrotó a ")).append(aqua(definition.name())).append(Component.newline()).append(gold("✧ BOTÍN OBTENIDO")).append(Component.newline()).append(loot.summary().color(NamedTextColor.AQUA)).append(Component.newline()).append(gold("⚔ DAÑO DE LOS CAZADORES"));
   List<Entry> entries=sorted(parse(boss.getPersistentDataContainer().get(KEY,PersistentDataType.STRING)));double total=entries.stream().mapToDouble(Entry::damage).sum();int rank=1;
   for(Entry e:entries)out=out.append(Component.newline()).append(gold("  "+(rank++)+". ")).append(aqua(e.name())).append(gold(" » ")).append(aqua(String.format(Locale.ROOT,"%,.1f",e.damage()))).append(gold(" daño · ")).append(aqua(String.format(Locale.ROOT,"%.1f%%",e.damage()/total*100)));
   if(entries.isEmpty())out=out.append(Component.newline()).append(aqua("  Sin daño de jugador registrado."));
   return out.append(Component.newline()).append(gold("━━━━━━━━━━━━━━━━━━━━━━━━━━"));
  }
- private static Component gold(String text){return Component.text(text,NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false);}
- private static Component aqua(String text){return Component.text(text,NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false);}
+ private static Component gold(String text){return Component.text(text,NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false).decoration(TextDecoration.BOLD,true);}
+ private static Component aqua(String text){return Component.text(text,NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false).decoration(TextDecoration.BOLD,true);}
 }

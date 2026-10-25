@@ -1,0 +1,77 @@
+boss_id_compatible,definitivo,patron,efecto,radio,pulsos,rotacion
+coloso,Juicio de los Mundos,RINGS,SLOWNESS,6,2,0.0
+viuda,Telar del Último Ocaso,CROSS,SLOWNESS,7,3,0.392699
+centinela,Sentencia de Ceniza,CONE,SLOWNESS,8,4,0.785398
+reina_abeja,Coronación del Enjambre,SPIRAL,SLOWNESS,6,2,1.178097
+zorro_salvaje,Danza de Nueve Sombras,METEORS,SLOWNESS,7,3,1.570796
+jabali_infernal,Estampida del Averno,VORTEX,SLOWNESS,8,4,1.963495
+volcano,Latido del Cataclismo,LANES,SLOWNESS,6,2,2.356194
+oso_tundra,Réquiem de la Ventisca,CHECKER,SLOWNESS,7,3,2.748893
+lobo_ceniza,Aullido de la Luna Rota,GEYSERS,SLOWNESS,8,4,0.0
+cabra_quebrada,Caída de las Cumbres,NOVA,SLOWNESS,6,2,0.392699
+tortuga_baluarte,Bastión del Último Mar,RUSH,SLOWNESS,7,3,0.785398
+llama_saqueadora,Caravana de la Perdición,CAGE,SLOWNESS,8,4,1.178097
+corredor_sepulcral,Marcha de los Olvidados,RINGS,POISON,6,2,1.570796
+hueso_viejo,Osario de las Mil Flechas,CROSS,POISON,7,3,1.963495
+aranhuelo,Nido de la Ruina,CONE,POISON,8,4,2.356194
+brasa_vagabunda,Cremación Errante,SPIRAL,POISON,6,2,2.748893
+saqueador_gris,Ejecución del Yermo,METEORS,POISON,7,3,0.0
+moho_muerto,Sepultura del Pantano,VORTEX,POISON,8,4,0.392699
+cubo_turbio,Marea del Fango Vivo,LANES,POISON,6,2,0.785398
+murcielago_fosa,Eclipse de la Fosa,CHECKER,POISON,7,3,1.178097
+cazador_oxidado,Cacería del Acero Enfermo,GEYSERS,POISON,8,4,1.570796
+tejedora_cripta,Sudario de la Cripta,NOVA,POISON,6,2,1.963495
+arquero_invernal,Cero Absoluto,RUSH,POISON,7,3,2.356194
+bruto_piglin,Mandato de la Forja Negra,CAGE,POISON,8,4,2.748893
+sapo_fuego,Erupción del Sapo Carmesí,RINGS,WEAKNESS,6,2,0.0
+bruja_musgo,Jardín de Espinas Muertas,CROSS,WEAKNESS,7,3,0.392699
+ahogado_abisal,Naufragio del Alma,CONE,WEAKNESS,8,4,0.785398
+vex_cobrizo,Corte del Cobre Maldito,SPIRAL,WEAKNESS,6,2,1.178097
+caballero_wither,Cabalgata del Sol Extinto,METEORS,WEAKNESS,7,3,1.570796
+vigia_prismarina,Prisión de Prismarina,VORTEX,WEAKNESS,8,4,1.963495
+cuervo_carmesi,Vuelo de la Sangre Nueva,LANES,WEAKNESS,6,2,2.356194
+devastador_hambriento,Banquete del Hambre Eterna,CHECKER,WEAKNESS,7,3,2.748893
+bestia_lodazal,Despertar del Lodazal,GEYSERS,WEAKNESS,8,4,0.0
+brisa_cortante,Cuchillas del Horizonte,NOVA,WEAKNESS,6,2,0.392699
+evocador_umbral,Liturgia del Umbral,RUSH,WEAKNESS,7,3,0.785398
+golem_grieta,Fractura del Núcleo,CAGE,WEAKNESS,8,4,1.178097
+ghast_azabache,Lamento de Azabache,RINGS,WITHER,6,2,1.570796
+aracnido_cristal,Prisma de la Viuda Blanca,CROSS,WITHER,7,3,1.963495
+hongo_infernal,Bosque de las Esporas Rojas,CONE,WITHER,8,4,2.356194
+desollador_bogged,Cosecha del Arco Fúnebre,SPIRAL,WITHER,6,2,2.748893
+anciano_coral,Sepulcro de Coral,METEORS,WITHER,7,3,0.0
+espectro_fin,Horizonte Invertido,VORTEX,WITHER,8,4,0.392699
+dragon_ceniza,Lluvia del Dragón Ceniciento,LANES,WITHER,6,2,0.785398
+reina_brezal,Corazón del Brezal Negro,CHECKER,WITHER,7,3,1.178097
+carcelero_carmesi,Cadalso Carmesí,GEYSERS,WITHER,8,4,1.570796
+creaking_ancestral,Raíces del Primer Crepúsculo,NOVA,WITHER,6,2,1.963495
+tormenta_breeze,Ojo de la Tempestad,RUSH,WITHER,7,3,2.356194
+quimera_endermite,Multiplicación del Vacío,CAGE,WITHER,8,4,2.748893
+verdugo_necrotico,Decapitación del Firmamento,RINGS,BLINDNESS,6,2,0.0
+serpiente_pillager,Escamas del Tirador Silente,CROSS,BLINDNESS,7,3,0.392699
+colmillo_vacio,Mandíbula del Espacio Roto,CONE,BLINDNESS,8,4,0.785398
+coloso_fragmentado,Despiece del Titán Caído,SPIRAL,BLINDNESS,6,2,1.178097
+rey_brasas,Corona del Último Incendio,METEORS,BLINDNESS,7,3,1.570796
+titan_barro,Diluvio de Arcilla,VORTEX,BLINDNESS,8,4,1.963495
+leviatan_ender,Catedral de los Mil Ojos,LANES,BLINDNESS,6,2,2.356194
+liche_noche,Noche sin Amanecer,CHECKER,BLINDNESS,7,3,2.748893
+colmillo_abismal,Fauces del Abismo Profundo,GEYSERS,BLINDNESS,8,4,0.0
+warden_abismal,Silencio de los Nueve Ecos,NOVA,BLINDNESS,6,2,0.392699
+maestro_creaking,Bosque que Devora la Luz,RUSH,BLINDNESS,7,3,0.785398
+reina_piglin,Decreto de la Reina Carmesí,CAGE,BLINDNESS,8,4,1.178097
+guardian_abismal,Mausoleo del Océano Antiguo,RINGS,HUNGER,6,2,1.570796
+xalther,Trono de la Nada,CROSS,HUNGER,7,3,1.963495
+morvex,Constelación del Arquero Caído,CONE,HUNGER,8,4,2.356194
+kaelthar,Puño de la Estrella Muerta,SPIRAL,HUNGER,6,2,2.748893
+vaelora,Profecía de las Sombras Vivas,METEORS,HUNGER,7,3,0.0
+draxion,Devastación del Horizonte Eterno,VORTEX,HUNGER,8,4,0.392699
+tharok,Cosecha de las Almas Gemelas,LANES,HUNGER,6,2,0.785398
+ignaroth,Nacimiento del Sol Negro,CHECKER,HUNGER,7,3,1.178097
+zyrakk,Sello del Umbral Quebrado,GEYSERS,HUNGER,8,4,1.570796
+thalassar,Coronación de la Fosa Marina,NOVA,HUNGER,6,2,1.963495
+aerthos,Ciclón de las Siete Ruinas,RUSH,HUNGER,7,3,2.356194
+nyssara,Maternidad de la Penumbra,CAGE,HUNGER,8,4,2.748893
+velkaris,Paso entre los Mundos Muertos,RINGS,LEVITATION,6,2,0.0
+brumgor,Colmillo del Eclipse Sangriento,CROSS,LEVITATION,7,3,0.392699
+korvath,Veredicto del Silencio Total,CONE,LEVITATION,8,4,0.785398
+ossyra,Medianoche de las Mil Plagas,SPIRAL,LEVITATION,6,2,1.178097
