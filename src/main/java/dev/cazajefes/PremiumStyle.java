@@ -16,7 +16,7 @@ final class PremiumStyle {
    }
    lore.add(Component.text(row.toString(),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));
   }
-  meta.lore(lore);meta.setEnchantmentGlintOverride(glow);item.setItemMeta(meta);return item;
+  meta.lore(lore);if(material==Material.DISC_FRAGMENT_5){meta.itemName(Component.text(title));meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);}meta.setEnchantmentGlintOverride(glow);item.setItemMeta(meta);return item;
  }
  static void frame(Inventory inv,Material accent){
   ItemStack dark=tile(Material.BLACK_STAINED_GLASS_PANE," ",NamedTextColor.DARK_GRAY,false);

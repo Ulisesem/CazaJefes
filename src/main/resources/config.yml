@@ -24,8 +24,18 @@ combat:
   special-cooldown-seconds: 15
   loot-credit-seconds: 120
   final-inventory-chance: 0.02
+  phase3-lightning:
+    enabled: true
+    threshold-damage: 40
+    cooldown-seconds: 4
+    max-damage: 30
 
 loot:
   boss-heart-chance: 0.01
   mob-fragment-chance: 0.01
   minion-fragment-chance: 0.005
+
+market:
+  sigil-fragments: 64
+  amulet-sigils: 4
+  amulet-tributes: 8
