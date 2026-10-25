@@ -683,7 +683,8 @@ public final class RelicItems implements Listener {
                         } else if (var20 instanceof Mob var29 && var29.getEquipment() != null) {
                            ItemStack var13 = var29.getEquipment().getItemInMainHand();
                            if (var13 != null && !var13.getType().isAir()) {
-                              var20.getWorld().dropItemNaturally(var20.getLocation(), var13.clone());
+                              if(!BossEquipment.isDisplay(var13))var20.getWorld().dropItemNaturally(var20.getLocation(),var13.clone());
+                              else {ItemStack restore=var13.clone();plugin.getServer().getScheduler().runTaskLater(plugin,()->{if(var29.isValid()&&!var29.isDead()&&var29.getEquipment()!=null&&var29.getEquipment().getItemInMainHand().getType().isAir())var29.getEquipment().setItemInMainHand(restore);},60L);}
                               var29.getEquipment().setItemInMainHand(new ItemStack(Material.AIR));
                            }
                         }

@@ -1,4 +1,4 @@
-# CazaJefes 1.6.1
+# CazaJefes 1.6.2
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.6.1.jar`. 65 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.6.2.jar`. 68 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -78,9 +78,20 @@ Los definitivos tienen dos a cuatro pulsos, separados por un segundo, y recargan
 
 La selección de objetivo conserva foco durante dos segundos y prioriza jugadores participantes cercanos. Se mantienen persecución táctica, movimiento acuático, especiales y daño de contacto de minijefes.
 
-Validación: 65 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
+Validación: 68 pruebas automáticas y compilación Java 21. No se ejecutó un servidor Paper ni un cliente Minecraft en esta sesión. Revisa presentación, esquiva y equilibrio en tu servidor de pruebas antes de usarlo con jugadores.
 
 
 ## Corrección 1.6.1
 
-Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 65 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
+Corrige NullPointerException de EntityPickupItemEvent en rareLoot al recoger objetos sin relic_id. Los objetos normales se descartan antes del aviso de botín; la clasificación admite identificadores ausentes sin consultar contains(null) en listas inmutables. Se conservan avisos únicos para armas Rare, libros y corazones del boss. Validación: 68 pruebas, incluidas tres regresiones de recogida y clasificación. No se ejecutó Paper en esta sesión.
+
+
+## Auras y guardianes zombis en 1.6.2
+
+Las auras de bosses despiertos usan un controlador visual independiente del ataque, cada cinco ticks: anillo inferior de 16 puntos, doble hélice de 16 y corona superior de ocho, más chispas END_ROD y el motivo propio del boss. Se calcula el contorno desde su caja real, evitando el antiguo límite de radio que podía ocultar el efecto dentro de entidades grandes. Colores por boss y categoría. Se envían a jugadores que puedan verlo dentro de 64 bloques con force=true de Paper; no se dibujan auras de mobs normales ni de huevos mediante este controlador. El cliente o sus mods aún pueden limitar las partículas. El ciclo se limpia al morir, descargar la entidad o apagar el plugin y se registra de nuevo al cargar el boss.
+
+Los bosses zombis (Zombie, Husk, Drowned, Zombie Villager, Zombified Piglin y Giant) reciben conjunto completo encantado: hierro en Común/Raro, diamante en Épico/Legendario y netherita en Mítico/Abismal. Espada y hacha visibles en ambas manos, alternando la mano principal según boss. La mano secundaria es visual y no añade un segundo golpe independiente. Protección/Filo II–VII e Irrompibilidad III para este equipo de NPC; los conjuntos de jugadores conservan sus niveles actuales. Se equipa al aparecer y al recuperar bosses existentes tras reiniciar/cargar su chunk.
+
+El equipo visible no forma parte del botín normal: probabilidad de caída cero, sin recoger objetos del suelo y protegido contra extracción por Disarm. Disarm retira temporalmente el arma principal y la devuelve después de tres segundos si la mano sigue vacía. Se conservan las tablas de drops existentes.
+
+Validación: 68 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se inspeccionó el efecto dentro de Minecraft. Referencias: [partículas de Paper](https://docs.papermc.io/paper/dev/particles/) y [equipo de entidades 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/inventory/EntityEquipment.html).

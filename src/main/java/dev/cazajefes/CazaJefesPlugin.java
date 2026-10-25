@@ -11,6 +11,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    CombatGuard guard;
    ShulkerCombat shulkers;
    BossAbilities abilities;
+   BossAuras auras;
    BossParticipation participation;
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -29,6 +30,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
+      this.auras=new BossAuras(this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);
       this.getServer().getPluginManager().registerEvents(this.relicItems, this);
@@ -62,6 +64,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if (shulkers!=null)shulkers.stop();
       if (guard != null) guard.cleanup();
