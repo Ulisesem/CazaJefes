@@ -16,7 +16,7 @@ final class CombatPhases implements Listener {
  CombatPhases(CazaJefesPlugin p){plugin=p;boss=new NamespacedKey(p,BossKeys.BOSS);type=new NamespacedKey(p,"boss_type");}
  private boolean isBoss(Entity e){return e.getPersistentDataContainer().has(boss,PersistentDataType.BYTE);}
  private Entity source(Entity e){return e instanceof Projectile p&&p.getShooter() instanceof Entity shooter?shooter:e;}
- private int phase(LivingEntity e){return PhaseRules.phase(e.getHealth()/Math.max(1,e.getMaxHealth()));}
+ private int phase(LivingEntity e){return BossStages.phase(e);}
  private boolean warden(Entity e){return e.getType()==EntityType.WARDEN;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
   if(event.getEntity() instanceof LivingEntity living&&isBoss(living))event.setDamage(event.getDamage()*PhaseRules.incoming(phase(living))*(warden(living)?0.85:1));

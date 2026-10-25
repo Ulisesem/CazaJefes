@@ -229,7 +229,7 @@ public final class BossManager implements Listener {
          var20.set(this.typeKey, PersistentDataType.STRING, var4.id());
          var20.set(this.awakenerKey, PersistentDataType.STRING, var3);
          double var8 = var4.mini() ? 1.35 + var4.tier().ordinal() * 0.12 : var4.tier().scale;
-         double var10 = var4.tier().health * (var4.mini() ? 0.62 : 1.0);
+         double var10 = var4.tier().health * (var4.mini() ? 0.28 : 1.0);
          double var12 = var4.tier().damage * (var4.mini() ? 0.72 : 1.0);
          if (var4.legacyId().equals("reina_abeja")) {
             var8 = 1.45;
@@ -293,7 +293,7 @@ public final class BossManager implements Listener {
          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));
          double var14 = var4.legacyId().equals("zorro_salvaje")
-            ? 0.62
+            ? 0.28
             : (
                var4.legacyId().equals("reina_abeja")
                   ? 0.38
@@ -308,7 +308,7 @@ public final class BossManager implements Listener {
             var21.setImmuneToZombification(true);
          }
 
-         var5.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 72000, 4, true, false));
+         var5.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, var4.legacyId().equals("zorro_salvaje")?0:1, true, false));
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          this.encounters.put(var19, new BossManager.Encounter(var19, var4, var5.getLocation(), var5, var3));
@@ -613,7 +613,7 @@ public final class BossManager implements Listener {
                if (this.deathSequences.containsKey(var4)) {
                   var1.setCancelled(true);
                } else if (!(var2.getHealth() - var1.getFinalDamage() > 0.0)) {
-                  if (var1 instanceof EntityDamageByEntityEvent hit) ((CazaJefesPlugin)plugin).guard.record(hit);
+                  if (var1 instanceof EntityDamageByEntityEvent hit){((CazaJefesPlugin)plugin).guard.record(hit);((CazaJefesPlugin)plugin).participation.record(hit);}
                   var1.setCancelled(true);
                   var2.setHealth(1.0);
                   BukkitTask var5 = this.attacks.remove(var4);
@@ -787,7 +787,7 @@ public final class BossManager implements Listener {
          var3.set(paid, PersistentDataType.BYTE,(byte)1);
          RelicItems.LootResult result=((CazaJefesPlugin)plugin).guard.canDrop(var2)
             ?this.relicItems.dropBossLoot(var2.getLocation(),var7,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
-         this.plugin.getServer().broadcast(Component.text("✦ "+var8+" derrotó a "+var7.name()+" · Botín: ",var7.tier().color).append(result.summary()));
+         this.plugin.getServer().broadcast(DamageLedger.report(var2,var7,var8,result));
          var2.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
          var2.getWorld().playSound(var2.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0F, 1.25F);
       }
@@ -938,7 +938,9 @@ public final class BossManager implements Listener {
       private int specialRotation;
       private long nextSpecialAt;
       private int phase = 1;
-      private final Location anchor;
+      private final BossTactics tactics;
+      private final BossStages stages;
+      private int visualTick;
       private final Map<UUID, Long> meleeCooldowns = new HashMap<>();
       private final Map<UUID, Long> hotbarCooldowns = new HashMap<>();
 
@@ -947,32 +949,25 @@ public final class BossManager implements Listener {
          this.boss = var2;
          this.definition = var3;
          this.minionKey = var4;
-         this.anchor = var2.getLocation().clone();
+         this.tactics=new BossTactics(var2,var3);this.stages=new BossStages(var2,var3);this.phase=BossStages.phase(var2);
       }
 
       @Override
       public void run() {
          if (this.boss.isValid() && !this.boss.isDead()) {
             if (this.boss.isInvulnerable()) return;
-            double leash = Math.max(16, Math.min(128, plugin.getConfig().getDouble("combat.leash-radius", 48)));
-            if (this.boss.getLocation().distanceSquared(anchor) > leash * leash) {
-               this.boss.teleport(anchor);
-               this.boss.setHealth(this.boss.getAttribute(Attribute.MAX_HEALTH).getValue());
-               phase = 1;
-               ((CazaJefesPlugin)plugin).guard.clearCredit(boss);
-               return;
-            }
             BossBuffs.apply(boss);
-            PotionEffect var1 = this.boss.getPotionEffect(PotionEffectType.SPEED);
-            if (var1 == null || var1.getAmplifier() < 4 || var1.getDuration() < 40) {
-               this.boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 4, true, false));
-            }
-
+            AquaticCombat.maintain(boss);
+            int speed=definition.legacyId().equals("zorro_salvaje")?0:1;
+            PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
+            if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,100,speed,true,false));}
+            stages.update();
+            if(++visualTick%2==0)CombatVisuals.aura(boss,definition,visualTick*0.15);
             Player var2 = this.boss
                .getWorld()
                .getPlayers()
                .stream()
-               .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(boss.getLocation()) <= 576 && boss.hasLineOfSight(p))
+               .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(boss.getLocation()) <= 576)
                .min(
                   (var1x, var2x) -> Double.compare(
                      var1x.getLocation().distanceSquared(this.boss.getLocation()), var2x.getLocation().distanceSquared(this.boss.getLocation())
@@ -981,21 +976,16 @@ public final class BossManager implements Listener {
                .orElse(null);
             if (var2 != null) {
                if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
-               double ratio = boss.getHealth() / boss.getAttribute(Attribute.MAX_HEALTH).getValue();
-               int nextPhase = ratio <= 0.30 ? 3 : ratio <= 0.65 ? 2 : 1;
+               int nextPhase = BossStages.phase(boss);
                if (nextPhase > phase) {
                   phase = nextPhase;
                   BossBuffs.apply(boss);
+            AquaticCombat.maintain(boss);
                   summonMinions(var2);
-                  var2.sendMessage(Component.text(definition.name() + " · Fase " + phase + (phase == 3 ? " · Furia del Eclipse" : " · Ruptura de la Grieta"), definition.tier().color));
+
                }
+               if(boss instanceof org.bukkit.entity.Shulker){((CazaJefesPlugin)plugin).shulkers.tick(boss,var2,phase);return;}
                long var3 = System.currentTimeMillis();
-               if (this.definition.legacyId().equals("zorro_salvaje") && this.huntSpawnedSheep()) {
-                  if (var3 >= this.nextSpecialAt) {
-                     this.miniSpecial(var2, this.specialRotation++ % 5);
-                     this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
-                  }
-               } else {
                   if (this.boss instanceof Mob var5) {
                      var5.setTarget(var2);
                   }
@@ -1023,41 +1013,11 @@ public final class BossManager implements Listener {
 
                      // Final-phase inventory disruption is handled centrally by CombatPhases.
                   }
-               }
             }
          }
       }
 
-      private void pursue(Player var1) {
-         if (this.definition.legacyId().equals("jabali_infernal")) {
-            var1.setFireTicks(Math.max(var1.getFireTicks(), 60));
-            var1.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 70, 0));
-            var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
-         } else if (this.definition.legacyId().equals("reina_abeja")) {
-            var1.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 50, 0));
-            var1.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 50, 0));
-         } else if (this.definition.legacyId().equals("zorro_salvaje") && this.attacks % 2 == 0) {
-            var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
-         }
-
-         if(PassiveCombat.assist(boss.getType(),boss instanceof org.bukkit.entity.Enemy)&&boss instanceof Mob passive&&boss.getLocation().distanceSquared(var1.getLocation())>9)passive.getPathfinder().moveTo(var1,1.45);
-         Vector var2 = var1.getLocation().toVector().subtract(this.boss.getLocation().toVector());
-         double var3 = var2.length();
-         if ((var3>2.5 || this.definition.mini() || PassiveCombat.assist(boss.getType(),boss instanceof org.bukkit.entity.Enemy)) && var3>0.25) {
-            Vector var5 = this.boss.getVelocity();
-            double var6 = this.definition.legacyId().equals("zorro_salvaje")
-               ? 0.72
-               : (this.definition.legacyId().equals("jabali_infernal") ? 0.55 : (this.definition.mini() ? 0.48 : 0.32 + this.definition.tier().ordinal() * 0.1));
-            Vector horizontal=var2.clone().setY(0);if(horizontal.lengthSquared()<0.01)return;
-            Vector var8 = horizontal.normalize().multiply(var6);
-            double var9 = var5.getY();
-            if (var1.getLocation().getY() > this.boss.getLocation().getY() + 2.0) {
-               var9 = Math.max(var9, 0.24);
-            }
-
-            this.boss.setVelocity(new Vector(var5.getX() * 0.35 + var8.getX(), var9, var5.getZ() * 0.35 + var8.getZ()));
-         }
-      }
+      private void pursue(Player target){tactics.tick(target,phase);}
 
       private void attackNearby(Player var1) {
          long var2 = System.currentTimeMillis();
@@ -1127,7 +1087,7 @@ public final class BossManager implements Listener {
       }
 
       private void executeSpecial(Player var1, int var2) {
-         CombatVisuals.special(boss,definition.tier());
+         CombatVisuals.special(boss,definition);
          switch (var2) {
             case 0:
                this.shockwave(var1);
@@ -1186,17 +1146,9 @@ public final class BossManager implements Listener {
                this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
                   if (this.boss.isValid() && !this.boss.isDead()) {
             if (this.boss.isInvulnerable()) return;
-            double leash = Math.max(16, Math.min(128, plugin.getConfig().getDouble("combat.leash-radius", 48)));
-            if (this.boss.getLocation().distanceSquared(anchor) > leash * leash) {
-               this.boss.teleport(anchor);
-               this.boss.setHealth(this.boss.getAttribute(Attribute.MAX_HEALTH).getValue());
-               phase = 1;
-               ((CazaJefesPlugin)plugin).guard.clearCredit(boss);
-               return;
-            }
                      Vector var2x = var1.getLocation().toVector().subtract(this.boss.getLocation().toVector()).setY(0);
                      if (var2x.lengthSquared() > 0.01) {
-                        this.boss.setVelocity(var2x.normalize().multiply(1.25).setY(0.24));
+                        this.boss.setVelocity(var2x.normalize().multiply(0.60).setY(0.20));
                      }
 
                      if (var1.getLocation().distanceSquared(this.boss.getLocation()) < 20.25) {
@@ -1365,7 +1317,7 @@ public final class BossManager implements Listener {
                      var11.getPersistentDataContainer().set(new NamespacedKey(plugin, "minion_parent"), PersistentDataType.STRING,
                         boss.getPersistentDataContainer().get(new NamespacedKey(plugin, "encounter_id"), PersistentDataType.STRING));
                      this.strengthenMinion(var11, "generic");
-                     CombatVisuals.summon(var10,this.definition.tier());
+                     CombatVisuals.summon(var10,this.definition);
                      if (var11 instanceof Mob var12) {
                         var12.setTarget(var1);
                         var12.setPersistent(false);
@@ -1434,7 +1386,7 @@ public final class BossManager implements Listener {
                   }
 
                   if(var9 instanceof LivingEntity minion){minion.removePotionEffect(PotionEffectType.STRENGTH);minion.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,1200,0,true,false));}
-                  CombatVisuals.summon(var8,this.definition.tier());
+                  CombatVisuals.summon(var8,this.definition);
                   if (!var4.equals("fox_sheep")) {
                      this.strengthenMinion(var9, var4);
                   }

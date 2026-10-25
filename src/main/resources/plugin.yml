@@ -1,5 +1,5 @@
 name: CazaJefes
-version: '1.4.1'
+version: '1.5.0'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
 description: Jefes grandes con ataques especiales, botín y recetas.

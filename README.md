@@ -1,4 +1,4 @@
-# CazaJefes 1.4.1
+# CazaJefes 1.5.0
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -6,10 +6,10 @@ Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
 | Categoría | Colección | Protección | Filo |
 |---|---|---|---|
-| Épica | Velo Astral | IV | IV |
-| Legendaria | Juramento Solar | V | V |
-| Mítica | Corona del Vacío | VI | VI |
-| Abismal | Eclipse Eterno | VII | VII |
+| Épica | Velo Astral | VII | IV |
+| Legendaria | Juramento Solar | VII | V |
+| Mítica | Corona del Vacío | VIII | VI |
+| Abismal | Eclipse Eterno | VIII | VII |
 
 24 piezas: cuatro armaduras, espada y hacha por categoría, con brillo y descripción gris. Épico/Legendario: diamante. Mítico/Abismal: netherita.
 
@@ -39,8 +39,25 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 ## Actualizar y compilar
 
-Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.1.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
+Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.4.1.jar`. 48 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.5.0.jar`. 58 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
+
+## Cambios de combate en 1.5.0
+
+Se elimina el regreso al origen; `combat.leash-radius` deja de utilizarse aunque figure en un archivo antiguo. No se rellena la vida ni se reinicia la etapa por desplazamiento. Los bosses permanecen en el agua: respiración acuática, gracia de delfín, eficiencia de movimiento acuático y persecución en tres dimensiones. No se fuerza la salida a superficie. Se cancelan teletransportes nativos que los expulsarían del agua; el Shulker combate allí con proyectiles sin saltar a tierra.
+
+Shulkers: ocho proyectiles dirigidos por ráfaga, Veneno II durante cinco segundos si el impacto causa daño y se permite el combate. Ráfaga cada seis segundos, 4,5 en etapa final; máximo una ráfaga activa por boss y proyectiles con ocho segundos de duración. Sustituye disparos nativos adicionales. Al recibir golpes no letales, busca teletransporte cercano con espacio, suelo sólido y límites del mundo; pausa mínima 1,8 segundos. Bajo el agua no usa esos saltos.
+
+Movimiento táctico común: anticipación corta, persecución con navegación, flanqueos alternados, retirada de atacantes a distancia, embestidas por fase y manejo de obstáculos. Los minijefes usan la misma lógica y golpe cercano; el zorro no abandona al jugador para cazar ovejas y tiene menor velocidad y embestida. No equivale a un sistema de aprendizaje automático ni reemplaza todos los comportamientos internos de Minecraft.
+
+Avisos de etapa 1/3, 2/3 y 3/3 solo a jugadores que hayan causado daño permitido al boss. Se registran los golpes directos y proyectiles de jugador; siguen recibiendo avisos mientras estén conectados aunque dejen de golpear, se alejen o cambien de mundo. Mirar o acercarse no registra participación. Los UUID se conservan con el boss, incluso al recargar chunks o reiniciar. Al reconectarse se informa la etapa actual, sin repetir historial. Se conserva la etapa máxima alcanzada en los datos del boss. Cada boss tiene color estable y motivo de partículas en aura, ataques e invocaciones. La brújula en cualquiera de las manos muestra rastro y flecha hacia el objetivo más cercano del mismo mundo, sin el antiguo límite de 120 bloques; es una guía de dirección, no una ruta que evite obstáculos.
+
+Los núcleos muestran únicamente su categoría; se conservan identificadores internos por compatibilidad. Protección VII/VII/VIII/VIII para Épico/Legendario/Mítico/Abismal. Filo sigue IV/V/VI/VII. La migración de inventario aplica el nuevo nombre y Protección a las piezas existentes.
+
+API utilizada: [proyectiles Shulker de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/entity/ShulkerBullet.html). La compilación y pruebas de reglas no sustituyen una prueba dentro del servidor: comprueba especialmente agua, teletransportes, colisiones de mobs escalados, protección de terrenos y varios jugadores.
+
+
+El anuncio único de derrota usa dorado y aqua con separadores, botín real y tabla de daño descendente de todos los jugadores registrados, incluido quien esté desconectado al morir el boss. Cuenta daño final permitido directo o de proyectiles de jugador, limitado a la vida restante para no sumar exceso del golpe final; daños ambientales y efectos sin autor atribuible no se asignan. Los totales y nombres se guardan en el boss. La tipografía sigue siendo la normal de Minecraft; no requiere paquete de recursos.

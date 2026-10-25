@@ -1165,7 +1165,7 @@ public final class RelicItems implements Listener {
             this.enchant(var3, Enchantment.UNBREAKING, 3);
       }
 
-      if(var3.getType().name().endsWith("SWORD")||var3.getType().name().endsWith("AXE"))var3.addUnsafeEnchantment(Enchantment.SHARPNESS,EquipmentSets.protection(RecipeAlchemy.profile(var1).rank()));
+      if(var3.getType().name().endsWith("SWORD")||var3.getType().name().endsWith("AXE"))var3.addUnsafeEnchantment(Enchantment.SHARPNESS,EquipmentSets.sharpness(RecipeAlchemy.profile(var1).rank()));
       String var4 = this.rareTier(var1);
       if (var4 != null) {
          ItemMeta var11 = var3.getItemMeta();
@@ -1290,8 +1290,8 @@ public final class RelicItems implements Listener {
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
       Component summary=Component.empty();
       for(int i=0;i<var4.size();i++){
-         ItemStack stack=var4.get(i);if(i>0)summary=summary.append(Component.text(" • ",NamedTextColor.DARK_GRAY));
-         Component name=stack.getItemMeta().displayName();summary=summary.append(Component.text(stack.getAmount()+"× ",NamedTextColor.GRAY)).append(name==null?Component.text(stack.getType().name()):name);
+         ItemStack stack=var4.get(i);if(i>0)summary=summary.append(Component.text(" ✧ ",NamedTextColor.GOLD));
+         Component name=stack.getItemMeta().displayName();summary=summary.append(Component.text(stack.getAmount()+"× ",NamedTextColor.GOLD)).append(Component.text(name==null?stack.getType().name():PlainTextComponentSerializer.plainText().serialize(name),NamedTextColor.AQUA));
       }
 
       Particle var9 = switch (var2.tier()) {
@@ -1388,11 +1388,12 @@ public final class RelicItems implements Listener {
       }
    }
 
+   static String coreName(BossCatalog.Tier tier){return "✦ Núcleo de la Grieta · "+tier.display;}
    private ItemStack component(BossCatalog.Definition var1) {
       return this.named(
          Material.ECHO_SHARD,
          "componente_" + var1.legacyId(),
-         "Núcleo " + var1.tier().display + " · " + var1.name(),
+         coreName(var1.tier()),
          var1.tier().color,
          1,
          "Núcleo de energía condensada.",

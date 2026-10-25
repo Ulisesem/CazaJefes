@@ -20,7 +20,7 @@ active-eggs: []
 combat:
   # Creative damage/loot tests require cazajefes.admin; survival targeting is unchanged.
   allow-creative-admin-tests: true
-  leash-radius: 48
+  # No se aplica regreso al origen: bosses libres también en el agua.
   special-cooldown-seconds: 15
   loot-credit-seconds: 120
   final-inventory-chance: 0.02
