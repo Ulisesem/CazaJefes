@@ -4,8 +4,11 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 final class BossTactics {
- private final LivingEntity boss;private final BossCatalog.Definition definition;private final boolean ranged,fox;private int ticks;private long nextPath;
+ private final LivingEntity boss;private final BossCatalog.Definition definition;private final boolean ranged,fox;private int ticks;private long nextPath;private java.util.UUID focus;private long nextFocus;
  BossTactics(LivingEntity boss,BossCatalog.Definition definition){this.boss=boss;this.definition=definition;fox=definition.legacyId().equals("zorro_salvaje");ranged=switch(boss.getType()){case SKELETON,STRAY,BOGGED,PILLAGER,WITCH,EVOKER,BLAZE,GHAST->true;default->false;};}
+ Player pickTarget(){long now=System.currentTimeMillis();Player prior=focus==null?null:org.bukkit.Bukkit.getPlayer(focus);if(now<nextFocus&&prior!=null&&CombatGuard.eligible(prior)&&prior.getWorld().equals(boss.getWorld())&&prior.getLocation().distanceSquared(boss.getLocation())<=576)return prior;
+  var participants=BossParticipation.participants(boss);var candidates=boss.getWorld().getPlayers().stream().filter(p->CombatGuard.eligible(p)&&p.getLocation().distanceSquared(boss.getLocation())<=576).toList();boolean fighting=candidates.stream().anyMatch(p->participants.contains(p.getUniqueId()));Player chosen=candidates.stream().filter(p->!fighting||participants.contains(p.getUniqueId())).min(java.util.Comparator.comparingDouble(p->p.getLocation().distanceSquared(boss.getLocation())*(boss.hasLineOfSight(p)?.7:1))).orElse(null);focus=chosen==null?null:chosen.getUniqueId();nextFocus=now+2000;return chosen;
+ }
  void tick(Player target,int phase){
   if(boss instanceof Shulker)return;
   if(AquaticCombat.swimming(boss)){if(boss instanceof Mob mob)mob.setTarget(target);Vector destination=target.getLocation().add(0,.3,0).toVector().subtract(boss.getLocation().toVector());if(boss.hasLineOfSight(target))boss.setVelocity(AquaticCombat.motion(destination,fox));return;}

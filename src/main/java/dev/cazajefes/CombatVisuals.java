@@ -12,7 +12,7 @@ final class CombatVisuals {
  static Particle motif(BossCatalog.Definition boss){return switch(Math.floorMod(boss.id().hashCode(),8)){case 0->Particle.SOUL;case 1->Particle.ENCHANT;case 2->Particle.WITCH;case 3->Particle.REVERSE_PORTAL;case 4->Particle.END_ROD;case 5->Particle.FLAME;case 6->Particle.SPORE_BLOSSOM_AIR;default->Particle.CRIT;};}
  static void aura(LivingEntity entity,BossCatalog.Definition boss,double angle){
   if(entity.getWorld().getPlayers().stream().noneMatch(p->p.getLocation().distanceSquared(entity.getLocation())<2304))return;
-  double radius=Math.min(2.5,Math.max(.65,entity.getWidth()*.6));for(int i=0;i<3;i++){double a=angle+i*Math.PI*2/3;entity.getWorld().spawnParticle(Particle.DUST,entity.getLocation().add(Math.cos(a)*radius,.3+Math.abs(Math.sin(a*1.5)),Math.sin(a)*radius),1,0,0,0,0,new Particle.DustOptions(signature(boss),1.15f));}
+  double radius=Math.min(2.5,Math.max(.65,entity.getWidth()*.6));for(int i=0;i<6;i++){double a=angle+i*Math.PI/3;entity.getWorld().spawnParticle(Particle.DUST,entity.getLocation().add(Math.cos(a)*radius,.3+Math.abs(Math.sin(a*1.5)),Math.sin(a)*radius),1,0,0,0,0,new Particle.DustOptions(signature(boss),1.15f));}
   entity.getWorld().spawnParticle(motif(boss),entity.getLocation().add(0,Math.min(2,entity.getHeight()*.6),0),2,.25,.3,.25,.005);
  }
  static void special(LivingEntity entity,BossCatalog.Definition boss){signatureRing(entity.getLocation(),boss,1.6,24);entity.getWorld().spawnParticle(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}

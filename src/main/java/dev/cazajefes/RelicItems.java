@@ -1290,8 +1290,8 @@ public final class RelicItems implements Listener {
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
       Component summary=Component.empty();
       for(int i=0;i<var4.size();i++){
-         ItemStack stack=var4.get(i);if(i>0)summary=summary.append(Component.text(" ✧ ",NamedTextColor.GOLD));
-         Component name=stack.getItemMeta().displayName();summary=summary.append(Component.text(stack.getAmount()+"× ",NamedTextColor.GOLD)).append(Component.text(name==null?stack.getType().name():PlainTextComponentSerializer.plainText().serialize(name),NamedTextColor.AQUA));
+         ItemStack stack=var4.get(i);if(i>0)summary=summary.append(Component.newline());
+         Component name=stack.getItemMeta().displayName();summary=summary.append(Component.text("  ▸ "+stack.getAmount()+"× ",NamedTextColor.GOLD).decorate(TextDecoration.BOLD)).append(Component.text(name==null?stack.getType().name():PlainTextComponentSerializer.plainText().serialize(name),NamedTextColor.AQUA).decorate(TextDecoration.BOLD));
       }
 
       Particle var9 = switch (var2.tier()) {

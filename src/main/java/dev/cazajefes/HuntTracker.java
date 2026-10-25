@@ -27,7 +27,7 @@ public final class HuntTracker implements Listener {
    private final RelicItems items;
    private final Map<UUID, HuntTracker.Session> sessions = new HashMap<>();
    private final BukkitTask task;
-   private int trailTick;
+   private final Map<UUID,Long> nextArrow=new HashMap<>();
 
    public HuntTracker(JavaPlugin var1, BossManager var2, RelicItems var3) {
       this.plugin = var1;
@@ -37,7 +37,6 @@ public final class HuntTracker implements Listener {
    }
 
    private void update() {
-      this.trailTick++;
       List<BossManager.TrackedEncounter> var1 = this.bosses.trackedEncounters();
 
       for (Player var3 : Bukkit.getOnlinePlayers()) {
@@ -66,12 +65,12 @@ public final class HuntTracker implements Listener {
    }
 
    private void drawTrail(Player player,Location target){
-      Location start=player.getLocation().add(0,.65,0);org.bukkit.util.Vector delta=target.toVector().subtract(start.toVector());double distance=delta.length();if(distance<.5)return;
-      org.bukkit.util.Vector direction=delta.normalize();double length=Math.min(18,distance);double pulse=(trailTick%10)/10.0;
-      for(double step=.8+pulse;step<length;step+=1.1){Location point=start.clone().add(direction.clone().multiply(step));point.add(0,Math.sin(step*.6+trailTick*.2)*.15,0);player.spawnParticle(Particle.DUST,point,1,0,.02,0,0,new org.bukkit.Particle.DustOptions(org.bukkit.Color.AQUA,1.2f));}
-      Location arrow=start.clone().add(direction.clone().multiply(Math.min(4,distance)));org.bukkit.util.Vector side=new org.bukkit.util.Vector(-direction.getZ(),0,direction.getX());for(int sign:new int[]{-1,1})for(double k=.2;k<=.8;k+=.2)player.spawnParticle(Particle.END_ROD,arrow.clone().subtract(direction.clone().multiply(k)).add(side.clone().multiply(sign*k*.6)),1,0,0,0,0);
-      if(distance<48)player.spawnParticle(Particle.ENCHANT,target,3,.3,.4,.3,0);
+      long now=System.currentTimeMillis();if(now<nextArrow.getOrDefault(player.getUniqueId(),0L))return;
+      nextArrow.put(player.getUniqueId(),now+10000);
+      Location start=player.getLocation().add(0,.35,0);org.bukkit.util.Vector direction=target.toVector().subtract(start.toVector());if(direction.lengthSquared()<.25)return;direction.normalize();org.bukkit.util.Vector side=new org.bukkit.util.Vector(-direction.getZ(),0,direction.getX());if(side.lengthSquared()<.01)side=new org.bukkit.util.Vector(1,0,0);else side.normalize();
+      for(double offset:new double[]{2.5,5,7.5}){Location tip=start.clone().add(direction.clone().multiply(Math.min(offset,Math.sqrt(player.getLocation().distanceSquared(target)))));for(double k=0;k<=1.5;k+=.12){arrowPoint(player,tip.clone().subtract(direction.clone().multiply(k)));if(k<=.9)for(int sign:new int[]{-1,1})arrowPoint(player,tip.clone().subtract(direction.clone().multiply(k)).add(side.clone().multiply(sign*k*.7)));}}
    }
+   private void arrowPoint(Player player,Location point){player.spawnParticle(Particle.DUST,point,1,0,0,0,0,new Particle.DustOptions(org.bukkit.Color.AQUA,1.5f));}
 
    private void showTarget(Player var1, BossManager.TrackedEncounter var2, Location var3) {
       HuntTracker.Session var4 = this.session(var1);
@@ -84,7 +83,7 @@ public final class HuntTracker implements Listener {
          "§8────────────"
       );
       this.setLines(var4, var5);
-      var1.sendActionBar(Component.text("➜ " + var2.name()+" · "+(int)var1.getLocation().distance(var3)+" m", NamedTextColor.AQUA));
+      if(!BossWarnings.active(var1))var1.sendActionBar(Component.text("➜ " + var2.name()+" · "+(int)var1.getLocation().distance(var3)+" m", NamedTextColor.AQUA));
    }
 
    private void showNoSignal(Player var1) {
@@ -133,7 +132,7 @@ public final class HuntTracker implements Listener {
 
    @EventHandler
    public void onQuit(PlayerQuitEvent var1) {
-      this.sessions.remove(var1.getPlayer().getUniqueId());
+      this.sessions.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());
    }
 
    @EventHandler
@@ -148,7 +147,7 @@ public final class HuntTracker implements Listener {
          this.restore(var2);
       }
 
-      this.sessions.clear();
+      this.sessions.clear();nextArrow.clear();
    }
 
    private record Session(Scoreboard previous, Scoreboard board, Objective objective) {

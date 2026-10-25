@@ -535,7 +535,7 @@ public final class BossManager implements Listener {
             case MYTHIC -> 12.0;
             case ABYSSAL -> 16.0;
          };
-         if(!LightningRetaliation.isActive())var1.setDamage(var18+(var15==null?6:BattleRules.strengthBonus(var15)));
+         if(!LightningRetaliation.isActive()&&!AbilityDamage.active())var1.setDamage(var18+(var15==null?6:BattleRules.strengthBonus(var15)));
       }
 
       if (var9 != null && var9.getPersistentDataContainer().has(this.bossKey, PersistentDataType.BYTE) && !(var1.getEntity() instanceof Player)) {
@@ -963,17 +963,7 @@ public final class BossManager implements Listener {
             if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,100,speed,true,false));}
             stages.update();
             if(++visualTick%2==0)CombatVisuals.aura(boss,definition,visualTick*0.15);
-            Player var2 = this.boss
-               .getWorld()
-               .getPlayers()
-               .stream()
-               .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(boss.getLocation()) <= 576)
-               .min(
-                  (var1x, var2x) -> Double.compare(
-                     var1x.getLocation().distanceSquared(this.boss.getLocation()), var2x.getLocation().distanceSquared(this.boss.getLocation())
-                  )
-               )
-               .orElse(null);
+            Player var2=tactics.pickTarget();
             if (var2 != null) {
                if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
                int nextPhase = BossStages.phase(boss);
@@ -984,7 +974,10 @@ public final class BossManager implements Listener {
                   summonMinions(var2);
 
                }
-               if(boss instanceof org.bukkit.entity.Shulker){((CazaJefesPlugin)plugin).shulkers.tick(boss,var2,phase);return;}
+               if(((CazaJefesPlugin)plugin).abilities.tick(boss,definition,var2,phase))return;
+               if(boss instanceof org.bukkit.entity.Shulker){
+                  long now=System.currentTimeMillis();if(now>=nextSpecialAt){((CazaJefesPlugin)plugin).abilities.special(boss,definition,var2,specialRotation++%3);nextSpecialAt=now+10000;return;}
+                  ((CazaJefesPlugin)plugin).shulkers.tick(boss,var2,phase);return;}
                long var3 = System.currentTimeMillis();
                   if (this.boss instanceof Mob var5) {
                      var5.setTarget(var2);
@@ -995,16 +988,16 @@ public final class BossManager implements Listener {
                      this.pursue(var2);
                      this.attackNearby(var2);
                      if (var3 >= this.nextSpecialAt) {
-                        this.miniSpecial(var2, this.specialRotation++ % 5);
-                        this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
+                        this.miniSpecial(var2, this.specialRotation++ % 8);
+                        this.nextSpecialAt = var3 + 10000L;
                      }
                   } else {
                      this.pursue(var2);
                      this.attackNearby(var2);
                      this.attacks++;
                      if (var3 >= this.nextSpecialAt) {
-                        this.miniSpecial(var2, this.specialRotation++ % 5);
-                        this.nextSpecialAt = var3 + Math.max(3000L, plugin.getConfig().getLong("combat.special-cooldown-seconds", 15) * 1000L / phase);
+                        this.miniSpecial(var2, this.specialRotation++ % 8);
+                        this.nextSpecialAt = var3 + 10000L;
                      }
 
                      if (this.attacks % 300 == 0) {
@@ -1075,12 +1068,14 @@ public final class BossManager implements Listener {
          }
       }
 
-      private void miniSpecial(Player target, int rotation) {
+      private void miniSpecial(Player target,int rotation){
+         if(rotation>=5){((CazaJefesPlugin)plugin).abilities.special(boss,definition,target,rotation-5);return;}
+         if(BossWarnings.active(target))return;
          target.sendActionBar(Component.text("¡" + definition.name() + " prepara su ataque! · Aléjate", NamedTextColor.RED));
          Location warning = target.getLocation().clone();
          boss.getWorld().spawnParticle(Particle.FLAME, warning, 24, 0.8, 0.1, 0.8, 0);
          plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (boss.isValid() && !boss.isDead() && !boss.isInvulnerable() && CombatGuard.eligible(target)
+            if (!((CazaJefesPlugin)plugin).abilities.busy(boss)&&boss.isValid() && !boss.isDead() && !boss.isInvulnerable() && CombatGuard.eligible(target)
                 && target.getWorld().equals(boss.getWorld()) && target.getLocation().distanceSquared(boss.getLocation()) <= 576
                 && target.getLocation().distanceSquared(warning) <= 9 && boss.hasLineOfSight(target)) executeSpecial(target, rotation);
          }, 20L);

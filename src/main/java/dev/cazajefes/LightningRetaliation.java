@@ -30,7 +30,7 @@ final class LightningRetaliation implements Listener {
   if(!BattleRules.retaliates(phase,true,charge,threshold,now,nextStrike.getOrDefault(player.getUniqueId(),0L)))return;
   charges.remove(key);nextStrike.put(player.getUniqueId(),now+Math.max(1,Math.min(60,plugin.getConfig().getLong("combat.phase3-lightning.cooldown-seconds",4)))*1000);
   double damage=BattleRules.lightningDamage(charge,plugin.getConfig().getDouble("combat.phase3-lightning.max-damage",30));
-  player.sendActionBar(Component.text("⚡ ¡Tu daño ha despertado la tormenta del boss!",NamedTextColor.RED));
+  if(!BossWarnings.active(player))player.sendActionBar(Component.text("⚡ ¡Tu daño ha despertado la tormenta del boss!",NamedTextColor.RED));
   plugin.getServer().getScheduler().runTask(plugin,()->{
    if(!plugin.getConfig().getBoolean("combat.phase3-lightning.enabled",true)||!boss.isValid()||boss.isDead()||boss.isInvulnerable()||!CombatGuard.eligible(player)||!player.getWorld().equals(boss.getWorld())
        ||player.getLocation().distanceSquared(boss.getLocation())>576||!boss.hasLineOfSight(player)||PhaseRules.phase(boss.getHealth()/Math.max(1,boss.getMaxHealth()))!=3)return;
