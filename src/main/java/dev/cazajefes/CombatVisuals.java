@@ -13,7 +13,7 @@ final class CombatVisuals {
  static void aura(LivingEntity entity,BossCatalog.Definition boss,double angle){
   var origin=entity.getLocation();var viewers=entity.getWorld().getPlayers().stream().filter(p->p.isOnline()&&p.canSee(entity)&&p.getLocation().distanceSquared(origin)<=4096).toList();if(viewers.isEmpty())return;
   var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();
-  var primary=new Particle.DustOptions(signature(boss),1.65f);var accent=new Particle.DustOptions(color(boss.tier()),1.45f);
+  var primary=new Particle.DustOptions(signature(boss),1.95f);var accent=new Particle.DustOptions(BossRebirth.used(entity)?Color.ORANGE:color(boss.tier()),1.75f);
   for(AuraShape.Point point:AuraShape.points(width,height,angle)){Location location=origin.clone().add(point.x(),point.y(),point.z());for(var player:viewers)player.spawnParticle(Particle.DUST,location,1,0,0,0,0,point.accent()?accent:primary,true);}
   Location crown=origin.clone().add(0,height+.45,0);for(var player:viewers){player.spawnParticle(Particle.END_ROD,crown,2,.3,.1,.3,.005,null,true);player.spawnParticle(motif(boss),origin.clone().add(0,height*.6,0),3,width*.55,height*.2,width*.55,.008,null,true);}
  }
