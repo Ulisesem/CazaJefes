@@ -13,6 +13,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossAbilities abilities;
    BossAuras auras;
    BossRebirth rebirth;
+   BossDeathVisuals deathVisuals;
    BossParticipation participation;
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -32,6 +33,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
       getServer().getPluginManager().registerEvents(new BossVampirism(),this);
+      this.deathVisuals=new BossDeathVisuals(this);getServer().getPluginManager().registerEvents(deathVisuals,this);
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
       this.auras=new BossAuras(this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
@@ -53,6 +55,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getCommand("bestiario").setExecutor(bestiary);
       this.getServer().getPluginManager().registerEvents(bestiary,this);
       this.getServer().getPluginManager().registerEvents(new CombatPhases(this),this);
+      getServer().getPluginManager().registerEvents(new BossDamageProgress(this),this);
       this.getServer().getPluginManager().registerEvents(new LightningRetaliation(this),this);
       this.getServer().getPluginManager().registerEvents(new WorldMobLoot(this,relicItems),this);
       this.getServer().getPluginManager().registerEvents(new CurrencyMigration(this,relicItems),this);
@@ -67,6 +70,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(deathVisuals!=null)deathVisuals.stop();
       if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if (shulkers!=null)shulkers.stop();

@@ -361,7 +361,7 @@ public final class BossManager implements Listener {
       if (var2.isValid() && !var2.isDead()) {
          double var5 = Math.max(1.0, var2.getAttribute(Attribute.MAX_HEALTH).getValue());
          var4.setProgress(Math.max(0.0, Math.min(1.0, var2.getHealth() / var5)));
-         var4.setTitle(var3.name() + "  " + (int)Math.ceil(var2.getHealth()) + " / " + (int)var5 + " HP");
+         var4.setTitle(var3.name()+"  "+String.format(java.util.Locale.ROOT,"%.1f / %.0f HP",var2.getHealth(),var5));
          HashSet<Player> var7 = new HashSet<>();
 
          for (Player var9 : var2.getWorld().getPlayers()) {
@@ -656,6 +656,7 @@ public final class BossManager implements Listener {
          RelicItems.LootResult result=((CazaJefesPlugin)plugin).guard.canDrop(var2)
             ?this.relicItems.dropBossLoot(var2.getLocation(),var7,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
          this.plugin.getServer().broadcast(DamageLedger.report(var2,var7,var8,result));
+         ((CazaJefesPlugin)plugin).deathVisuals.show(var2,var7);
          var2.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
          var2.getWorld().playSound(var2.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0F, 1.25F);
       }

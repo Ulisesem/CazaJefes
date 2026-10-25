@@ -27,7 +27,7 @@ final class CombatPhases implements Listener {
   if(!(source(event.getDamager()) instanceof LivingEntity attacker)||!isBoss(attacker)||!(event.getEntity() instanceof Player target)||!CombatGuard.eligible(target)||event.getFinalDamage()<=0)return;
   long now=System.currentTimeMillis();int phase=phase(attacker);UUID id=target.getUniqueId();
   if(phase>=2&&now>=effects.getOrDefault(id,0L)){
-   target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,phase==3?100:60,phase==3?1:0));
+   if(phase==2)target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,60,0));
    target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,phase==3?80:40,0));
    if(phase==3)target.addPotionEffect(new PotionEffect(warden(attacker)?PotionEffectType.DARKNESS:PotionEffectType.WITHER,warden(attacker)?80:60,0));
    if(phase==3){
