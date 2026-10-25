@@ -32,7 +32,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getServer().getPluginManager().registerEvents(market,this);
       this.getCommand("mercado").setExecutor(market);
       EquipmentCommand equipmentCommand=new EquipmentCommand(relicItems);
-      this.getCommand("cjequipo").setExecutor(equipmentCommand);this.getCommand("cjequipo").setTabCompleter(equipmentCommand);
+      this.getCommand("riequipo").setExecutor(equipmentCommand);this.getCommand("riequipo").setTabCompleter(equipmentCommand);
       this.getCommand("ri").setExecutor(var1);
       this.getCommand("ri").setTabCompleter(var1);
       this.getServer().getPluginManager().registerEvents(var1, this);

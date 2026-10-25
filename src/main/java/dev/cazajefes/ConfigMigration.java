@@ -17,7 +17,7 @@ final class ConfigMigration {
  }
  static YamlConfiguration recipes(CazaJefesPlugin plugin,File file,YamlConfiguration config){
   if(config.getInt("schema-version",0)>=3)return config;
-  try{Files.copy(file.toPath(),new File(plugin.getDataFolder(),"recipes-before-1.4.0.yml").toPath(),StandardCopyOption.REPLACE_EXISTING);}
+  try{Files.copy(file.toPath(),new File(plugin.getDataFolder(),"recipes-before-1.4.1.yml").toPath(),StandardCopyOption.REPLACE_EXISTING);}
   catch(IOException e){throw new IllegalStateException("No se pudo respaldar recipes.yml; se cancela la migración",e);}
   // Old weapon patterns use symbols removed by the crystal progression. Keep enabled flags; back up all old overrides.
   for(String key:new String[]{"hacha_sismica","espada_brezal","arco_ceniciento","lanza_magma","mandoble_vacio"}){
