@@ -6,6 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class CazaJefesPlugin extends JavaPlugin {
    BestiaryMenu bestiary;
    TrophyMenu trophies;
+   MarketMenu market;
    RecipeSettings recipeSettings;
    CombatGuard guard;
    private NamespacedKey itemKey;
@@ -27,6 +28,9 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.tracker = new HuntTracker(this, this.bossManager, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.tracker, this);
       CazaJefesCommand var1 = new CazaJefesCommand(this, this.bossManager, this.relicItems);
+      this.market=new MarketMenu(this,relicItems,var1);
+      this.getServer().getPluginManager().registerEvents(market,this);
+      this.getCommand("mercado").setExecutor(market);
       this.getCommand("ri").setExecutor(var1);
       this.getCommand("ri").setTabCompleter(var1);
       this.getServer().getPluginManager().registerEvents(var1, this);
@@ -35,6 +39,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getCommand("bestiario").setExecutor(bestiary);
       this.getServer().getPluginManager().registerEvents(bestiary,this);
       this.getServer().getPluginManager().registerEvents(new CombatPhases(this),this);
+      this.getServer().getPluginManager().registerEvents(new LightningRetaliation(this),this);
       this.getServer().getPluginManager().registerEvents(new WorldMobLoot(this,relicItems),this);
       this.getServer().getPluginManager().registerEvents(new CurrencyMigration(this,relicItems),this);
       this.trophies=new TrophyMenu(this,relicItems);

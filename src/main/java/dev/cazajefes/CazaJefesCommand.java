@@ -433,52 +433,9 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       }
    }
 
-   private void trade(Player var1, int var2) {
-      List var3 = this.createTradeOffers();
-      byte var4 = 28;
-      int var5 = Math.max(1, (var3.size() + var4 - 1) / var4);
-      int var6 = Math.max(0, Math.min(var5 - 1, var2));
-      CazaJefesCommand.MenuHolder var7 = new CazaJefesCommand.MenuHolder("trade", var6);
-      Inventory var8 = Bukkit.createInventory(var7, 54, Component.text("MERCADO DE LA GRIETA  •  " + (var6 + 1) + "/" + var5, NamedTextColor.LIGHT_PURPLE));
-      var7.inventory = var8;
-      ItemStack var9 = new ItemStack(Material.PURPLE_STAINED_GLASS_PANE);
-      ItemMeta var10 = var9.getItemMeta();
-      var10.displayName(Component.text(" "));
-      var9.setItemMeta(var10);
+   private void trade(Player player, int page) { ((CazaJefesPlugin)plugin).market.open(player); }
 
-      for (int var11 = 0; var11 < 54; var11++) {
-         if (var11 < 9 || var11 >= 45 || var11 % 9 == 0 || var11 % 9 == 8) {
-            var8.setItem(var11, var9);
-         }
-      }
-
-      var8.setItem(4, this.menuItem(Material.AMETHYST_SHARD, "§d§lMERCADO DE LA GRIETA", "§7Canjea fragmentos y tributos", "§8Cada oferta muestra su coste."));
-      var8.setItem(
-         49,
-         this.menuItem(Material.PAPER, "§b§lMONEDA DE CAZADOR", "§dFragmentos de la Grieta", "§bTributos de jefe", "§8Los objetos se entregan al instante.")
-      );
-      if (var6 > 0) {
-         var8.setItem(45, this.menuItem(Material.ARROW, "§d§lPÁGINA ANTERIOR", "§7Volver a la página " + var6));
-      }
-
-      if (var6 + 1 < var5) {
-         var8.setItem(53, this.menuItem(Material.ARROW, "§d§lMÁS RECOMPENSAS", "§7Ir a la página " + (var6 + 2)));
-      }
-
-      int[] var16 = new int[]{10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
-      int var12 = var6 * var4;
-
-      for (int var13 = var12; var13 < Math.min(var12 + var4, var3.size()); var13++) {
-         CazaJefesCommand.TradeOffer var14 = (CazaJefesCommand.TradeOffer)var3.get(var13);
-         int var15 = var16[var13 - var12];
-         var8.setItem(var15, this.tradeDisplay(var14));
-         var7.offersBySlot.put(var15, var14);
-      }
-
-      var1.openInventory(var8);
-   }
-
-   private List<CazaJefesCommand.TradeOffer> createTradeOffers() {
+   List<CazaJefesCommand.TradeOffer> createTradeOffers() {
       ArrayList var1 = new ArrayList();
       var1.add(new CazaJefesCommand.TradeOffer(this.items.essence(), 3, 1, "Esencia de la Grieta"));
       var1.add(new CazaJefesCommand.TradeOffer(this.items.primordialEssence(), 8, 3, "Esencia Primordial"));
@@ -1761,7 +1718,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       }
    }
 
-   private record TradeOffer(ItemStack reward, int fragments, int tributes, String itemPrefix, int itemAmount, String label) {
+   record TradeOffer(ItemStack reward, int fragments, int tributes, String itemPrefix, int itemAmount, String label) {
       private TradeOffer(ItemStack var1, int var2, int var3, String var4) {
          this(var1, var2, var3, "", 0, var4);
       }

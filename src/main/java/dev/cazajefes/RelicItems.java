@@ -1061,15 +1061,22 @@ public final class RelicItems implements Listener {
       return var1;
    }
 
+   public ItemStack colossusSigil() {
+      return named(Material.NETHER_STAR,"sello_coloso","✦ Sello del Renacer ✦",NamedTextColor.GOLD,1,
+         "Divisa especial del Santuario del Renacer.","Se canjea por Fragmentos de Tributo en el mercado.","Reúne sellos para conseguir el Amuleto del Fénix Astral.");
+   }
+   public String propertyId(ItemStack stack) {return stack!=null&&stack.hasItemMeta()?stack.getItemMeta().getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING):null;}
+
    public ItemStack amulet() {
       return this.named(
          Material.TOTEM_OF_UNDYING,
          "amuleto_coloso",
-         "Amuleto del Coloso",
+         "✦ Amuleto del Fénix Astral ✦",
          NamedTextColor.GOLD,
          1,
-         "Reliquia forjada en la Grieta.",
-         "Una receta clásica con nueva energía."
+         "RELIQUIA DE RENACER · Fénix Astral",
+         "Mantén el amuleto en una mano para usarlo como tótem.",
+         "Se obtiene en el Santuario del Mercado de la Grieta."
       );
    }
 
@@ -1411,6 +1418,7 @@ public final class RelicItems implements Listener {
          BossCatalog.Definition definition=BossCatalog.get(id.substring("componente_".length()));if(definition!=null)replacement=component(definition);
       }
       if(id.equals("tracking_compass"))replacement=compass();
+      if(id.equals("amuleto_coloso"))replacement=amulet();
       if(replacement!=null){replacement.setAmount(stack.getAmount());return replacement;}
       ItemStack glowing=stack.clone();ItemMeta meta=glowing.getItemMeta();meta.setEnchantmentGlintOverride(true);glowing.setItemMeta(meta);return glowing;
    }
@@ -1907,6 +1915,10 @@ public final class RelicItems implements Listener {
 
       var8.lore(var9);
       var8.setEnchantmentGlintOverride(true);
+      if(var2.equals("fragmento_grieta")){
+         var8.itemName(Component.text("Fragmento de Tributo",NamedTextColor.LIGHT_PURPLE));
+         var8.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+      }
       var8.getPersistentDataContainer().set(this.itemKey, PersistentDataType.STRING, var2);
       var7.setItemMeta(var8);
       return var7;

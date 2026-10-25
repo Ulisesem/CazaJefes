@@ -1,8 +1,19 @@
-# CazaJefes 1.2.0 · La Grieta
+# CazaJefes 1.3.0 · La Grieta
 
-Plugin de prueba para Paper 1.21.11 / Java 21. [Descargar JAR](dist/CazaJefes-1.2.0.jar?raw=true).
+Plugin de prueba para Paper 1.21.11 / Java 21. [Descargar JAR](dist/CazaJefes-1.3.0.jar?raw=true).
 
-## Novedades 1.2.0
+## Novedades 1.3.0
+
+- Fuerza V y Prisa VI mantenidas en todos los bosses activos. Se suma el bono de Fuerza al daño normalizado; no queda solo como un efecto visual. El controlador funciona cada 5–10 ticks y el ataque cercano manual de todos los bosses tiene espera de 500 ms, alcance y visión. No se eliminan los frames normales de inmunidad para cada ataque de cuerpo a cuerpo.
+- Represalia de rayos en fase 3 según el daño efectivo que cada jugador inflige al boss. Se carga con 40 puntos por defecto; espera global de cuatro segundos por jugador. Daño base 12 + 0,3 por punto acumulado, máximo 30 por defecto, antes de mitigaciones. Es un efecto de rayo acompañado de daño LIGHTNING_BOLT atribuido al boss. La represalia evita duplicar Fuerza/fases y reinicia la inmunidad del golpe para no ser absorbida por el ataque cercano; restaura esa inmunidad si la represalia no aplica daño. Los plugins de protección pueden cancelar los eventos normales.
+- El Fragmento de Tributo conserva su imagen de disco, pero tiene nombre de objeto propio y oculta el tooltip adicional del material nativo. Las monedas anteriores se actualizan al entrar/abrir inventarios.
+- Nuevo Sello del Renacer y Amuleto del Fénix Astral (tótem real de Minecraft). 64 fragmentos → un sello; cuatro sellos + ocho tributos → un amuleto. Los precios son configurables. Se retira el viejo canje directo del amuleto por 32 fragmentos. Sus IDs internos anteriores se conservan por compatibilidad; no son sus nombres visibles.
+- `/mercado`, alias `/grieta`, y `/ri trade` o `/ri canjear`: seis departamentos, bóveda de monedas, precio por oferta y confirmación antes de comprar. Incluye Santuario del Renacer, Materiales, Armería, Armaduras, Infusiones y Grimorios. Conserva las demás ofertas del catálogo anterior.
+- El canje comprueba saldo y espacio antes de actualizar el inventario, y revalida ofertas/precios tras recargas. Los nombres falsificados sin PDC no son moneda. Existe navegación directa entre mercado y forja.
+
+[Detalle de cambios y pruebas pendientes](docs/CAMBIOS-1.3.0.md).
+
+## Funciones conservadas de 1.2.0
 
 - El botón del huevo en la ficha del bestiario ya coloca un huevo real sobre bedrock. Requiere OP, cazajefes.admin o rareitemhunter.admin.egg. Haz clic derecho en ese huevo para despertar al boss. Se busca una superficie cercana segura; no se sustituyen cofres, bloques con inventario ni soportes parciales. El bloque original se guarda y se restaura al eclosionar o retirar el huevo si el pedestal sigue intacto.
 - Fragmentos de Tributo representados por DISC_FRAGMENT_5, con brillo. Los antiguos con PDC del plugin se convierten al abrir inventarios/entrar; los fragmentos de disco vanilla no son moneda del plugin.
@@ -48,7 +59,7 @@ La barra es visible en creativo. OP o `cazajefes.admin` permite probar daño/dro
 
 ## Instalar y migrar
 
-1. Copia la carpeta del plugin y el mundo. Detén el servidor y sustituye el JAR anterior por 1.2.0; no mantengas dos versiones.
+1. Copia la carpeta del plugin y el mundo. Detén el servidor y sustituye el JAR anterior por 1.3.0; no mantengas dos versiones.
 2. Inicia normalmente. Se respaldan config.yml y recipes.yml antiguos como `*-before-1.1.0.yml` antes de migrar.
 3. Los IDs nuevos corresponden al nombre visible sin acentos y con guiones bajos. Todos los IDs antiguos siguen como alias. Los atributos guardados por ID anterior se copian al ID nuevo conservando tus valores; los de una instalación antigua pueden ser menores que los valores nuevos.
 4. Los cinco patrones de armas v1 y sus ingredientes personalizados se retiran para adoptar K/C/B/F (cristal/núcleo/base/fragmento); permanecen en el respaldo para trasladarlos manualmente. Se conservan enabled y las demás recetas.
@@ -62,10 +73,10 @@ En config.yml: `loot.mob-fragment-chance: 0.01`, `loot.minion-fragment-chance: 0
 
 recipes.yml v2 permite enabled, shape e ingredientes de recetas shaped existentes; símbolos no redefinidos conservan su ingrediente exacto. rares.yml conserva costes y niveles; cooldownSeconds controla los hechizos activables, no todos los pasivos. `/ri reload` recarga archivos/recetas. Reinicia para cambiar intervalos de encuentros existentes.
 
-JDK 21 + Maven 3.9+: `mvn verify`; resultado `target/CazaJefes-1.2.0.jar`.
+JDK 21 + Maven 3.9+: `mvn verify`; resultado `target/CazaJefes-1.3.0.jar`.
 
-34 pruebas unitarias aprobadas, más ZIP/CRC y bytecode Java 21 comprobados. Cubren catálogo/alias, categorías completas, botín simulado, granjas, fases, probabilidad/cooldown, consumo, clics, compuertas y YAML. No se ejecutó Paper ni cliente Minecraft; falta validar interfaces, eventos, botín real, balance y plugins externos en juego.
+42 pruebas unitarias aprobadas, más ZIP/CRC y bytecode Java 21 comprobados. Cubren catálogo/alias, categorías completas, botín simulado, granjas, fases, probabilidad/cooldown, consumo, clics, compuertas y YAML. No se ejecutó Paper ni cliente Minecraft; falta validar interfaces, eventos, botín real, balance y plugins externos en juego.
 
-Detalles: [cambios](docs/CAMBIOS-1.1.0.md), [IDs completos](docs/BOSSES-IDS-1.1.0.csv) y [pruebas pendientes](docs/PRUEBAS-1.1.0.md). Los informes 1.0.x y 1.1.0 son históricos. No se asignó licencia sin indicación del titular.
+Detalles: [cambios](docs/CAMBIOS-1.1.0.md), [IDs completos](docs/BOSSES-IDS-1.1.0.csv) y [pruebas pendientes](docs/PRUEBAS-1.1.0.md). Los informes 1.0.x, 1.1.0 y 1.2.0 son históricos. No se asignó licencia sin indicación del titular.
 
 [Paper InventoryClickEvent](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/event/inventory/InventoryClickEvent.html) · [Paper Warden](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/entity/Warden.html).

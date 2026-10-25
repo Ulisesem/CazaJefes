@@ -31,6 +31,7 @@ final class RaresMenu implements CommandExecutor,Listener {
   if(category==null){int[] slots={10,12,14,16,29,31,33};int i=0;for(var c:Category.values())inv.setItem(slots[i++],PremiumStyle.tile(c.icon,c.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.AQUA,true,list.stream().filter(r->c.matches(r.getKey().getKey())).count()+" recetas disponibles","Clic para explorar"));
    inv.setItem(39,PremiumStyle.tile(Material.BOOK,"GUÍA DE MATERIALES",NamedTextColor.AQUA,true,"Tributos, fragmentos, cristales y brújula","Clic para consultar la progresión"));
    inv.setItem(41,PremiumStyle.tile(Material.HEART_OF_THE_SEA,"GALERÍA DE CORAZONES",NamedTextColor.GOLD,true,"Trofeos RARE de los bosses","Clic para explorar; no tienen receta"));
+   inv.setItem(48,PremiumStyle.tile(Material.EMERALD,"MERCADO DE LA GRIETA",NamedTextColor.GOLD,true,"Canjes, sellos y Amuleto del Fénix Astral"));
    inv.setItem(49,PremiumStyle.tile(Material.ANVIL,"INFUSIÓN DE EQUIPO",NamedTextColor.LIGHT_PURPLE,true,"En una mesa: equipo compatible + 1–3 esencias","La fusión conserva el equipo y respeta su nivel máximo"));
   }else if(detail==null){
    for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){int slot=PremiumStyle.GRID[i-page*28];inv.setItem(slot,list.get(i).getResult());menu.recipes.put(slot,list.get(i));}
@@ -49,7 +50,7 @@ final class RaresMenu implements CommandExecutor,Listener {
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)public void click(InventoryClickEvent event){
   if(!(event.getView().getTopInventory().getHolder() instanceof Menu menu))return;event.setCancelled(true);int slot=event.getRawSlot();if(!(event.getWhoClicked() instanceof Player player)||!MenuActions.isActivation(event.getClick(),slot,54))return;
   MenuActions.dispatch(plugin,player,menu,menu.gate,()->{
-   if(menu.category==null){if(slot==39){plugin.trophies.open(player,true,0);return;}if(slot==41){plugin.trophies.open(player,false,0);return;}int[] slots={10,12,14,16,29,31,33};for(int i=0;i<slots.length;i++)if(slot==slots[i])open(player,Category.values()[i],0,null);}
+   if(menu.category==null){if(slot==48){plugin.market.open(player);return;}if(slot==39){plugin.trophies.open(player,true,0);return;}if(slot==41){plugin.trophies.open(player,false,0);return;}int[] slots={10,12,14,16,29,31,33};for(int i=0;i<slots.length;i++)if(slot==slots[i])open(player,Category.values()[i],0,null);}
    else if(menu.detail!=null){if(slot==49)open(player,menu.category,menu.page,null);else if(slot==40)craft(player,menu.detail);}
    else if(slot==49)open(player,null,0,null);else if(slot==45)open(player,menu.category,menu.page-1,null);else if(slot==53)open(player,menu.category,menu.page+1,null);else if(menu.recipes.containsKey(slot))open(player,menu.category,menu.page,menu.recipes.get(slot));
   });

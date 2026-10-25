@@ -330,7 +330,8 @@ public final class BossManager implements Listener {
             var6.setAware(true);
          }
 
-         long var9 = Math.max(5L, Math.min(100L, var4));
+         long var9 = Math.max(5L, Math.min(10L, var4));
+         BossBuffs.apply(var2);
          this.attacks
             .put(
                var1,
@@ -533,7 +534,7 @@ public final class BossManager implements Listener {
             case MYTHIC -> 12.0;
             case ABYSSAL -> 16.0;
          };
-         var1.setDamage(var18);
+         if(!LightningRetaliation.isActive())var1.setDamage(var18+BattleRules.STRENGTH_BONUS);
       }
 
       if (var9 != null && var9.getPersistentDataContainer().has(this.bossKey, PersistentDataType.BYTE) && !(var1.getEntity() instanceof Player)) {
@@ -959,6 +960,7 @@ public final class BossManager implements Listener {
                ((CazaJefesPlugin)plugin).guard.clearCredit(boss);
                return;
             }
+            BossBuffs.apply(boss);
             PotionEffect var1 = this.boss.getPotionEffect(PotionEffectType.SPEED);
             if (var1 == null || var1.getAmplifier() < 4 || var1.getDuration() < 40) {
                this.boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 4, true, false));
@@ -981,7 +983,7 @@ public final class BossManager implements Listener {
                int nextPhase = ratio <= 0.30 ? 3 : ratio <= 0.65 ? 2 : 1;
                if (nextPhase > phase) {
                   phase = nextPhase;
-                  boss.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 200, phase - 2));
+                  BossBuffs.apply(boss);
                   summonMinions(var2);
                   var2.sendMessage(Component.text(definition.name() + " · Fase " + phase + (phase == 3 ? " · Furia del Eclipse" : " · Ruptura de la Grieta"), definition.tier().color));
                }
@@ -1006,7 +1008,7 @@ public final class BossManager implements Listener {
                      }
                   } else {
                      this.pursue(var2);
-                     if(PassiveCombat.assist(boss.getType(),boss instanceof org.bukkit.entity.Enemy))this.attackNearby(var2);
+                     this.attackNearby(var2);
                      this.attacks++;
                      if (var3 >= this.nextSpecialAt) {
                         this.miniSpecial(var2, this.specialRotation++ % 5);
@@ -1069,7 +1071,7 @@ public final class BossManager implements Listener {
             };
             var1.damage(var4, this.boss);
             var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
-            this.meleeCooldowns.put(var1.getUniqueId(), var2 + 1000L);
+            this.meleeCooldowns.put(var1.getUniqueId(), var2 + BattleRules.MELEE_COOLDOWN_MS);
             var1.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, var1.getLocation().add(0.0, 1.0, 0.0), 6, 0.3, 0.35, 0.3, 0.04);
          }
       }
