@@ -9,7 +9,7 @@ final class EquipmentCommand implements CommandExecutor,TabCompleter {
  static BossCatalog.Tier parse(String name){return switch(name.toLowerCase(Locale.ROOT)){case "epico"->BossCatalog.Tier.EPIC;case "legendario"->BossCatalog.Tier.LEGENDARY;case "mitico"->BossCatalog.Tier.MYTHIC;case "abismal"->BossCatalog.Tier.ABYSSAL;default->null;};}
  public boolean onCommand(CommandSender sender,Command command,String label,String[] args){
   if(!sender.hasPermission("cazajefes.admin")){sender.sendMessage("Necesitas permiso cazajefes.admin.");return true;}
-  if(args.length<1||args.length>3||parse(args[0])==null){sender.sendMessage("/cjequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]");return true;}
+  if(args.length<1||args.length>3||parse(args[0])==null){sender.sendMessage("/riequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]");return true;}
   String part=args.length>1?args[1].toLowerCase(Locale.ROOT):"todo";if(!List.of("armadura","espada","hacha","todo").contains(part)){sender.sendMessage("Pieza: armadura, espada, hacha o todo.");return true;}
   Player player=args.length==3?Bukkit.getPlayerExact(args[2]):sender instanceof Player p?p:null;if(player==null){sender.sendMessage("Indica un jugador conectado.");return true;}
   var rank=parse(args[0]);List<ItemStack> gifts=new ArrayList<>();if(part.equals("todo")||part.equals("armadura"))for(int i=0;i<4;i++)gifts.add(items.armorSet(rank,i));if(part.equals("todo")||part.equals("espada"))gifts.add(items.weaponSet(rank,0));if(part.equals("todo")||part.equals("hacha"))gifts.add(items.weaponSet(rank,1));

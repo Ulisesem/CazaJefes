@@ -1,4 +1,4 @@
-# CazaJefes 1.4.0
+# CazaJefes 1.4.1
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -13,9 +13,9 @@ Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
 24 piezas: cuatro armaduras, espada y hacha por categoría, con brillo y descripción gris. Épico/Legendario: diamante. Mítico/Abismal: netherita.
 
-`/cjequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]`
+`/riequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]`
 
-Ejemplo: `/cjequipo abismal todo`. Sin pieza: todo. Desde consola indica pieza y jugador. Permiso `cazajefes.admin`, operadores por defecto. Entrega completa o nada si falta espacio.
+Ejemplo: `/riequipo abismal todo`. Sin pieza: todo. Desde consola indica pieza y jugador. Permiso `cazajefes.admin`, operadores por defecto. Entrega completa o nada si falta espacio.
 
 ## Bosses y drops
 
@@ -39,8 +39,8 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 ## Actualizar y compilar
 
-Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
+Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.1.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.4.0.jar`. 48 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.4.1.jar`. 48 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
