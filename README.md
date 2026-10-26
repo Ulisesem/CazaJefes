@@ -1,4 +1,4 @@
-# CazaJefes 1.7.1
+# CazaJefes 1.7.2
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.1.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.2.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -120,3 +120,14 @@ El vampirismo conserva su recarga y extracción, con un presupuesto adicional: p
 La animación de elevación vuelve como una representación temporal del mob después de su muerte real: sube hasta cuatro bloques en 32 ticks, baja en 16 y desaparece con partículas. Copia tamaño y equipo, sin IA, daño, XP ni botín. Su invulnerabilidad solo afecta a la representación, que no tiene los identificadores de boss. El boss real ya ha muerto y entregado el botín antes de empezar; un fallo visual no lo deja bloqueado en 1 HP. Las tareas se limpian al terminar o desactivar el plugin.
 
 Validación: 78 pruebas y compilación. No se ejecutó Paper: confirma la pérdida de vida y la elevación en tu servidor. Las cancelaciones de daño por otros plugins se siguen respetando. API: [Paper RegionAccessor](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/RegionAccessor.html).
+
+
+## Cambios actuales de 1.7.2
+
+Se elimina por completo el vampirismo de bosses: no hay extracción ni curación al golpear jugadores. Se mantiene el renacimiento único del tótem al 65% de vida y daño doble. Las propiedades vampíricas de objetos de jugadores no cambian.
+
+El equipo de NPC zombis tiene Protección X en las cuatro armaduras y Filo X en su espada o hacha. Irrompibilidad III y elección aleatoria persistente se mantienen. Los conjuntos para jugadores no cambian.
+
+Al consumir el tótem, el boss deja exactamente un Sello del Renacido en el suelo y lo anuncia junto a su renacimiento. La marca persistente de tótem consumido impide repetir la entrega al recargar el chunk. Se conserva el identificador interno de los sellos anteriores: siguen sirviendo y actualizan su nombre al migrar el inventario. El mercado conserva la opción de comprarlos con fragmentos. En /mercado → Santuario del Renacer se canjean, por defecto, cuatro sellos y ocho tributos por el Amuleto del Fénix Astral (tótem). Los precios configurados se respetan.
+
+Validación: 75 pruebas automáticas, compilación y estructura del JAR verificadas. Las pruebas específicas del vampirismo de bosses se retiran junto a esa mecánica. No se ejecutó Paper ni un cliente Minecraft en esta sesión.

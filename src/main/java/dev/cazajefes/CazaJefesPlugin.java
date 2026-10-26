@@ -32,7 +32,6 @@ public final class CazaJefesPlugin extends JavaPlugin {
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
-      getServer().getPluginManager().registerEvents(new BossVampirism(),this);
       this.deathVisuals=new BossDeathVisuals(this);getServer().getPluginManager().registerEvents(deathVisuals,this);
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
       this.auras=new BossAuras(this);
@@ -66,6 +65,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getServer().getPluginManager().registerEvents(raresMenu, this);
       this.getLogger().info("CazaJefes está listo.");
    }
+
+   RelicItems items(){return relicItems;}
 
    BossManager bosses() { return bossManager; }
 
