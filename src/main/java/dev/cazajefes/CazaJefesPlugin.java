@@ -35,7 +35,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
       this.deathVisuals=new BossDeathVisuals(this);getServer().getPluginManager().registerEvents(deathVisuals,this);
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
-      this.auras=new BossAuras(this);
+      this.auras=new BossAuras(this);getServer().getPluginManager().registerEvents(auras,this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);
       this.getServer().getPluginManager().registerEvents(this.relicItems, this);

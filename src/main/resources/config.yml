@@ -39,3 +39,14 @@ market:
   sigil-fragments: 64
   amulet-sigils: 4
   amulet-tributes: 8
+
+# Auras ambientales; las advertencias de combate siguen independientes.
+particles:
+  auras:
+    enabled: true
+    default-quality: media
+    interval-ticks: 10
+    radius: 32
+    max-bosses-per-player: 2
+    max-sends-per-player-second: 160
+    max-sends-per-frame: 1024

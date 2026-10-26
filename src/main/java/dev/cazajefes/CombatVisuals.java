@@ -10,13 +10,13 @@ final class CombatVisuals {
 
  static Color signature(BossCatalog.Definition boss){int hash=boss.id().hashCode();return Color.fromRGB(80+((hash>>>16)&127),80+((hash>>>8)&127),80+(hash&127));}
  static Particle motif(BossCatalog.Definition boss){return switch(Math.floorMod(boss.id().hashCode(),8)){case 0->Particle.SOUL;case 1->Particle.ENCHANT;case 2->Particle.WITCH;case 3->Particle.REVERSE_PORTAL;case 4->Particle.END_ROD;case 5->Particle.FLAME;case 6->Particle.SPORE_BLOSSOM_AIR;default->Particle.CRIT;};}
- static void aura(LivingEntity entity,BossCatalog.Definition boss,double angle){
-  var origin=entity.getLocation();var viewers=entity.getWorld().getPlayers().stream().filter(p->p.isOnline()&&p.canSee(entity)&&p.getLocation().distanceSquared(origin)<=4096).toList();if(viewers.isEmpty())return;
-  var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();
-  var primary=new Particle.DustOptions(signature(boss),1.95f);var accent=new Particle.DustOptions(BossRebirth.used(entity)?Color.ORANGE:color(boss.tier()),1.75f);
-  for(AuraShape.Point point:AuraShape.points(width,height,angle)){Location location=origin.clone().add(point.x(),point.y(),point.z());for(var player:viewers)player.spawnParticle(Particle.DUST,location,1,0,0,0,0,point.accent()?accent:primary,true);}
-  Location crown=origin.clone().add(0,height+.45,0);for(var player:viewers){player.spawnParticle(Particle.END_ROD,crown,2,.3,.1,.3,.005,null,true);player.spawnParticle(motif(boss),origin.clone().add(0,height*.6,0),3,width*.55,height*.2,width*.55,.008,null,true);}
+ record AuraDot(Location location,Particle.DustOptions data){}
+ record Ambient(java.util.List<AuraDot> dots,Location crown,Particle motif){}
+ static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,double angle,int points){
+  var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();var primary=new Particle.DustOptions(signature(boss),1.8f);var accent=new Particle.DustOptions(BossRebirth.used(entity)?Color.ORANGE:color(boss.tier()),1.6f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
+  for(var point:AuraShape.sampled(width,height,angle,points))dots.add(new AuraDot(origin.clone().add(point.x(),point.y(),point.z()),point.accent()?accent:primary));return new Ambient(dots,origin.clone().add(0,height+.3,0),motif(boss));
  }
+ static void ambient(org.bukkit.entity.Player player,Ambient frame){for(var dot:frame.dots())player.spawnParticle(Particle.DUST,dot.location(),1,0,0,0,0,dot.data(),false);player.spawnParticle(frame.motif(),frame.crown(),1,.2,.15,.2,.005,null,false);}
  static void special(LivingEntity entity,BossCatalog.Definition boss){signatureRing(entity.getLocation(),boss,1.6,24);entity.getWorld().spawnParticle(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}
  static void summon(Location point,BossCatalog.Definition boss){signatureRing(point,boss,.8,18);point.getWorld().spawnParticle(motif(boss),point.clone().add(0,.7,0),16,.35,.5,.35,.02);}
  static void signatureRing(Location point,BossCatalog.Definition boss,double radius,int count){for(int i=0;i<count;i++){double angle=i*Math.PI*2/count;point.getWorld().spawnParticle(Particle.DUST,point.clone().add(Math.cos(angle)*radius,.2,Math.sin(angle)*radius),1,0,0,0,0,new Particle.DustOptions(signature(boss),1.3f));}}
