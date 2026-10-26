@@ -1,4 +1,4 @@
-# CazaJefes 1.7.2
+# CazaJefes 1.7.3
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.2.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.3.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -131,3 +131,12 @@ El equipo de NPC zombis tiene Protección X en las cuatro armaduras y Filo X en 
 Al consumir el tótem, el boss deja exactamente un Sello del Renacido en el suelo y lo anuncia junto a su renacimiento. La marca persistente de tótem consumido impide repetir la entrega al recargar el chunk. Se conserva el identificador interno de los sellos anteriores: siguen sirviendo y actualizan su nombre al migrar el inventario. El mercado conserva la opción de comprarlos con fragmentos. En /mercado → Santuario del Renacer se canjean, por defecto, cuatro sellos y ocho tributos por el Amuleto del Fénix Astral (tótem). Los precios configurados se respetan.
 
 Validación: 75 pruebas automáticas, compilación y estructura del JAR verificadas. Las pruebas específicas del vampirismo de bosses se retiran junto a esa mecánica. No se ejecutó Paper ni un cliente Minecraft en esta sesión.
+
+
+## Corrección de partículas 1.7.3
+
+El registro de Paper 1.21.11 muestra 192 excepciones iguales: missing required data class java.lang.Float. DRAGON_BREATH requiere un Float que representa la potencia del aliento y los efectos abismales lo estaban omitiendo. Se envía ahora 1.0f en el aura del botín, onda de choque, ráfaga dirigida y onda de efectos; también se valida el resto de partículas seleccionadas dinámicamente. No se sustituye la partícula por otro efecto.
+
+La tarea de partículas del botín restaura gravedad y se cancela si un efecto inválido genera IllegalArgumentException, con un aviso único en lugar de repetir la excepción cada dos ticks. Los objetos ya entregados no se eliminan. La muerte registrada de Zyrakk es un mensaje normal del servidor; el fallo mostrado sucedía en las partículas posteriores.
+
+Validación: 79 pruebas automáticas, incluida comprobación del payload real enviado a la interfaz World, compilación y estructura del JAR. No se ejecutó un servidor Paper en esta sesión. Referencia oficial: [Particle de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/Particle.html).

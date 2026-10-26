@@ -1,10 +1,10 @@
 {
-  "version": "1.7.2",
-  "sha256": "b88baca9ff560a9ad42bcd31f11637802f2377e41738ced56f68891022f31bef",
-  "size": 306283,
+  "version": "1.7.3",
+  "sha256": "6df8c4f1fb7c5db7971410e2c6efb880f3ee5c8729d3b021a71ede2977689934",
+  "size": 307913,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 75,
+  "tests": 79,
   "server_executed": false,
   "categories": {
     "Legendarios": 11,
@@ -103,6 +103,7 @@
     "dev/cazajefes/MarketRules.class",
     "dev/cazajefes/MenuActionGate.class",
     "dev/cazajefes/MenuActions.class",
+    "dev/cazajefes/ParticleData.class",
     "dev/cazajefes/PassiveCombat.class",
     "dev/cazajefes/PhaseRules.class",
     "dev/cazajefes/PremiumStyle$1.class",
