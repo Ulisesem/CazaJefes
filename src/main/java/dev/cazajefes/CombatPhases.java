@@ -19,7 +19,7 @@ final class CombatPhases implements Listener {
  private int phase(LivingEntity e){return BossStages.phase(e);}
  private boolean warden(Entity e){return e.getType()==EntityType.WARDEN;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
-  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*(warden(living)?0.85:1));
+  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*(warden(living)?0.85:1));
   if(event instanceof EntityDamageByEntityEvent hit&&source(hit.getDamager()) instanceof LivingEntity attacker&&isBoss(attacker)
       &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(80,event.getDamage()*PhaseRules.outgoing(phase(attacker))*(warden(attacker)?1.35:1)));
  }

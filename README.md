@@ -1,3 +1,18 @@
+# CazaJefes 1.10.0 · Espiral amplia, botín unitario y protección por categoría
+
+- Radio inicial de la espiral aumentado de 1,4 a 2,2 bloques; conserva tres vueltas, ocho segundos de descenso suavizado y una animación por boss.
+- Cada unidad se separa de su stack antes de entrar en la cola: 10 fragmentos son 10 descensos, unos 82 segundos en total. Se preservan los datos, encantamientos y cantidades totales. El reporte sigue mostrando el total completo.
+- Se impide la fusión en el suelo de objetos marcados como botín de boss; el inventario del jugador sí puede apilarlos normalmente.
+- Al aterrizar Rare Essence, Primordial o Abismal: un rayo visual sin fuego ni daño, sonido de trueno y recompensa, partículas de tótem y fuegos artificiales.
+- Protección: Minijefes V, Común X, Raro XV, Épico XX, Legendario XXV, Mítico XXX, Abismal XXXV. Se aplica a la armadura NPC de todos los bosses con equipamiento compatible; algunos mobs no muestran armadura visualmente. Las armas de zombies conservan Filo X y su tótem.
+- Todos los bosses reciben además una defensa de categoría de 5%, 10%, 15%, 20%, 25%, 30% y 35%, respectivamente, para diferenciar categorías pese al límite vanilla del encantamiento. Los que carecen de equipamiento también reciben esta defensa. Se combina con las fases y el suelo mínimo de daño existente, sin anular ataques ni permitir daño negativo.
+- No se modifica el equipo obtenible por los jugadores ni el botín de armadura, solo el equipo y defensa NPC.
+
+Validación: compilación y pruebas unitarias de progresión, separación, cantidades, reconocimiento de esencias y trayectoria. No se ha ejecutado un servidor Paper ni comprobado la apariencia. Detener el servidor, reemplazar el JAR y arrancar conservando configuración. Los bosses creados tras la actualización reciben el equipo nuevo.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.9.4 · Descenso visual suavizado
 
 El descenso usa un ItemDisplay con el mismo ItemStack, brillo e iluminación. Se actualiza cada dos ticks con teleportDuration=2 para que el cliente suavice la posición y orientación entre destinos de la espiral. No se crean objetos recogibles durante el vuelo. Se mantienen tres vueltas y 160 ticks de trayectoria; se esperan dos ticks al final para completar la interpolación antes de sustituir la copia por el objeto real. El siguiente stack conserva su turno cada 164 ticks.
