@@ -648,10 +648,14 @@ public final class BossManager implements Listener {
          NamespacedKey paid = new NamespacedKey(plugin,"loot_paid");
          if (var3.has(paid, PersistentDataType.BYTE)) return;
          var3.set(paid, PersistentDataType.BYTE,(byte)1);
-         RelicItems.LootResult result=((CazaJefesPlugin)plugin).guard.canDrop(var2)
-            ?this.relicItems.dropBossLoot(var2.getLocation(),var7,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
-         this.plugin.getServer().broadcast(DamageLedger.report(var2,var7,var8,result));
-         ((CazaJefesPlugin)plugin).deathVisuals.show(var2,var7);
+         final boolean credited=((CazaJefesPlugin)plugin).guard.canDrop(var2);
+         final BossCatalog.Definition defeated=var7;
+         final String winner=var8;
+         final Location dropLocation=var2.getLocation().clone();
+         ((CazaJefesPlugin)plugin).deathVisuals.show(var2,defeated,()->{
+            RelicItems.LootResult result=credited?this.relicItems.dropBossLoot(dropLocation,defeated,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
+            this.plugin.getServer().broadcast(DamageLedger.report(var2,defeated,winner,result));
+         });
          var2.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
          var2.getWorld().playSound(var2.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0F, 1.25F);
       }

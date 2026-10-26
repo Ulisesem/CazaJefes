@@ -1,3 +1,16 @@
+# CazaJefes 1.9.1 · Impacto, rayos y después botín
+
+Secuencia: ascenso de 15 bloques durante 60 ticks, caída acelerada durante 12 ticks, impacto con sonido de explosión y cinco rayos visuales, pausa de seis ticks y aparición del botín. Los objetos orbitan 12 ticks y caen con brillo y estela; recogida desde 25 ticks después de aparecer.
+
+Los rayos usan strikeLightningEffect: no generan fuego, no dañan mobs ni objetos y no multiplican el daño. El impacto conserva un único daño de 6–7 puntos (3–3½ corazones) a jugadores en supervivencia/aventura dentro de seis bloques, y Lentitud II, Debilidad I y Ceguera I. Respeta cancelaciones, absorción y bloqueo. No hay explosión física ni destrucción de bloques. El golpe y sus efectos ocurren antes de crear los ítems.
+
+El crédito del jugador se guarda antes de iniciar la secuencia. Las recompensas y el reporte se entregan una sola vez, también si se interrumpe la copia visual o se desactiva el plugin; al detenerse se omite el ataque pendiente y se entrega el botín sin animación. No se cambia el renacimiento de los zombies ni el equilibrio de drops.
+
+Validación: Maven verify y pruebas de trayectoria, daño y entrega única de recompensa. Sin ejecución visual en Paper; comprobar la secuencia con clientes reales. Conservar configuración y reemplazar el JAR con el servidor detenido.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.9.0 · Caída final y botín animado
 
 Al morir definitivamente, el cuerpo real se oculta mediante hideEntity y se crea una copia visual sin IA, colisión, recompensas ni vulnerabilidad. La copia sube 15 bloques en 60 ticks y cae en 20 ticks. Cerca del límite superior del mundo se limita la altura al espacio disponible. El renacimiento previo de los zombies conserva su comportamiento: esta secuencia solo ocurre al morir de verdad.
