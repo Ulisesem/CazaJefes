@@ -8,7 +8,7 @@ final class BossDamageProgress implements Listener {
  private static final NamespacedKey BOSS=new NamespacedKey("cazajefes",BossKeys.BOSS);
  private final CazaJefesPlugin plugin;BossDamageProgress(CazaJefesPlugin plugin){this.plugin=plugin;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true)public void floor(EntityDamageByEntityEvent event){
-  if(!(event.getEntity() instanceof LivingEntity boss)||!boss.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE)||BossStages.phase(boss)!=3)return;
+  if(!(event.getEntity() instanceof LivingEntity boss)||!boss.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE))return;
   Entity source=event.getDamager();if(source instanceof Projectile projectile&&projectile.getShooter() instanceof Entity owner)source=owner;if(!(source instanceof Player player)||!plugin.guard.canAttackBoss(player))return;
   double original=event.getDamage(),current=event.getFinalDamage(),wanted=DamageProgress.floor(original,current);if(wanted<=current)return;
   // Recalculate through Bukkit's normal armor/effect modifiers; never subtract health directly.

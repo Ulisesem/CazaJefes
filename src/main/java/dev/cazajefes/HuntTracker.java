@@ -28,6 +28,7 @@ public final class HuntTracker implements Listener {
    private final Map<UUID, HuntTracker.Session> sessions = new HashMap<>();
    private final BukkitTask task;
    private final Map<UUID,Long> nextArrow=new HashMap<>();
+   private final Map<UUID,String> signal=new HashMap<>();
 
    public HuntTracker(JavaPlugin var1, BossManager var2, RelicItems var3) {
       this.plugin = var1;
@@ -48,8 +49,10 @@ public final class HuntTracker implements Listener {
                .min((var1x, var2) -> Double.compare(var1x.location().distanceSquared(var3.getLocation()), var2.location().distanceSquared(var3.getLocation())))
                .orElse(null);
             if (var4 == null) {
+               announceSignal(var3,"none:"+var3.getWorld().getUID(),"✦ Brújula · No hay bosses ni huevos activos en este mundo.");
                this.showNoSignal(var3);
             } else {
+               announceSignal(var3,var4.id().toString(),"✦ Brújula · "+(var4.egg()?"Huevo detectado: ":"Boss detectado: ")+var4.name());
                Location var5 = var4.location().clone();
                var3.setCompassTarget(var5);
                var5.add(0.5, 0.8, 0.5);
@@ -60,6 +63,7 @@ public final class HuntTracker implements Listener {
       }
    }
 
+   private void announceSignal(Player player,String key,String message){if(!key.equals(signal.put(player.getUniqueId(),key)))player.sendMessage(Component.text(message,NamedTextColor.GREEN));}
    private boolean hasCompass(Player var1) {
       return this.items.isTracker(var1.getInventory().getItemInMainHand())||this.items.isTracker(var1.getInventory().getItemInOffHand());
    }
@@ -70,7 +74,7 @@ public final class HuntTracker implements Listener {
       Location start=player.getLocation().add(0,.35,0);org.bukkit.util.Vector direction=target.toVector().subtract(start.toVector());if(direction.lengthSquared()<.25)return;direction.normalize();org.bukkit.util.Vector side=new org.bukkit.util.Vector(-direction.getZ(),0,direction.getX());if(side.lengthSquared()<.01)side=new org.bukkit.util.Vector(1,0,0);else side.normalize();
       for(double offset:new double[]{2.5,5,7.5}){Location tip=start.clone().add(direction.clone().multiply(Math.min(offset,Math.sqrt(player.getLocation().distanceSquared(target)))));for(double k=0;k<=1.5;k+=.12){arrowPoint(player,tip.clone().subtract(direction.clone().multiply(k)));if(k<=.9)for(int sign:new int[]{-1,1})arrowPoint(player,tip.clone().subtract(direction.clone().multiply(k)).add(side.clone().multiply(sign*k*.7)));}}
    }
-   private void arrowPoint(Player player,Location point){player.spawnParticle(Particle.DUST,point,1,0,0,0,0,new Particle.DustOptions(org.bukkit.Color.AQUA,1.5f));}
+   private void arrowPoint(Player player,Location point){player.spawnParticle(Particle.DUST,point,1,0,0,0,0,new Particle.DustOptions(org.bukkit.Color.LIME,1.5f));}
 
    private void showTarget(Player var1, BossManager.TrackedEncounter var2, Location var3) {
       HuntTracker.Session var4 = this.session(var1);
@@ -124,6 +128,7 @@ public final class HuntTracker implements Listener {
    }
 
    private void restore(Player var1) {
+      signal.remove(var1.getUniqueId());
       HuntTracker.Session var2 = this.sessions.remove(var1.getUniqueId());
       if (var2 != null && var1.getScoreboard() == var2.board) {
          var1.setScoreboard(var2.previous);
@@ -132,7 +137,7 @@ public final class HuntTracker implements Listener {
 
    @EventHandler
    public void onQuit(PlayerQuitEvent var1) {
-      this.sessions.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());
+      this.sessions.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());signal.remove(var1.getPlayer().getUniqueId());
    }
 
    @EventHandler
@@ -147,7 +152,7 @@ public final class HuntTracker implements Listener {
          this.restore(var2);
       }
 
-      this.sessions.clear();nextArrow.clear();
+      this.sessions.clear();nextArrow.clear();signal.clear();
    }
 
    private record Session(Scoreboard previous, Scoreboard board, Objective objective) {

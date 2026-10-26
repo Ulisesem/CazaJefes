@@ -53,6 +53,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (var4.length != 0 && !var4[0].equalsIgnoreCase("help")) {
          String var5 = var4[0].toLowerCase();
          switch (var5) {
+            case "diagnostico":
+               ((CazaJefesPlugin)plugin).damageDiagnostics.inspect(var1);break;
             case "spawnpoint":
             case "sp":
                this.spawnpoint(var1, var4);
