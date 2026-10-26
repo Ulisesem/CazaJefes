@@ -1074,8 +1074,8 @@ public final class RelicItems implements Listener {
    }
 
    public ItemStack colossusSigil() {
-      return named(Material.NETHER_STAR,"sello_coloso","✦ Sello del Renacer ✦",NamedTextColor.GOLD,1,
-         "Divisa especial del Santuario del Renacer.","Se canjea por Fragmentos de Tributo en el mercado.","Reúne sellos para conseguir el Amuleto del Fénix Astral.");
+      return named(Material.NETHER_STAR,"sello_coloso","✦ Sello del Renacido ✦",NamedTextColor.GOLD,1,
+         "Divisa especial del Santuario del Renacer.","Cae cuando un boss activa Suspiro del Renacido.","Reúne sellos para conseguir el Amuleto del Fénix Astral.");
    }
    public String propertyId(ItemStack stack) {return stack!=null&&stack.hasItemMeta()?stack.getItemMeta().getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING):null;}
 
@@ -1426,6 +1426,7 @@ public final class RelicItems implements Listener {
       if(id.startsWith("armadura_"))return EquipmentSets.migrateArmor(stack,id,itemKey);
       if(id.startsWith("arma_"))return EquipmentSets.migrateWeapon(stack,id,itemKey);
       if(id.equals("tracking_compass"))replacement=compass();
+      if(id.equals("sello_coloso"))replacement=colossusSigil();
       if(id.equals("amuleto_coloso"))replacement=amulet();
       if(replacement!=null){replacement.setAmount(stack.getAmount());return replacement;}
       ItemStack glowing=stack.clone();ItemMeta meta=glowing.getItemMeta();meta.setEnchantmentGlintOverride(true);glowing.setItemMeta(meta);return glowing;

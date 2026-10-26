@@ -30,7 +30,7 @@ final class MarketMenu implements CommandExecutor,Listener {
   int sigils=MarketRules.amuletSigils(plugin.getConfig().getInt("market.amulet-sigils",4));
   int tributes=MarketRules.amuletTributes(plugin.getConfig().getInt("market.amulet-tributes",8));
   offers.add(new Offer(items.colossusSigil(),List.of(new Cost("fragmento_grieta",true,fragments,"Fragmentos de Tributo")),Section.REBIRTH));
-  List<Cost> amuletCost=new ArrayList<>();amuletCost.add(new Cost("sello_coloso",true,sigils,"Sellos del Renacer"));if(tributes>0)amuletCost.add(new Cost("tributo_grieta",true,tributes,"Tributos del Cazador"));
+  List<Cost> amuletCost=new ArrayList<>();amuletCost.add(new Cost("sello_coloso",true,sigils,"Sellos del Renacido"));if(tributes>0)amuletCost.add(new Cost("tributo_grieta",true,tributes,"Tributos del Cazador"));
   offers.add(new Offer(items.amulet(),List.copyOf(amuletCost),Section.REBIRTH));
   for(var original:catalog.createTradeOffers()){
    String id=items.customId(original.reward());if("amuleto_coloso".equals(id))continue;
@@ -55,8 +55,8 @@ final class MarketMenu implements CommandExecutor,Listener {
   PremiumStyle.frame(inv,section==Section.REBIRTH?Material.ORANGE_STAINED_GLASS_PANE:Material.PURPLE_STAINED_GLASS_PANE);
   inv.setItem(4,PremiumStyle.tile(section==null?Material.END_CRYSTAL:section.icon,section==null?"✦ EL EMPORIO DE LOS CAZADORES ✦":section.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.GOLD,true,"Elige tu recompensa • revisa su precio","Los canjes requieren espacio y monedas originales"));
   if(section==null){
-   int[] slots={20,22,24,29,31,33};int i=0;for(Section s:Section.values())inv.setItem(slots[i++],PremiumStyle.tile(s.icon,s.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.AQUA,true,list.stream().filter(o->o.section==s).count()+" ofertas disponibles",s==Section.REBIRTH?"Fragmentos → Sellos → Amuleto del Fénix Astral":"Clic para abrir las ofertas"));
-   inv.setItem(40,PremiumStyle.tile(Material.DISC_FRAGMENT_5,"TU BÓVEDA DE CAZADOR",NamedTextColor.LIGHT_PURPLE,true,"Fragmentos: "+count(player,"fragmento_grieta"),"Tributos: "+count(player,"tributo_grieta"),"Sellos del Renacer: "+count(player,"sello_coloso")));
+   int[] slots={20,22,24,29,31,33};int i=0;for(Section s:Section.values())inv.setItem(slots[i++],PremiumStyle.tile(s.icon,s.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.AQUA,true,list.stream().filter(o->o.section==s).count()+" ofertas disponibles",s==Section.REBIRTH?"Renacimientos → Sellos → Amuleto del Fénix Astral":"Clic para abrir las ofertas"));
+   inv.setItem(40,PremiumStyle.tile(Material.DISC_FRAGMENT_5,"TU BÓVEDA DE CAZADOR",NamedTextColor.LIGHT_PURPLE,true,"Fragmentos: "+count(player,"fragmento_grieta"),"Tributos: "+count(player,"tributo_grieta"),"Sellos del Renacido: "+count(player,"sello_coloso")));
    inv.setItem(49,PremiumStyle.tile(Material.ENCHANTING_TABLE,"VISITAR LA FORJA",NamedTextColor.GOLD,true,"Recetas, cristales y materiales","Clic para abrir /rares"));
   }else if(offer==null){
    for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){int slot=PremiumStyle.GRID[i-page*28];inv.setItem(slot,display(list.get(i)));view.offers.put(slot,list.get(i));}
