@@ -12,6 +12,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    ShulkerCombat shulkers;
    BossAbilities abilities;
    BossAuras auras;
+   BossSpawnpoints spawnpoints;
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
    DamageDiagnostics damageDiagnostics;
@@ -41,6 +42,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getServer().getPluginManager().registerEvents(this.relicItems, this);
       this.tracker = new HuntTracker(this, this.bossManager, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.tracker, this);
+      spawnpoints=new BossSpawnpoints(this);getServer().getPluginManager().registerEvents(spawnpoints,this);
       CazaJefesCommand var1 = new CazaJefesCommand(this, this.bossManager, this.relicItems);
       this.market=new MarketMenu(this,relicItems,var1);
       this.getServer().getPluginManager().registerEvents(market,this);
@@ -73,6 +75,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(spawnpoints!=null)spawnpoints.stop();
       if(deathVisuals!=null)deathVisuals.stop();
       if(relicItems!=null)relicItems.stopLootAnimations();
       if(auras!=null)auras.stop();

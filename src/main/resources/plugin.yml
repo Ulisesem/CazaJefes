@@ -1,5 +1,5 @@
 name: CazaJefes
-version: '1.10.1'
+version: '1.11.0'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
 description: Jefes grandes con ataques especiales, botín y recetas.
@@ -23,10 +23,36 @@ commands:
     aliases: [cazajefes]
 permissions:
   cazajefes.admin:
-    description: Entrega conjuntos mediante /riequipo.
+    description: Acceso administrativo completo de CazaJefes.
     default: op
-  cazajefes.admin:
-    description: Permite invocar jefes de CazaJefes.
+    children:
+      cazajefes.admin.*: true
+  cazajefes.admin.*:
+    default: op
+    children:
+      cazajefes.admin.spawnpoint: true
+      cazajefes.admin.egg: true
+      cazajefes.admin.boss: true
+      cazajefes.admin.compass: true
+      cazajefes.admin.essence: true
+      cazajefes.admin.reload: true
+      cazajefes.admin.equipment: true
+      cazajefes.admin.diagnostico: true
+  cazajefes.admin.spawnpoint:
+    default: op
+  cazajefes.admin.egg:
+    default: op
+  cazajefes.admin.boss:
+    default: op
+  cazajefes.admin.compass:
+    default: op
+  cazajefes.admin.essence:
+    default: op
+  cazajefes.admin.reload:
+    default: op
+  cazajefes.admin.equipment:
+    default: op
+  cazajefes.admin.diagnostico:
     default: op
   rareitemhunter.admin.*:
     description: Acceso administrativo compatible con RareItemHunter.
