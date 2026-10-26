@@ -20,7 +20,7 @@ final class CombatGuard implements Listener {
         boss=new NamespacedKey("cazajefes",BossKeys.BOSS);minion=new NamespacedKey("cazajefes","boss_minion");credit=new NamespacedKey("cazajefes","last_player_hit");parent=new NamespacedKey("cazajefes","minion_parent");encounter=new NamespacedKey("cazajefes","encounter_id");
     }
     private void deny(EntityDamageByEntityEvent event,String reason){rejected.put(event,reason);event.setCancelled(true);}
-    String rejection(EntityDamageByEntityEvent event){return rejected.getOrDefault(event,"otra regla o plugin");}
+    String rejection(EntityDamageByEntityEvent event){return rejected.getOrDefault(event,"cancelación nativa u otro listener");}
     static boolean eligible(Player p) { return p.isOnline() && !p.isDead() && (p.getGameMode()==GameMode.SURVIVAL || p.getGameMode()==GameMode.ADVENTURE); }
     boolean canAttackBoss(Player p) {
         if(attackPolicy!=null)return attackPolicy.test(p);

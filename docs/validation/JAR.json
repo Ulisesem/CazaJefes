@@ -1,10 +1,10 @@
 {
-  "version": "1.7.4",
-  "sha256": "4686b89a606a09def95dd699af7bfcd199b0a0c0d182c0c3758588a3cc3ad924",
-  "size": 315672,
+  "version": "1.7.5",
+  "sha256": "842b58923260f49307681d1b8f9f22612e0552b6e8cf65c6c0e9a3542dbb7622",
+  "size": 317782,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 85,
+  "tests": 93,
   "server_executed": false,
   "categories": {
     "Legendarios": 11,
@@ -121,6 +121,7 @@
     "dev/cazajefes/RelicItems$2.class",
     "dev/cazajefes/RelicItems$LootResult.class",
     "dev/cazajefes/RelicItems.class",
+    "dev/cazajefes/SafeDamage.class",
     "dev/cazajefes/ShulkerCombat.class",
     "dev/cazajefes/TacticsRules$Move.class",
     "dev/cazajefes/TacticsRules.class",

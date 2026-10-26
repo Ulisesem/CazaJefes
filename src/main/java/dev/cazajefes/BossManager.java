@@ -533,7 +533,7 @@ public final class BossManager implements Listener {
             case MYTHIC -> 12.0;
             case ABYSSAL -> 16.0;
          };
-         if(!LightningRetaliation.isActive()&&!AbilityDamage.active())var1.setDamage(var18+(var15==null?6:BattleRules.strengthBonus(var15)));
+         if(!LightningRetaliation.isActive()&&!AbilityDamage.active())SafeDamage.setBase(var1,var18+(var15==null?6:BattleRules.strengthBonus(var15)));
       }
 
       if (var9 != null && var9.getPersistentDataContainer().has(this.bossKey, PersistentDataType.BYTE) && !(var1.getEntity() instanceof Player)) {
@@ -593,11 +593,6 @@ public final class BossManager implements Listener {
             }
          }
       }
-   }
-
-   @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-   public void onBossLethalDamage(EntityDamageEvent event){
-      ((CazaJefesPlugin)plugin).rebirth.tryRebirth(event);
    }
 
    @EventHandler
