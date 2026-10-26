@@ -1,3 +1,36 @@
+# CazaJefes 1.11.0 · Apariciones programadas y lluvia mágica de botín
+
+## Puntos con reaparición automática
+
+Desde el juego, marcar la posición exacta:
+
+```
+/ri spawnpoint arena 0
+/ri spawnpoint timer arena random 5m
+/ri spawnpoint list
+/ri spawnpoint off arena
+/ri spawnpoint delete arena
+```
+
+Se puede sustituir random por cualquier ID actual o compatible de boss (Tab). random incluye todo el catálogo, también minijefes. Intervalos: 10 segundos a 24 horas, usando segundos, sufijo s, m o h. La primera aparición ocurre después del intervalo; las siguientes cuentan desde la muerte definitiva del boss. El renacimiento de zombies no inicia la recarga. Un único boss activo por punto. La comprobación es cada cinco segundos. Son bosses despiertos, no huevos.
+
+Se guardan selección, intervalo, próxima fecha y UUID activo en config.yml. Al reiniciar se conservan. Si el boss está descargado o desaparece sin evento de muerte, el punto espera: evita duplicarlo. Si un plugin lo eliminó sin muerte, revisar el UUID activo en configuración con el servidor apagado antes de quitar esa referencia. off y delete no matan al boss que ya exista. Si se elimina y recrea un punto mientras su boss antiguo vive, el administrador puede crear un encuentro adicional.
+
+Radio 0 usa las coordenadas y altura guardadas; 1–128 elige superficie aleatoria dentro de ese radio. La creación de puntos exige un jugador; list, timer, off y delete también funcionan desde consola. Invocación manual desde consola: `/ri boss <id> arena` o `/ri egg <id> arena`. Desde el juego, here coloca el huevo con búsqueda de espacio seguro y base de bedrock.
+
+## Correcciones administrativas
+
+Permisos cazajefes.admin y cazajefes.admin.* o granulares spawnpoint, egg, boss, compass, essence, reload, equipment y diagnostico. Se mantienen los permisos legacy rareitemhunter.admin.*. Se eliminó una clave duplicada del descriptor. `/ri eggs` ahora comprueba permiso. `/ri get <objeto> [jugador]` funciona desde consola con destinatario y entrega los sobrantes al suelo si el inventario está lleno, sin perderlos. Tab distingue IDs de rares de los de libros/esencias y muestra opciones del temporizador. Se incluyen aliases huevo, jefe, punto, recargar, fragmento, tributo y brujula.
+
+## Botín simultáneo
+
+Todas las unidades descienden a la vez durante unos ocho segundos. Sus destinos se distribuyen hasta 2,7 bloques del punto de muerte, buscando espacio cercano; la espiral puede extenderse otros 2,2 bloques durante el vuelo. Conservan cantidades, datos, recogida al aterrizar y entrega única. Ya no se espera una cola secuencial. Cada unidad lleva una estela END_ROD y polvo turquesa a espectadores a 32 bloques o menos, incluidos minijefes. Se solicita renderizado de partículas al cliente; su configuración y rendimiento pueden afectar la apariencia. Cada grupo reproduce ocho notas de amatista, una por segundo, sin multiplicar sonidos por cada objeto. Se conservan rayos visuales y sonidos al aterrizar esencias.
+
+Compilación y pruebas unitarias; no se ha ejecutado un servidor Paper ni validado visualmente las animaciones o los comandos conectados a un mundo real. Reemplazar el JAR con el servidor apagado y conservar configuración.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.10.1 · Empuje y elevación por etapas
 
 Todos los bosses y minijefes obtienen dos habilidades de desplazamiento:

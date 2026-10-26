@@ -51,7 +51,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
    public boolean onCommand(CommandSender var1, Command var2, String var3, String[] var4) {
       if (var4.length != 0 && !var4[0].equalsIgnoreCase("help")) {
-         String var5 = var4[0].toLowerCase();
+         String var5 = AdminArguments.root(var4[0]);
          switch (var5) {
             case "particulas":
                ((CazaJefesPlugin)plugin).auras.command(var1,var4);break;
@@ -151,150 +151,46 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       }
    }
 
-   public List<String> onTabComplete(CommandSender var1, Command var2, String var3, String[] var4) {
-      if(var4.length>=2&&var4[0].equalsIgnoreCase("particulas"))return var4.length==2?List.of("baja","media","alta","off").stream().filter(v->v.startsWith(var4[1].toLowerCase(java.util.Locale.ROOT))).toList():List.of();
-      ArrayList<String> var5 = new ArrayList<>();
-      if (var4.length == 1) {
-         var5.addAll(List.of("particulas", "help", "bosses", "bestiario", "recipes", "recetas", "canjear", "catalogo", "compass", "rares", "enchants"));
-         if (this.isAdmin(var1, "rareitemhunter.admin.egg")) {
-            var5.addAll(List.of("egg", "eggs"));
-         }
-
-         if (this.isAdmin(var1, "rareitemhunter.admin.boss")) {
-            var5.add("boss");
-         }
-
-         if (this.isAdmin(var1, "rareitemhunter.admin.spawnpoint")) {
-            var5.add("spawnpoint");
-         }
-
-         if (this.isAdmin(var1, "rareitemhunter.admin.essence")) {
-            var5.addAll(List.of("essence", "esencia", "book", "fragment", "tribute", "armor", "weapon", "get", "rare", "give"));
-         }
-
-         if (this.isAdmin(var1, "rareitemhunter.admin.reload")) {
-            var5.add("reload");
-         }
-      } else {
-         String var6 = var4[0].toLowerCase();
-         if ((var6.equals("egg") || var6.equals("boss"))
-            && var4.length == 2
-            && this.isAdmin(var1, var6.equals("egg") ? "rareitemhunter.admin.egg" : "rareitemhunter.admin.boss")) {
-            var5.addAll(BossCatalog.ids());
-         } else if ((var6.equals("egg") || var6.equals("boss")) && var4.length == 3) {
-            var5.add("here");
-            var5.addAll(
-               (Collection)(this.plugin.getConfig().getConfigurationSection("spawnpoints") == null
-                  ? List.of()
-                  : new ArrayList(this.plugin.getConfig().getConfigurationSection("spawnpoints").getKeys(false)))
-            );
-         } else if (var6.equals("book") || var6.equals("essence") || var6.equals("esencia") || var6.equals("rare") || var6.equals("give")) {
-            if (var4.length != 2 && (!var6.equals("give") || var4.length != 3)) {
-               if (var4.length >= 3) {
-                  var5.addAll(List.of("1", "2", "3", "4", "5", "6"));
-               }
-            } else {
-               var5.addAll(this.items.catalogIds());
-            }
-         } else if (var6.equals("armor") || var6.equals("armadura") || var6.equals("weapon") || var6.equals("arma")) {
-            if (var4.length == 2) {
-               var5.addAll(List.of("comun", "raro", "epico", "legendario", "mitico", "abismal"));
-            } else {
-               var5.addAll(this.onlinePlayerNames());
-            }
-         } else if (var6.equals("compass") || var6.equals("fragment") || var6.equals("tribute") || var6.equals("spawnpoint")) {
-            if (var4.length > 1) {
-               var5.addAll(this.onlinePlayerNames());
-            }
-
-            if (var6.equals("spawnpoint") && var4.length == 2) {
-               var5.add("delete");
-            }
-         }
+   public List<String> onTabComplete(CommandSender sender,Command command,String label,String[] args){
+      if(args.length==0)return List.of();List<String> out=new ArrayList<>();String root=AdminArguments.root(args[0]);
+      if(args.length==1){out.addAll(List.of("help","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
+         for(String action:List.of("spawnpoint","egg","boss","reload"))if(isAdmin(sender,"rareitemhunter.admin."+action))out.add(action);
+         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.add("diagnostico");
+      }else if(root.equals("particulas")){if(args.length==2)out.addAll(List.of("baja","media","alta","off"));}
+      else if(root.equals("spawnpoint")&&isAdmin(sender,"rareitemhunter.admin.spawnpoint")){
+         if(args.length==2)out.addAll(List.of("list","timer","off","delete"));
+         else if(args.length==3&&List.of("timer","off","delete").contains(args[1].toLowerCase(java.util.Locale.ROOT))){var section=plugin.getConfig().getConfigurationSection("spawnpoints");if(section!=null)out.addAll(section.getKeys(false));}
+         else if(args.length==4&&args[1].equalsIgnoreCase("timer")){out.add("random");out.addAll(BossCatalog.ids());}
+         else if(args.length==5&&args[1].equalsIgnoreCase("timer"))out.addAll(List.of("30s","5m","1h"));
+      }else if((root.equals("egg")||root.equals("boss"))&&isAdmin(sender,"rareitemhunter.admin."+root)){
+         if(args.length==2)out.addAll(BossCatalog.ids());else if(args.length==3){out.add("here");var section=plugin.getConfig().getConfigurationSection("spawnpoints");if(section!=null)out.addAll(section.getKeys(false));}
+      }else if(isAdmin(sender,"rareitemhunter.admin.essence")){
+         if(root.equals("give")){if(args.length==2)out.add("rare");else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else if(args.length==4){out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}else if(args.length==5)out.addAll(onlinePlayerNames());}}
+         else if(root.equals("rare")||root.equals("book")||root.equals("essence")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():items.catalogIds());else if(args.length==3){out.addAll(List.of("1","2","3","4","5"));if(!root.equals("rare"))out.add("6");out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
+         else if(root.equals("get")){if(args.length==2)out.addAll(List.of("compass","essence","fragment","tribute","rare","hacha","espada","arco"));else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else{out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}}else if(args.length==3)out.addAll(onlinePlayerNames());}
+         else if(root.equals("armor")||root.equals("weapon")){if(args.length==2)out.addAll(List.of("comun","raro","epico","legendario","mitico","abismal"));else if(args.length==3)out.addAll(onlinePlayerNames());}
+         else if((root.equals("fragment")||root.equals("tribute")||root.equals("compass"))&&args.length==2)out.addAll(onlinePlayerNames());
       }
-
-      String var7 = var4[var4.length - 1].toLowerCase();
-      return var5.stream().distinct().filter(var1x -> var1x.toLowerCase().startsWith(var7)).sorted(String.CASE_INSENSITIVE_ORDER).toList();
+      if(root.equals("compass")&&args.length==2&&isAdmin(sender,"rareitemhunter.admin.compass"))out.addAll(onlinePlayerNames());String prefix=args[args.length-1].toLowerCase(java.util.Locale.ROOT);return out.stream().distinct().filter(v->v.toLowerCase(java.util.Locale.ROOT).startsWith(prefix)).sorted().toList();
    }
 
    private List<String> onlinePlayerNames() {
       return this.plugin.getServer().getOnlinePlayers().stream().<String>map(Player::getName).toList();
    }
 
-   private void spawnpoint(CommandSender var1, String[] var2) {
-      if (!this.isAdmin(var1, "rareitemhunter.admin.spawnpoint")) {
-         this.deny(var1);
-      } else if (var1 instanceof Player var3) {
-         if (var2.length > 2 && var2[1].equalsIgnoreCase("delete")) {
-            this.plugin.getConfig().set("spawnpoints." + var2[2].toLowerCase(), null);
-            this.plugin.saveConfig();
-            var1.sendMessage(Component.text("Punto de aparición eliminado.", NamedTextColor.YELLOW));
-         } else if (var2.length < 2) {
-            var1.sendMessage("Uso: /ri spawnpoint <nombre> [radio]");
-         } else {
-            String var4 = var2[1].toLowerCase();
-            double var5 = var2.length > 2 ? this.parseDouble(var2[2], 80.0) : 80.0;
-            Location var7 = var3.getLocation();
-            String var8 = "spawnpoints." + var4;
-            this.plugin.getConfig().set(var8 + ".world", var7.getWorld().getName());
-            this.plugin.getConfig().set(var8 + ".x", var7.getBlockX());
-            this.plugin.getConfig().set(var8 + ".y", var7.getBlockY());
-            this.plugin.getConfig().set(var8 + ".z", var7.getBlockZ());
-            this.plugin.getConfig().set(var8 + ".radius", Math.max(8.0, var5));
-            this.plugin.saveConfig();
-            var1.sendMessage(Component.text("Punto de aparición guardado: " + var4 + " (radio " + (int)var5 + ").", NamedTextColor.GREEN));
-         }
-      } else {
-         var1.sendMessage("Solo un jugador puede marcar un punto de aparición.");
-      }
-   }
-
-   private void egg(CommandSender var1, String[] var2) {
-      if (!this.isAdmin(var1, "rareitemhunter.admin.egg")) {
-         this.deny(var1);
-      } else if (var2.length < 2) {
-         var1.sendMessage("Uso: /ri egg <id-del-jefe> [here|punto]");
-      } else {
-         String var3 = var2[1].toLowerCase();
-         if (this.bosses.bossName(var3) == null) {
-            var1.sendMessage("Ese ID no existe. Usa /ri bosses para ver el catálogo completo.");
-         } else if (var1 instanceof Player var4) {
-            Location var5 = this.locationArg(var4, var2.length > 2 ? var2[2] : "here", true);
-            if (var5 == null) {
-               var1.sendMessage("No encontré ese punto. Usa /ri spawnpoint <nombre> [radio].");
-            } else if (!this.bosses.placeEgg(var3, var5)) {
-               var1.sendMessage("No se pudo colocar el huevo: el bloque está ocupado.");
-            } else {
-               var1.sendMessage(
-                  Component.text("Huevo de " + this.bosses.bossName(var3) + " colocado. La Brújula de Caza puede rastrearlo.", NamedTextColor.LIGHT_PURPLE)
-               );
-            }
-         } else {
-            var1.sendMessage("Invoca desde un jugador para elegir el mundo.");
-         }
-      }
-   }
-
-   private void boss(CommandSender var1, String[] var2) {
-      if (!this.isAdmin(var1, "rareitemhunter.admin.boss")) {
-         this.deny(var1);
-      } else if (var2.length < 2) {
-         var1.sendMessage("Uso: /ri boss <id-del-jefe> [here|punto]");
-      } else {
-         String var3 = var2[1].toLowerCase();
-         if (this.bosses.bossName(var3) == null) {
-            var1.sendMessage("Ese ID no existe. Usa /ri bosses para ver el catálogo completo.");
-         } else if (var1 instanceof Player var4) {
-            Location var5 = this.locationArg(var4, var2.length > 2 ? var2[2] : "here", false);
-            if (var5 == null) {
-               var1.sendMessage("No encontré ese punto de aparición.");
-            } else {
-               this.bosses.spawnBoss(var3, var5, var1.getName());
-            }
-         } else {
-            var1.sendMessage("Invoca desde un jugador para elegir el mundo.");
-         }
-      }
+   private void spawnpoint(CommandSender sender,String[] args){if(!isAdmin(sender,"rareitemhunter.admin.spawnpoint")){deny(sender);return;}((CazaJefesPlugin)plugin).spawnpoints.command(sender,args);}
+   private void egg(CommandSender sender,String[] args){invokeBoss(sender,args,true);}
+   private void boss(CommandSender sender,String[] args){invokeBoss(sender,args,false);}
+   private void invokeBoss(CommandSender sender,String[] args,boolean egg){
+      if(!isAdmin(sender,egg?"rareitemhunter.admin.egg":"rareitemhunter.admin.boss")){deny(sender);return;}
+      if(args.length<2||args.length>3){sender.sendMessage("/ri "+(egg?"egg":"boss")+" <id-jefe> [here|punto]");return;}
+      var definition=BossCatalog.get(args[1]);if(definition==null){sender.sendMessage("ID inválido. Usa Tab o /bestiario.");return;}
+      String point=args.length==3?args[2]:"here";
+      if(egg&&point.equalsIgnoreCase("here")&&sender instanceof Player player){sender.sendMessage(bosses.placeEggNear(definition.id(),player)?"Huevo colocado con su base de bedrock.":"No hay espacio seguro para el huevo.");return;}
+      Location at=point.equalsIgnoreCase("here")?(sender instanceof Player player?player.getLocation().clone().add(0,.2,0):null):((CazaJefesPlugin)plugin).spawnpoints.location(point);
+      if(at==null){sender.sendMessage("Punto no encontrado. Desde consola debes indicar un punto guardado.");return;}
+      boolean ok=egg?bosses.placeEgg(definition.id(),at):bosses.spawnBoss(definition.id(),at,sender.getName())!=null;
+      sender.sendMessage(ok?"✦ "+(egg?"Huevo":"Boss")+" invocado: "+definition.name():"No se pudo invocar: comprueba espacio y compatibilidad de la criatura.");
    }
 
    private void compass(CommandSender var1, String[] var2) {
@@ -413,11 +309,11 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (!this.isAdmin(var1, "rareitemhunter.admin.essence")) {
          this.deny(var1);
       } else if (var2.length < 2) {
-         var1.sendMessage("Uso: /ri " + (var3 ? "armor" : "weapon") + " <comun|raro|epico|legendario|mitico> [jugador]");
+         var1.sendMessage("Uso: /ri " + (var3 ? "armor" : "weapon") + " <comun|raro|epico|legendario|mitico|abismal> [jugador]");
       } else {
          ItemStack var4 = this.items.gear(var2[1], var3);
          if (var4 == null) {
-            var1.sendMessage("Rango no válido. Usa comun, raro, epico, legendario o mitico.");
+            var1.sendMessage("Rango no válido. Usa comun, raro, epico, legendario, mitico o abismal.");
          } else {
             Player var5 = var2.length > 2 ? this.plugin.getServer().getPlayerExact(var2[2]) : (var1 instanceof Player var6 ? var6 : null);
             if (var5 == null) {
@@ -1344,49 +1240,15 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             }
    }
 
-   private void get(CommandSender var1, String[] var2) {
-      if (var2.length > 1 && var2[1].equalsIgnoreCase("rare")) {
-         this.giveRare(var1, var2, 2);
-      } else if (var1 instanceof Player var3) {
-         if (!this.isAdmin(var1, "rareitemhunter.admin.essence")) {
-            this.deny(var1);
-         } else if (var2.length < 2) {
-            var1.sendMessage("Uso: /ri get <compass|essence|fragment|tribute|rare <id>>");
-         } else {
-            String var4 = var2[1].toLowerCase();
-            switch (var4) {
-               case "compass":
-               case "brujula":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.compass()});
-                  break;
-               case "essence":
-               case "esencia":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.essence()});
-                  break;
-               case "fragment":
-               case "fragmento":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.fragment(1)});
-                  break;
-               case "tribute":
-               case "tributo":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.tribute("Coloso")});
-                  break;
-               case "hacha":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.rare("hacha_sismica")});
-                  break;
-               case "espada":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.rare("espada_brezal")});
-                  break;
-               case "arco":
-                  var3.getInventory().addItem(new ItemStack[]{this.items.rare("arco_ceniciento")});
-                  break;
-               default:
-                  var1.sendMessage("Objetos: compass, essence, fragment, tribute, rare <id>.");
-            }
-         }
-      } else {
-         var1.sendMessage("Solo un jugador puede recibir objetos.");
-      }
+   private void get(CommandSender sender,String[] args){
+      if(!isAdmin(sender,"rareitemhunter.admin.essence")){deny(sender);return;}
+      if(args.length>1&&args[1].equalsIgnoreCase("rare")){giveRare(sender,args,2);return;}
+      if(args.length<2||args.length>3){sender.sendMessage("/ri get <compass|essence|fragment|tribute|hacha|espada|arco> [jugador]");return;}
+      Player player=args.length==3?plugin.getServer().getPlayerExact(args[2]):sender instanceof Player p?p:null;
+      if(player==null){sender.sendMessage("Indica un jugador conectado.");return;}
+      ItemStack item=switch(args[1].toLowerCase(java.util.Locale.ROOT)){case "compass","brujula"->items.compass();case "essence","esencia"->items.essence();case "fragment","fragmento"->items.fragment(1);case "tribute","tributo"->items.tribute("Cazador");case "hacha"->items.rare("hacha_sismica");case "espada"->items.rare("espada_brezal");case "arco"->items.rare("arco_ceniciento");default->null;};
+      if(item==null){sender.sendMessage("Objeto inválido. Usa compass, essence, fragment, tribute, hacha, espada o arco.");return;}
+      player.getInventory().addItem(item).values().forEach(left->player.getWorld().dropItemNaturally(player.getLocation(),left));sender.sendMessage("Objeto entregado a "+player.getName()+".");
    }
 
    private void giveRare(CommandSender var1, String[] var2, int var3) {
@@ -1448,6 +1310,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private void listEggs(CommandSender var1) {
+      if(!isAdmin(var1,"rareitemhunter.admin.egg")){deny(var1);return;}
       List<BossManager.TrackedEncounter> var2 = this.bosses.trackedEncounters().stream().filter(BossManager.TrackedEncounter::egg).toList();
       if (var2.isEmpty()) {
          var1.sendMessage("No hay huevos activos.");
@@ -1626,7 +1489,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private boolean isAdmin(CommandSender var1, String var2) {
-      return var1.hasPermission(var2) || var1.hasPermission("rareitemhunter.admin.*") || var1.hasPermission("cazajefes.admin");
+      return AdminPermissions.allows(var1::hasPermission,var2);
    }
 
    private double parseDouble(String var1, double var2) {
@@ -1670,7 +1533,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
       if (this.isAdmin(var1, "rareitemhunter.admin.egg")
          || this.isAdmin(var1, "rareitemhunter.admin.boss")
-         || this.isAdmin(var1, "rareitemhunter.admin.spawnpoint")) {
+         || this.isAdmin(var1, "rareitemhunter.admin.spawnpoint") || this.isAdmin(var1,"rareitemhunter.admin.reload")) {
          var1.sendMessage(Component.text("ADMINISTRACIÓN", NamedTextColor.RED).decorate(TextDecoration.BOLD));
          if (this.isAdmin(var1, "rareitemhunter.admin.egg")) {
             var1.sendMessage(Component.text("/ri egg <jefe> [here|punto] · /ri eggs", NamedTextColor.WHITE));
@@ -1681,7 +1544,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          }
 
          if (this.isAdmin(var1, "rareitemhunter.admin.spawnpoint")) {
-            var1.sendMessage(Component.text("/ri spawnpoint <nombre> [radio] · /ri spawnpoint delete <nombre>", NamedTextColor.WHITE));
+            var1.sendMessage(Component.text("/ri spawnpoint <nombre> [radio] · list · delete <nombre> · timer <nombre> <jefe|random> <tiempo> · off <nombre>", NamedTextColor.WHITE));
          }
 
          if (this.isAdmin(var1, "rareitemhunter.admin.reload")) {

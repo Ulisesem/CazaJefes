@@ -198,7 +198,7 @@ public final class BossManager implements Listener {
       }
    }
 
-   public void spawnBoss(String var1, Location var2, String var3) {
+   public LivingEntity spawnBoss(String var1, Location var2, String var3) {
       BossCatalog.Definition var4 = BossCatalog.get(var1);
       if (var4 != null && var2.getWorld() != null) {
          LivingEntity var5;
@@ -206,15 +206,16 @@ public final class BossManager implements Listener {
             Entity var6 = var2.getWorld().spawnEntity(var2, var4.entityType());
             if (!(var6 instanceof LivingEntity var7)) {
                var6.remove();
-               return;
+               return null;
             }
 
             var5 = var7;
          } catch (IllegalArgumentException var18) {
             this.plugin.getLogger().warning("No se pudo crear el jefe " + var4.id() + " en este servidor.");
-            return;
+            return null;
          }
 
+         if(!var5.isValid())return null;
          UUID var19 = UUID.randomUUID();
          var5.customName(this.bossDisplay(var4));
          var5.setCustomNameVisible(true);
@@ -314,7 +315,9 @@ public final class BossManager implements Listener {
          var5.getWorld().playSound(var5.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.5F, 0.65F);
          var5.getWorld().spawnParticle(Particle.REVERSE_PORTAL, var5.getLocation().add(0.0, 1.0, 0.0), 80, 1.2, 1.5, 1.2, 0.1);
          this.plugin.getServer().broadcast(Component.text(var3 + " despertó a " + var4.name(), var4.tier().color).decorate(TextDecoration.BOLD));
+         return var5;
       }
+      return null;
    }
 
    private Component bossDisplay(BossCatalog.Definition var1) {
