@@ -1,10 +1,10 @@
 {
-  "version": "1.9.0",
-  "sha256": "f61c0f1cbc5550bdca08fb15b09050858afb95a5a1e2a48fe5e522243b5b4f20",
-  "size": 332328,
+  "version": "1.9.1",
+  "sha256": "9f14461bc41d14b8ce2e10c79d282603179a4564d2ea18a9aa8781fc33a9fd4a",
+  "size": 333788,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 99,
+  "tests": 101,
   "server_executed": false,
   "categories": {
     "Legendarios": 11,
@@ -91,6 +91,7 @@
     "dev/cazajefes/DamageLedger$Entry.class",
     "dev/cazajefes/DamageLedger.class",
     "dev/cazajefes/DamageProgress.class",
+    "dev/cazajefes/DeathCompletion.class",
     "dev/cazajefes/DeathFlight.class",
     "dev/cazajefes/EggPlacement.class",
     "dev/cazajefes/EquipmentCommand.class",
