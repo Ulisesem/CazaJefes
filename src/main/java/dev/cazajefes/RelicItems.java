@@ -1304,11 +1304,13 @@ public final class RelicItems implements Listener {
          case ABYSSAL -> Particle.DRAGON_BREATH;
       };
 
+      List<QueuedLoot> sequence=new ArrayList<>();
       for (ItemStack var11 : var4) {
          this.addRiftDropClassification(var11, var2.tier());
-         this.dropWithAura(var1, var11, var9, var3);
+         sequence.add(new QueuedLoot(var1.clone(),var11.clone(),var9,var3));
       }
 
+      queueLoot(sequence);
       var1.getWorld().playSound(var1, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0F, 0.85F);
       var1.getWorld().spawnParticle(Particle.FIREWORK, var1.clone().add(0.0, 1.0, 0.0), 50, 0.9, 0.8, 0.9, 0.12);
       return new LootResult(var13,summary);
@@ -1705,8 +1707,28 @@ public final class RelicItems implements Listener {
       return var7;
    }
 
+   private record QueuedLoot(Location location,ItemStack stack,Particle particle,UUID encounter){}
+   private final Map<LootSequence<QueuedLoot>,BukkitTask> queuedLoot=new HashMap<>();
    private final Map<Item,BukkitTask> animatedLoot=new HashMap<>();
-   void stopLootAnimations(){for(var entry:animatedLoot.entrySet()){entry.getValue().cancel();if(entry.getKey().isValid()){entry.getKey().setGravity(true);entry.getKey().setPickupDelay(0);}}animatedLoot.clear();}
+   private void releaseLoot(QueuedLoot reward,boolean animate){
+      if(animate&&plugin.isEnabled())dropWithAura(reward.location(),reward.stack(),reward.particle(),reward.encounter());
+      else{Item item=reward.location().getWorld().dropItemNaturally(reward.location(),reward.stack());item.getPersistentDataContainer().set(dropEncounterKey,PersistentDataType.STRING,reward.encounter().toString());}
+   }
+   private void queueLoot(List<QueuedLoot> rewards){
+      LootSequence<QueuedLoot> queue=new LootSequence<>(rewards);
+      if(!plugin.isEnabled()){for(var reward:queue.drain())releaseLoot(reward,false);return;}
+      QueuedLoot first=queue.next();if(first!=null)releaseLoot(first,true);
+      if(queue.empty())return;
+      BukkitTask task=plugin.getServer().getScheduler().runTaskTimer(plugin,()->{
+         QueuedLoot reward=queue.next();if(reward!=null)releaseLoot(reward,true);
+         if(queue.empty()){BukkitTask timer=queuedLoot.remove(queue);if(timer!=null)timer.cancel();}
+      },LootSpiral.DURATION+4,LootSpiral.DURATION+4);
+      queuedLoot.put(queue,task);
+   }
+   void stopLootAnimations(){
+      for(var entry:animatedLoot.entrySet()){entry.getValue().cancel();if(entry.getKey().isValid()){entry.getKey().setGravity(true);entry.getKey().setPickupDelay(0);}}animatedLoot.clear();
+      for(var entry:queuedLoot.entrySet()){entry.getValue().cancel();for(var reward:entry.getKey().drain())releaseLoot(reward,false);}queuedLoot.clear();
+   }
    private void dropWithAura(final Location var1, ItemStack var2, final Particle var3, UUID var4) {
       final Item var5 = var1.getWorld().dropItem(var1.clone().add(0.0, 8.0, 0.0), var2);
       var5.getPersistentDataContainer().set(this.dropEncounterKey, PersistentDataType.STRING, var4.toString());
@@ -1722,7 +1744,7 @@ public final class RelicItems implements Listener {
          @Override
          public void run() {
             try {
-            if (var5.isValid() && !var5.isDead() && (this.ticks+=2) <= LootSpiral.DURATION+24) {
+            if (var5.isValid() && !var5.isDead() && (this.ticks+=2) <= LootSpiral.DURATION) {
                if (this.ticks == LootSpiral.DURATION) {
                   var5.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var5.getLocation(), 14, 0.25, 0.25, 0.25, 0.08);
                }
