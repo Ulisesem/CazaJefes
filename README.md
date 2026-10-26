@@ -1,3 +1,14 @@
+# CazaJefes 1.9.3 · Botín de uno en uno
+
+Cada recompensa del boss baja por separado. El primer stack aparece después del impacto, completa su espiral de 160 ticks (ocho segundos a 20 TPS), y el siguiente aparece cuatro ticks después. Los demás stacks esperan en una cola sin entidades ni partículas. Por ejemplo, tres stacks tardan unos 24 segundos en completar sus descensos. Se conserva la cantidad de cada stack; no se separan unidades de un mismo stack.
+
+Cada boss tiene su propia cola. Al apagar el plugin se entregan los stacks pendientes sin animación y se liberan los que estén descendiendo. El reporte conserva la lista completa del botín; la recogida sucede conforme va terminando cada descenso.
+
+Validación: Maven verify, pruebas FIFO, vaciado sin duplicación, trayectoria y duración. Sin comprobación visual en Paper. Reemplazar el JAR con el servidor apagado.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.9.2 · Botín en espiral durante ocho segundos
 
 Después del impacto y sus rayos, el botín aparece ocho bloques por encima del punto de muerte. Cada objeto completa tres vueltas en una espiral que se estrecha mientras desciende durante 160 ticks (ocho segundos a 20 TPS). Mantiene brillo y estelas; al llegar se activa la gravedad y la recogida se habilita dos ticks después. La duración de ascenso y caída del boss se conserva.

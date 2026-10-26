@@ -6,7 +6,7 @@
 
     <groupId>dev.cazajefes</groupId>
     <artifactId>cazajefes</artifactId>
-    <version>1.9.2</version>
+    <version>1.9.3</version>
     <name>CazaJefes</name>
     <description>Jefes grandes, ataques especiales y botín para Paper.</description>
 
@@ -33,7 +33,7 @@
     </dependencies>
 
     <build>
-        <finalName>CazaJefes-1.9.2</finalName>
+        <finalName>CazaJefes-1.9.3</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
