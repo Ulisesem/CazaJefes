@@ -1,3 +1,14 @@
+# CazaJefes 1.9.2 · Botín en espiral durante ocho segundos
+
+Después del impacto y sus rayos, el botín aparece ocho bloques por encima del punto de muerte. Cada objeto completa tres vueltas en una espiral que se estrecha mientras desciende durante 160 ticks (ocho segundos a 20 TPS). Mantiene brillo y estelas; al llegar se activa la gravedad y la recogida se habilita dos ticks después. La duración de ascenso y caída del boss se conserva.
+
+La posición se actualiza cada dos ticks, y las partículas cada cuatro. Al apagar el plugin se liberan los objetos pendientes sin dejarlos flotando. No se cambia el botín, el daño ni los rayos.
+
+Validación: Maven verify y pruebas de duración, descenso continuo y llegada al punto de botín. Sin verificación visual en Paper. Sustituir el JAR con el servidor detenido.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.9.1 · Impacto, rayos y después botín
 
 Secuencia: ascenso de 15 bloques durante 60 ticks, caída acelerada durante 12 ticks, impacto con sonido de explosión y cinco rayos visuales, pausa de seis ticks y aparición del botín. Los objetos orbitan 12 ticks y caen con brillo y estela; recogida desde 25 ticks después de aparecer.
