@@ -11,15 +11,19 @@ import org.bukkit.persistence.PersistentDataType;
 /** Restricts combat to nearby survival players and prevents unattended loot farming. */
 final class CombatGuard implements Listener {
     private final CazaJefesPlugin plugin;
+    private final java.util.function.Predicate<Player> attackPolicy;
+    private final Map<EntityDamageByEntityEvent,String> rejected=new WeakHashMap<>();
     private final NamespacedKey boss, minion, credit, parent, encounter;
-    CombatGuard(CazaJefesPlugin plugin) {
-        this.plugin=plugin;
-        boss=new NamespacedKey(plugin,BossKeys.BOSS); minion=new NamespacedKey(plugin,"boss_minion");
-        credit=new NamespacedKey(plugin,"last_player_hit"); parent=new NamespacedKey(plugin,"minion_parent");
-        encounter=new NamespacedKey(plugin,"encounter_id");
+    CombatGuard(CazaJefesPlugin plugin){this(plugin,null);}
+    CombatGuard(java.util.function.Predicate<Player> policy){this(null,policy);}
+    private CombatGuard(CazaJefesPlugin plugin,java.util.function.Predicate<Player> policy){this.plugin=plugin;this.attackPolicy=policy;
+        boss=new NamespacedKey("cazajefes",BossKeys.BOSS);minion=new NamespacedKey("cazajefes","boss_minion");credit=new NamespacedKey("cazajefes","last_player_hit");parent=new NamespacedKey("cazajefes","minion_parent");encounter=new NamespacedKey("cazajefes","encounter_id");
     }
+    private void deny(EntityDamageByEntityEvent event,String reason){rejected.put(event,reason);event.setCancelled(true);}
+    String rejection(EntityDamageByEntityEvent event){return rejected.getOrDefault(event,"otra regla o plugin");}
     static boolean eligible(Player p) { return p.isOnline() && !p.isDead() && (p.getGameMode()==GameMode.SURVIVAL || p.getGameMode()==GameMode.ADVENTURE); }
     boolean canAttackBoss(Player p) {
+        if(attackPolicy!=null)return attackPolicy.test(p);
         return CombatAccess.canAttackBoss(p.getGameMode(), p.isOnline(), p.isDead(), p.hasPermission("cazajefes.admin"),
             plugin.getConfig().getBoolean("combat.allow-creative-admin-tests", true));
     }
@@ -30,11 +34,13 @@ final class CombatGuard implements Listener {
     @EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
     public void restrict(EntityDamageByEntityEvent event) {
         Entity attacker=source(event.getDamager()), victim=event.getEntity();
-        if (combatant(victim)) {
-            if (attacker instanceof Player player) {
-                if (!canAttackBoss(player) || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>576
-                    || !player.hasLineOfSight(victim)) event.setCancelled(true);
-            } else if (!combatant(attacker)) event.setCancelled(true);
+        if(combatant(victim)){
+            if(attacker instanceof Player player){
+                if(!canAttackBoss(player))deny(event,"modo de juego o permisos");
+                else if(!player.getWorld().equals(victim.getWorld()))deny(event,"mundos distintos");
+                else if(CombatHitbox.distanceSquared(player.getEyeLocation(),victim)>576)deny(event,"fuera de alcance");
+                else if(!CombatHitbox.visible(player,victim))deny(event,"pared entre jugador y cuerpo del boss");
+            }else if(!combatant(attacker))deny(event,"atacante no permitido");
         }
         if (combatant(attacker) && victim instanceof Player player && (!eligible(player)
             || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>576

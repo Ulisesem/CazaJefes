@@ -10,6 +10,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 final class BossRebirth implements Listener {
  private static final NamespacedKey USED=new NamespacedKey("cazajefes","rebirth_used"),BOSS=new NamespacedKey("cazajefes",BossKeys.BOSS);
+ private final Set<EntityDamageEvent> handled=Collections.newSetFromMap(new WeakHashMap<>());
+ boolean handled(EntityDamageEvent event){return handled.contains(event);}
  private final CazaJefesPlugin plugin;BossRebirth(CazaJefesPlugin plugin){this.plugin=plugin;}
  static boolean used(LivingEntity boss){return boss.getPersistentDataContainer().has(USED,PersistentDataType.BYTE);}
  boolean tryRebirth(EntityDamageEvent event){
@@ -17,7 +19,7 @@ final class BossRebirth implements Listener {
   ItemStack hand=boss.getEquipment().getItemInOffHand();
   if(!RebirthRules.mayRebirth(BossEquipment.zombie(boss.getType()),used(boss),hand.getType()==Material.TOTEM_OF_UNDYING&&BossEquipment.isDisplay(hand),boss.getHealth(),event.getFinalDamage()))return false;
   if(event instanceof EntityDamageByEntityEvent hit){plugin.guard.record(hit);plugin.participation.record(hit);}
-  event.setCancelled(true);boss.getPersistentDataContainer().set(USED,PersistentDataType.BYTE,(byte)1);
+  handled.add(event);event.setCancelled(true);boss.getPersistentDataContainer().set(USED,PersistentDataType.BYTE,(byte)1);
   boss.playEffect(EntityEffect.PROTECTED_FROM_DEATH);boss.getEquipment().setItemInOffHand(new ItemStack(Material.AIR));boss.setInvulnerable(false);boss.setHealth(RebirthRules.restoredHealth(boss.getMaxHealth()));boss.setNoDamageTicks(0);boss.setFireTicks(0);if(boss instanceof Mob mob)mob.setAI(true);
   Item seal=boss.getWorld().dropItemNaturally(boss.getLocation().clone().add(0,1,0),plugin.items().colossusSigil());seal.setPickupDelay(10);
   BossCatalog.Definition definition=BossCatalog.get(boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"boss_type"),PersistentDataType.STRING));String name=definition==null?"El boss":definition.name();

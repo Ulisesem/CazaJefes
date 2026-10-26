@@ -14,6 +14,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossAuras auras;
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
+   DamageDiagnostics damageDiagnostics;
    BossParticipation participation;
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -55,6 +56,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getServer().getPluginManager().registerEvents(bestiary,this);
       this.getServer().getPluginManager().registerEvents(new CombatPhases(this),this);
       getServer().getPluginManager().registerEvents(new BossDamageProgress(this),this);
+      damageDiagnostics=new DamageDiagnostics(this);getServer().getPluginManager().registerEvents(damageDiagnostics,this);
       this.getServer().getPluginManager().registerEvents(new LightningRetaliation(this),this);
       this.getServer().getPluginManager().registerEvents(new WorldMobLoot(this,relicItems),this);
       this.getServer().getPluginManager().registerEvents(new CurrencyMigration(this,relicItems),this);

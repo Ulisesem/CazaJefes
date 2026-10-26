@@ -1,4 +1,4 @@
-# CazaJefes 1.7.3
+# CazaJefes 1.7.4
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.3.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.4.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -140,3 +140,16 @@ El registro de Paper 1.21.11 muestra 192 excepciones iguales: missing required d
 La tarea de partículas del botín restaura gravedad y se cancela si un efecto inválido genera IllegalArgumentException, con un aviso único en lugar de repetir la excepción cada dos ticks. Los objetos ya entregados no se eliminan. La muerte registrada de Zyrakk es un mensaje normal del servidor; el fallo mostrado sucedía en las partículas posteriores.
 
 Validación: 79 pruebas automáticas, incluida comprobación del payload real enviado a la interfaz World, compilación y estructura del JAR. No se ejecutó un servidor Paper en esta sesión. Referencia oficial: [Particle de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/Particle.html).
+
+
+## Correcciones de golpes y brújula en 1.7.4
+
+Se corrige el filtro de golpes contra bosses escalados: antes exigía la línea de visión de ojos a ojos y medía alcance hasta la posición central. Un cuerpo visible podía rechazarse cuando la cabeza quedaba por encima de un techo o el centro estaba lejos. Ahora se mide la distancia a la caja real del mob y se trazan comprobaciones hacia puntos visibles de su cuerpo. Se siguen respetando paredes, permisos, modo de juego y cancelaciones externas. Las pruebas ejercitan EntityDamageByEntityEvent y el propio CombatGuard, incluyendo cuerpo visible, paredes, alcance, permisos y cancelación previa.
+
+La inmunidad acuática a daño ambiental CUSTOM ya no cancela eventos atribuidos a un jugador o proyectil. El suelo de daño positivo contra armadura se aplica en todas las etapas; no se inventa daño para golpes originales de cero, no se resta vida directamente y no se elimina Protección X.
+
+Diagnóstico: los golpes cancelados, con cero daño o sin pérdida de vida después de un evento aceptado generan un aviso de consola limitado a uno por boss cada cinco segundos. El administrador recibe una indicación breve. /ri diagnostico, junto al boss y con permiso cazajefes.admin, muestra versión, entidad, UUID, vida, invulnerabilidad, ticks de inmunidad, absorción, armadura, modo, permiso de combate y visibilidad del cuerpo. La opción combat.damage-diagnostics: false permite desactivar avisos automáticos. El renacimiento válido del tótem no se reporta como fallo. Este diagnóstico informa sin saltarse protecciones de otros plugins.
+
+Las flechas de la brújula son verdes y conservan diez segundos entre tandas. Al llevarla se anuncia el objetivo detectado o que no hay bosses ni huevos en ese mundo. Solo se repite al cambiar la señal, el mundo o volver a activar la brújula, no cada actualización.
+
+Validación: 85 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se reprodujo el mundo del usuario; si persiste el bloqueo, /ri diagnostico y el aviso de consola permiten distinguir una regla de acceso, daño nulo, invulnerabilidad o interferencia externa. API: [rayTraceBlocks de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/World.html).
