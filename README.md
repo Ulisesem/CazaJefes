@@ -1,4 +1,4 @@
-# CazaJefes 1.7.4
+# CazaJefes 1.7.5
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
 
@@ -41,7 +41,7 @@ Son diseños propios, inspirados en referencias oficiales: [membrana de phantom 
 
 Detén el servidor, respalda mundo y carpeta del plugin, sustituye el JAR y reinicia. Conserva un solo JAR; no uses recarga en caliente. `recipes.yml` regula recetas, `rares.yml` propiedades y `config.yml` combate/drops. Las recetas antiguas afectadas se respaldan en `recipes-before-1.4.0.yml`, restableciendo patrones y conservando enabled. Equipo antiguo se normaliza conservando propiedades Rare; categorías inferiores pasan a Épico.
 
-Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.4.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
+Compila con `mvn verify` y Java 21. Resultado: `target/CazaJefes-1.7.5.jar`. 78 pruebas automáticas, configuración, ZIP/CRC y bytecode Java 21 verificados. **No se ejecutó Paper ni se verificaron interfaces dentro de Minecraft**. Prueba equilibrio y compatibilidad en un servidor de pruebas.
 
 Fuentes reconstruidas estáticamente desde 0.9.7: se preservó lo recuperable, sin recuperar comentarios ni estructura original exacta. El JAR original no se ejecutó.
 
@@ -153,3 +153,14 @@ Diagnóstico: los golpes cancelados, con cero daño o sin pérdida de vida despu
 Las flechas de la brújula son verdes y conservan diez segundos entre tandas. Al llevarla se anuncia el objetivo detectado o que no hay bosses ni huevos en ese mundo. Solo se repite al cambiar la señal, el mundo o volver a activar la brújula, no cada actualización.
 
 Validación: 85 pruebas automáticas y compilación Java 21. No se ejecutó Paper ni se reprodujo el mundo del usuario; si persiste el bloqueo, /ri diagnostico y el aviso de consola permiten distinguir una regla de acceso, daño nulo, invulnerabilidad o interferencia externa. API: [rayTraceBlocks de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/World.html).
+
+
+## Corrección del daño negativo en 1.7.5
+
+El registro aportado muestra base=875.063 y final=-30.221724121093757: el golpe terminaba con daño negativo y podía aumentar la vida del mob hasta su máximo, sin activar el renacimiento. También aparecían residuos negativos de redondeo al calcular daño cero. No era una cura del tótem.
+
+Se retira la búsqueda binaria que llamaba repetidamente a setDamage(double). Los ajustes de fases, bonificaciones Rare, defensa y daño de bosses pasan por SafeDamage: escala una instantánea de los modificadores aplicables sin ejecutar de nuevo sus funciones acumulativas. Cada reducción se limita al daño restante; la absorción no supera los corazones de absorción disponibles. Los resultados no finitos se anulan y un golpe cero no puede quedar negativo. Las cancelaciones existentes se respetan. No se cambia directamente la vida para infligir daño ni se eliminan los intervalos nativos de inmunidad.
+
+La validación final de daño del boss se ejecuta antes de decidir si consume su tótem. Se conserva Protección X, Filo X, renacimiento único al 65% y daño doble después. El diagnóstico muestra también si el renacimiento ya fue usado y qué sostiene la mano secundaria. Los eventos cancelados de daño cero por redondeo ya no generan avisos repetidos ni se atribuyen automáticamente a otro plugin.
+
+Validación: 93 pruebas automáticas. Una regresión con EntityDamageEvent reproduce el resultado -30.221724 del registro al reducir una base de 1067.15 a 875.063 con reducciones fijas; la nueva escala conserva un daño positivo sin invocar los callbacks. Se prueban 1000 instantáneas con reducciones extremas, rangos de daño alto y todas las fases, absorción, inmunidad, cancelaciones y el residuo -1.7881393432617188E-7. No se ejecutó Paper ni se reprodujo el mundo del usuario; falta confirmar el comportamiento en su servidor. Referencia: [EntityDamageEvent de Paper 1.21.11](https://javadocs.papermc.io/paper/1.21.11/org/bukkit/event/entity/EntityDamageEvent.html).

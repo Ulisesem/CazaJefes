@@ -19,9 +19,9 @@ final class CombatPhases implements Listener {
  private int phase(LivingEntity e){return BossStages.phase(e);}
  private boolean warden(Entity e){return e.getType()==EntityType.WARDEN;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
-  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))event.setDamage(event.getDamage()*PhaseRules.incoming(phase(living))*(warden(living)?0.85:1));
+  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*(warden(living)?0.85:1));
   if(event instanceof EntityDamageByEntityEvent hit&&source(hit.getDamager()) instanceof LivingEntity attacker&&isBoss(attacker)
-      &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())event.setDamage(Math.min(80,event.getDamage()*PhaseRules.outgoing(phase(attacker))*(warden(attacker)?1.35:1)));
+      &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(80,event.getDamage()*PhaseRules.outgoing(phase(attacker))*(warden(attacker)?1.35:1)));
  }
  @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void effects(EntityDamageByEntityEvent event){
   if(!(source(event.getDamager()) instanceof LivingEntity attacker)||!isBoss(attacker)||!(event.getEntity() instanceof Player target)||!CombatGuard.eligible(target)||event.getFinalDamage()<=0)return;

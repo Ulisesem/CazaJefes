@@ -655,7 +655,7 @@ public final class RelicItems implements Listener {
                   }
 
                   if (var15.contains("execute") && var20.getHealth() / var20.getMaxHealth() < 0.25 && this.consumeSaturation(var2, var14, "execute")) {
-                     var1.setDamage(var1.getDamage() * (1.2 + var16.getOrDefault("execute", 1).intValue() * 0.1));
+                     SafeDamage.setBase(var1,var1.getDamage() * (1.2 + var16.getOrDefault("execute", 1).intValue() * 0.1));
                   }
 
                   if (var15.contains("backstab")) {
@@ -666,7 +666,7 @@ public final class RelicItems implements Listener {
                         && var11.normalize().dot(var26.normalize()) < -0.05
                         && this.consumeSaturation(var2, var14, "backstab")) {
                         int var12 = var16.getOrDefault("backstab", 1);
-                        var1.setDamage(var1.getDamage() * (1.2 + var12 * 0.12));
+                        SafeDamage.setBase(var1,var1.getDamage() * (1.2 + var12 * 0.12));
                         var20.getWorld().spawnParticle(Particle.CRIT, var20.getLocation().add(0.0, 1.0, 0.0), 12, 0.35, 0.4, 0.35, 0.1);
                         var2.playSound(var20.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8F, 1.3F);
                         var2.sendActionBar(Component.text("Backstab activado • daño aumentado", NamedTextColor.RED));
@@ -869,12 +869,12 @@ public final class RelicItems implements Listener {
             if (var6 != null && var6.hasItemMeta()) {
                String var7 = (String)var6.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
                if (var7 != null && var7.contains("guardian") && this.consumeSaturation(var2, var6, "guardian")) {
-                  var1.setDamage(var1.getDamage() * 0.82);
+                  SafeDamage.setBase(var1,var1.getDamage() * 0.82);
                   return;
                }
 
                if (var7 != null && var7.contains("nofalldamage") && var1.getCause() == DamageCause.FALL && this.consumeSaturation(var2, var6, "nofalldamage")) {
-                  var1.setDamage(var1.getDamage() * 0.35);
+                  SafeDamage.setBase(var1,var1.getDamage() * 0.35);
                }
             }
          }
