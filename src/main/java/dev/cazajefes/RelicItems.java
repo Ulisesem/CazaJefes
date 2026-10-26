@@ -1708,10 +1708,10 @@ public final class RelicItems implements Listener {
    private final Map<Item,BukkitTask> animatedLoot=new HashMap<>();
    void stopLootAnimations(){for(var entry:animatedLoot.entrySet()){entry.getValue().cancel();if(entry.getKey().isValid()){entry.getKey().setGravity(true);entry.getKey().setPickupDelay(0);}}animatedLoot.clear();}
    private void dropWithAura(final Location var1, ItemStack var2, final Particle var3, UUID var4) {
-      final Item var5 = var1.getWorld().dropItem(var1.clone().add(0.0, 2.7, 0.0), var2);
+      final Item var5 = var1.getWorld().dropItem(var1.clone().add(0.0, 8.0, 0.0), var2);
       var5.getPersistentDataContainer().set(this.dropEncounterKey, PersistentDataType.STRING, var4.toString());
       if(!plugin.isEnabled())return;
-      var5.setPickupDelay(25);
+      var5.setPickupDelay(LootSpiral.DURATION+2);
       var5.setGravity(false);
       var5.setVelocity(new Vector(0,0,0));
       var5.setGlowing(true);
@@ -1722,17 +1722,17 @@ public final class RelicItems implements Listener {
          @Override
          public void run() {
             try {
-            if (var5.isValid() && !var5.isDead() && (this.ticks+=2) <= 60) {
-               if (this.ticks == 12) {
+            if (var5.isValid() && !var5.isDead() && (this.ticks+=2) <= LootSpiral.DURATION+24) {
+               if (this.ticks == LootSpiral.DURATION) {
                   var5.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var5.getLocation(), 14, 0.25, 0.25, 0.25, 0.08);
                }
 
-               if (this.ticks == 12) {
+               if (this.ticks == LootSpiral.DURATION) {
                   var5.setGravity(true);
                   var5.setVelocity(new Vector(var5.getVelocity().getX(), -0.22, var5.getVelocity().getZ()));
                }
 
-               if(this.ticks<12){double a=this.ticks*.10+var5.getUniqueId().hashCode()%360;var5.teleport(var1.clone().add(Math.cos(a)*.9,2.7+Math.sin(this.ticks*.1)*.2,Math.sin(a)*.9));}
+               if(this.ticks<=LootSpiral.DURATION){var point=LootSpiral.at(this.ticks,var5.getUniqueId().hashCode()*.01);var5.teleport(var1.clone().add(point.x(),point.y(),point.z()));}
                if(this.ticks%4!=0)return;
                Location var1x = var5.getLocation().add(0.0, 0.25, 0.0);
                double var2x = this.ticks * 0.36;
@@ -1742,7 +1742,7 @@ public final class RelicItems implements Listener {
                   ParticleData.spawn(var1.getWorld(), var3, var1x.clone().add(Math.cos(var5x) * 0.48, var4x * 0.025, Math.sin(var5x) * 0.48), 1, 0.0, 0.0, 0.0, 0.0);
                }
 
-               if (this.ticks == 4 || this.ticks == 12 || this.ticks == 36) {
+               if (this.ticks == 4 || this.ticks == LootSpiral.DURATION || this.ticks == LootSpiral.DURATION+16) {
                   var1.getWorld().spawnParticle(Particle.FIREWORK, var1x, 12, 0.25, 0.3, 0.25, 0.08);
                }
             } else {

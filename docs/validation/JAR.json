@@ -1,10 +1,10 @@
 {
-  "version": "1.9.1",
-  "sha256": "9f14461bc41d14b8ce2e10c79d282603179a4564d2ea18a9aa8781fc33a9fd4a",
-  "size": 333788,
+  "version": "1.9.2",
+  "sha256": "f96687ba09f386c35afda7a92673f376b54beae98ec72eb7b3f6324cf8ee429b",
+  "size": 335452,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 101,
+  "tests": 103,
   "server_executed": false,
   "categories": {
     "Legendarios": 11,
@@ -105,6 +105,8 @@
     "dev/cazajefes/LootRules$Kind.class",
     "dev/cazajefes/LootRules$Reward.class",
     "dev/cazajefes/LootRules.class",
+    "dev/cazajefes/LootSpiral$Point.class",
+    "dev/cazajefes/LootSpiral.class",
     "dev/cazajefes/MarketMenu$Cost.class",
     "dev/cazajefes/MarketMenu$Offer.class",
     "dev/cazajefes/MarketMenu$Section.class",
