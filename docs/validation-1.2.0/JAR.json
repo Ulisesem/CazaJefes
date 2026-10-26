@@ -1,10 +1,10 @@
 {
-  "version": "1.7.1",
-  "sha256": "4a5afe5b69752ad6deda653f206e57b22b30af1d30df2995d63e3e6bc0f6208f",
-  "size": 309365,
+  "version": "1.7.2",
+  "sha256": "b88baca9ff560a9ad42bcd31f11637802f2377e41738ced56f68891022f31bef",
+  "size": 306283,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 78,
+  "tests": 75,
   "server_executed": false,
   "categories": {
     "Legendarios": 11,
@@ -63,7 +63,6 @@
     "dev/cazajefes/BossStages.class",
     "dev/cazajefes/BossTactics$1.class",
     "dev/cazajefes/BossTactics.class",
-    "dev/cazajefes/BossVampirism.class",
     "dev/cazajefes/BossWarnings.class",
     "dev/cazajefes/CazaJefesCommand$1.class",
     "dev/cazajefes/CazaJefesCommand$GearTierSpec.class",

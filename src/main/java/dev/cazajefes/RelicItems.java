@@ -1718,6 +1718,7 @@ public final class RelicItems implements Listener {
 
          @Override
          public void run() {
+            try {
             if (var5.isValid() && !var5.isDead() && this.ticks++ <= 70) {
                if (this.ticks == 12) {
                   var5.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var5.getLocation(), 14, 0.25, 0.25, 0.25, 0.08);
@@ -1733,14 +1734,19 @@ public final class RelicItems implements Listener {
 
                for (int var4x = 0; var4x < 6; var4x++) {
                   double var5x = var2x + var4x * Math.PI / 3.0;
-                  var1.getWorld().spawnParticle(var3, var1x.clone().add(Math.cos(var5x) * 0.48, var4x * 0.025, Math.sin(var5x) * 0.48), 1, 0.0, 0.0, 0.0, 0.0);
+                  ParticleData.spawn(var1.getWorld(), var3, var1x.clone().add(Math.cos(var5x) * 0.48, var4x * 0.025, Math.sin(var5x) * 0.48), 1, 0.0, 0.0, 0.0, 0.0);
                }
 
                if (this.ticks == 4 || this.ticks == 22 || this.ticks == 46) {
                   var1.getWorld().spawnParticle(Particle.FIREWORK, var1x, 12, 0.25, 0.3, 0.25, 0.08);
                }
             } else {
+               if(var5.isValid())var5.setGravity(true);
                var6[0].cancel();
+            }
+            }catch(IllegalArgumentException invalid){
+               if(var5.isValid())var5.setGravity(true);
+               var6[0].cancel();plugin.getLogger().warning("Se canceló un efecto de botín inválido: "+invalid.getMessage());
             }
          }
       }, 1L, 2L);

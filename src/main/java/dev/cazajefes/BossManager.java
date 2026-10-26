@@ -977,7 +977,7 @@ public final class BossManager implements Listener {
             ? Particle.DRAGON_BREATH
             : (this.definition.tier().ordinal() >= BossCatalog.Tier.MYTHIC.ordinal() ? Particle.SOUL_FIRE_FLAME : Particle.WITCH);
          this.boss.getWorld().playSound(var2, Sound.ENTITY_WARDEN_ATTACK_IMPACT, 1.3F, 0.75F);
-         this.boss.getWorld().spawnParticle(var3, var2.clone().add(0.0, 1.0, 0.0), 100, 2.5, 1.1, 2.5, 0.08);
+         ParticleData.spawn(this.boss.getWorld(), var3, var2.clone().add(0.0, 1.0, 0.0), 100, 2.5, 1.1, 2.5, 0.08);
          double var4 = this.definition.mini() ? 5.0 : 8.0;
 
          for (Player var7 : this.boss.getWorld().getPlayers()) {
@@ -998,7 +998,7 @@ public final class BossManager implements Listener {
             ? Particle.HAPPY_VILLAGER
             : (var3.equals("zorro_salvaje") ? Particle.CRIT : (var3.equals("jabali_infernal") ? Particle.FLAME : Particle.CLOUD));
          this.boss.getWorld().playSound(var2, var3.equals("jabali_infernal") ? Sound.ENTITY_RAVAGER_ROAR : Sound.ENTITY_WARDEN_ATTACK_IMPACT, 1.5F, 0.8F);
-         this.boss.getWorld().spawnParticle(var4, var2.clone().add(0.0, 1.0, 0.0), 85, 1.3, 0.8, 1.3, 0.15);
+         ParticleData.spawn(this.boss.getWorld(), var4, var2.clone().add(0.0, 1.0, 0.0), 85, 1.3, 0.8, 1.3, 0.15);
          if (var3.equals("zorro_salvaje")) {
             this.summonMinions(var1);
 
@@ -1378,7 +1378,7 @@ public final class BossManager implements Listener {
             case ABYSSAL -> Particle.DRAGON_BREATH;
          };
          this.boss.getWorld().playSound(var2, Sound.ENTITY_IRON_GOLEM_ATTACK, 1.6F, 0.55F);
-         this.boss.getWorld().spawnParticle(var5, var2, 95, var3 / 3.0, 0.5, var3 / 3.0, 0.08);
+         ParticleData.spawn(this.boss.getWorld(), var5, var2, 95, var3 / 3.0, 0.5, var3 / 3.0, 0.08);
 
          for (Player var7 : this.boss.getWorld().getPlayers()) {
             if (!CombatGuard.eligible(var7)) continue;
@@ -1428,7 +1428,7 @@ public final class BossManager implements Listener {
 
          for (int var6 = 1; var6 <= 14; var6++) {
             Location var7 = this.boss.getLocation().clone().add(var3.clone().multiply(var6)).add(0.0, 0.8, 0.0);
-            this.boss.getWorld().spawnParticle(var4, var7, 8, 0.25, 0.25, 0.25, 0.04);
+            ParticleData.spawn(this.boss.getWorld(), var4, var7, 8, 0.25, 0.25, 0.25, 0.04);
 
             for (Entity var9 : this.boss.getWorld().getNearbyEntities(var7, 1.0, 1.1, 1.0)) {
                if (var9 instanceof Player var10 && var5.add(var10.getUniqueId())) {
