@@ -1307,7 +1307,7 @@ public final class RelicItems implements Listener {
       List<QueuedLoot> sequence=new ArrayList<>();
       for (ItemStack var11 : var4) {
          this.addRiftDropClassification(var11, var2.tier());
-         sequence.add(new QueuedLoot(var1.clone(),var11.clone(),var9,var3));
+         for(ItemStack unit:LootPresentation.units(var11))sequence.add(new QueuedLoot(var1.clone(),unit,var9,var3));
       }
 
       queueLoot(sequence);
@@ -1751,7 +1751,8 @@ public final class RelicItems implements Listener {
       UUID id=display.getUniqueId();
       DeathCompletion completion=new DeathCompletion(()->{
          LootAnimation active=animatedLoot.remove(id);if(active!=null&&active.task!=null)active.task.cancel();
-         display.remove();releaseLoot(reward,false);
+         boolean landed=display.isValid()&&plugin.isEnabled();display.remove();releaseLoot(reward,false);
+         if(landed&&LootPresentation.essence(customId(reward.stack())))essenceLanding(origin);
       });
       LootAnimation animation=new LootAnimation(display,completion);animatedLoot.put(id,animation);
       animation.task=plugin.getServer().getScheduler().runTaskTimer(plugin,new Runnable(){int ticks;
@@ -1765,6 +1766,18 @@ public final class RelicItems implements Listener {
             }catch(IllegalArgumentException error){completion.finish();plugin.getLogger().warning("Botín liberado tras cancelar animación: "+error.getMessage());}
          }
       },2L,2L);
+   }
+
+   private void essenceLanding(Location origin){
+      origin.getWorld().strikeLightningEffect(origin);
+      origin.getWorld().playSound(origin,Sound.ENTITY_LIGHTNING_BOLT_THUNDER,.7f,1.4f);
+      origin.getWorld().playSound(origin,Sound.UI_TOAST_CHALLENGE_COMPLETE,.8f,1.2f);
+      origin.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,origin.clone().add(0,.5,0),20,.4,.6,.4,.04);
+      origin.getWorld().spawnParticle(Particle.FIREWORK,origin.clone().add(0,.5,0),16,.3,.5,.3,.03);
+   }
+   @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+   public void separateBossLoot(org.bukkit.event.entity.ItemMergeEvent event){
+      if(event.getEntity().getPersistentDataContainer().has(dropEncounterKey,PersistentDataType.STRING)||event.getTarget().getPersistentDataContainer().has(dropEncounterKey,PersistentDataType.STRING))event.setCancelled(true);
    }
 
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
