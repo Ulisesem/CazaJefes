@@ -53,6 +53,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (var4.length != 0 && !var4[0].equalsIgnoreCase("help")) {
          String var5 = var4[0].toLowerCase();
          switch (var5) {
+            case "particulas":
+               ((CazaJefesPlugin)plugin).auras.command(var1,var4);break;
             case "diagnostico":
                ((CazaJefesPlugin)plugin).damageDiagnostics.inspect(var1);break;
             case "spawnpoint":
@@ -150,9 +152,10 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    public List<String> onTabComplete(CommandSender var1, Command var2, String var3, String[] var4) {
+      if(var4.length>=2&&var4[0].equalsIgnoreCase("particulas"))return var4.length==2?List.of("baja","media","alta","off").stream().filter(v->v.startsWith(var4[1].toLowerCase(java.util.Locale.ROOT))).toList():List.of();
       ArrayList<String> var5 = new ArrayList<>();
       if (var4.length == 1) {
-         var5.addAll(List.of("help", "bosses", "bestiario", "recipes", "recetas", "canjear", "catalogo", "compass", "rares", "enchants"));
+         var5.addAll(List.of("particulas", "help", "bosses", "bestiario", "recipes", "recetas", "canjear", "catalogo", "compass", "rares", "enchants"));
          if (this.isAdmin(var1, "rareitemhunter.admin.egg")) {
             var5.addAll(List.of("egg", "eggs"));
          }
@@ -1639,6 +1642,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private void help(CommandSender var1) {
+      var1.sendMessage("/ri particulas <baja|media|alta|off> · Calidad de auras");
       var1.sendMessage(
          ((TextComponent)Component.text("━━━━━━━━━━ ", NamedTextColor.DARK_PURPLE)
                .append(Component.text("CAZAJEFES · COMANDOS", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD)))

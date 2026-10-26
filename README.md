@@ -1,3 +1,22 @@
+# CazaJefes 1.8.0 · Auras optimizadas
+
+Las auras permanentes usan un único temporizador, geometría compartida entre espectadores, selección de bosses cercanos y presupuestos de envíos. Se conserva el combate de 1.7.5.
+
+- Calidad media por defecto: 24 puntos y un acento, cada 10 ticks; alcance de 32 bloques y dos bosses por jugador.
+- `/ri particulas baja|media|alta|off`: preferencia personal persistente. No necesita permiso administrativo. Solo afecta las auras permanentes; brújula, ataques y advertencias siguen independientes.
+- Se respetan los ajustes de partículas del cliente; no se fuerza la visualización ambiental.
+- Presupuesto por jugador: 160 envíos por segundo con capacidad de ráfaga de un segundo; presupuesto global: 1024 por actualización. Se reduce calidad o se omiten auras completas al agotarse. Se rota la prioridad entre jugadores.
+- Configuración: `particles.auras` en config.yml. Los valores predeterminados también funcionan con configuraciones antiguas. Reiniciar tras cambiar el intervalo.
+
+En calidad media, un boss visible pasa de aproximadamente 296 a 50 llamadas de envío por segundo por espectador (83% menos). Es una comparación del algoritmo, no una medición de FPS/TPS. Los ataques y otras partículas no están incluidos en esa cifra. Los límites controlan envíos, no bytes ni partículas visibles finales.
+
+Validación: Maven verify y pruebas unitarias; no se ha ejecutado un servidor Paper ni un cliente. Antes de abrir el servidor, medir con jugadores y varios bosses usando el perfilador spark de Paper.
+
+Instalación: detener el servidor, reemplazar el JAR anterior por CazaJefes-1.8.0.jar y arrancar. Conservar la configuración existente.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.7.5
 
 Paper 1.21.11 y Java 21. Fuentes Maven y JAR de prueba.
