@@ -13,12 +13,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 final class BossAbilities implements Listener {
  static final long SPECIAL_COOLDOWN=10000,ULTIMATE_COOLDOWN=15000;
+ private final BossDisplacement displacement=new BossDisplacement();
  private final CazaJefesPlugin plugin;private final NamespacedKey readyKey;private final Map<UUID,Cast> casts=new HashMap<>();
  BossAbilities(CazaJefesPlugin plugin){this.plugin=plugin;readyKey=new NamespacedKey(plugin,"ultimate_ready_at");}
  boolean busy(LivingEntity boss){return casts.containsKey(boss.getUniqueId());}
  static boolean ready(int phase,long now,long ready,boolean busy){return phase==3&&!busy&&now>=ready;}
  boolean tick(LivingEntity boss,BossCatalog.Definition definition,Player target,int phase){
-  if(busy(boss))return true;long now=System.currentTimeMillis();
+  long now=System.currentTimeMillis();displacement.tick(boss,definition,phase,now);if(busy(boss))return true;
   if(ready(phase,now,boss.getPersistentDataContainer().getOrDefault(readyKey,PersistentDataType.LONG,0L),false)){begin(boss,definition,target,BossAbilityCatalog.ultimate(definition),true);return true;}return false;
  }
  void special(LivingEntity boss,BossCatalog.Definition definition,Player target,int variant){if(busy(boss))return;var base=BossAbilityCatalog.ultimate(definition);var pattern=switch(variant){case 0->BossAbilityCatalog.Pattern.CROSS;case 1->BossAbilityCatalog.Pattern.CONE;default->BossAbilityCatalog.Pattern.GEYSERS;};begin(boss,definition,target,new BossAbilityCatalog.Ultimate(switch(variant){case 0->"Corte de la Grieta";case 1->"Barrido del Cazador";default->"Runas Ascendentes";},pattern,base.effect(),6,1,base.angle()),false);}
@@ -53,7 +54,7 @@ final class BossAbilities implements Listener {
   }
   void finish(){casts.remove(boss.getUniqueId(),this);if(ultimate&&boss.isValid())boss.getPersistentDataContainer().set(readyKey,PersistentDataType.LONG,System.currentTimeMillis()+ULTIMATE_COOLDOWN);cancel();}
  }
- @EventHandler public void death(EntityDeathEvent event){Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish();}
- @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish();}}
- void stop(){for(Cast cast:new ArrayList<>(casts.values()))cast.finish();BossWarnings.clear();}
+ @EventHandler public void death(EntityDeathEvent event){displacement.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish();}
+ @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){displacement.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish();}}
+ void stop(){displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish();BossWarnings.clear();}
 }

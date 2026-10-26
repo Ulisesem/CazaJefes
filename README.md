@@ -1,3 +1,19 @@
+# CazaJefes 1.10.1 · Empuje y elevación por etapas
+
+Todos los bosses y minijefes obtienen dos habilidades de desplazamiento:
+
+- Etapa 2: onda de Empuje X cada diez segundos. Impulso horizontal de 2,6 y vertical de 0,45; es una habilidad, no un encantamiento en el arma.
+- Etapa 3: elevación cada veinte segundos. Impulso vertical de 1,35 con leve separación horizontal. La caída posterior conserva el daño normal del juego.
+
+Cada habilidad comienza a contar al detectar su etapa; no dispara inmediatamente al entrar. Al pasar a etapa 3 deja de usarse el empuje de etapa 2. El lanzamiento requiere jugadores vivos en supervivencia/aventura a ocho bloques o menos y con línea de visión. Usa el temporizador de ataques existente (comprobación cada 5–10 ticks); la detección puede retrasarse hasta medio segundo. No acumula lanzamientos pendientes ni multiplica la velocidad existente.
+
+Aviso sobre la hotbar sin sustituir una advertencia activa de ataque final, sonido de ráfaga y partículas de viento. Sus recargas son independientes de los ataques especiales y definitivos existentes; se limpian al morir o descargar el boss. Partículas GUST de tipo simple compatibles con Paper 1.21.11.
+
+Validación: Maven verify y pruebas de recargas, transición de fase, independencia por boss y vectores finitos. Sin prueba visual en Paper. Reemplazar el JAR con el servidor apagado y conservar configuración.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.10.0 · Espiral amplia, botín unitario y protección por categoría
 
 - Radio inicial de la espiral aumentado de 1,4 a 2,2 bloques; conserva tres vueltas, ocho segundos de descenso suavizado y una animación por boss.
