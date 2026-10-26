@@ -1,3 +1,16 @@
+# CazaJefes 1.9.4 · Descenso visual suavizado
+
+El descenso usa un ItemDisplay con el mismo ItemStack, brillo e iluminación. Se actualiza cada dos ticks con teleportDuration=2 para que el cliente suavice la posición y orientación entre destinos de la espiral. No se crean objetos recogibles durante el vuelo. Se mantienen tres vueltas y 160 ticks de trayectoria; se esperan dos ticks al final para completar la interpolación antes de sustituir la copia por el objeto real. El siguiente stack conserva su turno cada 164 ticks.
+
+Al aterrizar se elimina la copia visual y se crea una sola recompensa física con el identificador de encuentro, cantidad, datos y encantamientos originales. La entrega también se completa una sola vez si desaparece la copia o se desactiva el plugin; los stacks pendientes se vacían al suelo. Se mantienen los anuncios de rares al recoger y el reporte completo del botín.
+
+No se incrementa la frecuencia de partículas. Una animación activa por boss. Puede seguir habiendo tirones si bajan los TPS o falla la conexión. Validación por compilación y pruebas unitarias; no se ha verificado la apariencia con un cliente Paper real.
+
+Reemplazar el JAR con el servidor apagado y reiniciar; conservar configuración.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.9.3 · Botín de uno en uno
 
 Cada recompensa del boss baja por separado. El primer stack aparece después del impacto, completa su espiral de 160 ticks (ocho segundos a 20 TPS), y el siguiente aparece cuatro ticks después. Los demás stacks esperan en una cola sin entidades ni partículas. Por ejemplo, tres stacks tardan unos 24 segundos en completar sus descensos. Se conserva la cantidad de cada stack; no se separan unidades de un mismo stack.

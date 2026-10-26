@@ -1709,10 +1709,14 @@ public final class RelicItems implements Listener {
 
    private record QueuedLoot(Location location,ItemStack stack,Particle particle,UUID encounter){}
    private final Map<LootSequence<QueuedLoot>,BukkitTask> queuedLoot=new HashMap<>();
-   private final Map<Item,BukkitTask> animatedLoot=new HashMap<>();
+   private static final class LootAnimation {
+      final org.bukkit.entity.ItemDisplay display;final DeathCompletion delivery;BukkitTask task;
+      LootAnimation(org.bukkit.entity.ItemDisplay display,DeathCompletion delivery){this.display=display;this.delivery=delivery;}
+   }
+   private final Map<UUID,LootAnimation> animatedLoot=new HashMap<>();
    private void releaseLoot(QueuedLoot reward,boolean animate){
       if(animate&&plugin.isEnabled())dropWithAura(reward.location(),reward.stack(),reward.particle(),reward.encounter());
-      else{Item item=reward.location().getWorld().dropItemNaturally(reward.location(),reward.stack());item.getPersistentDataContainer().set(dropEncounterKey,PersistentDataType.STRING,reward.encounter().toString());}
+      else{Item item=reward.location().getWorld().dropItem(reward.location().clone().add(0,.3,0),reward.stack().clone());item.getPersistentDataContainer().set(dropEncounterKey,PersistentDataType.STRING,reward.encounter().toString());item.setVelocity(new Vector(0,0,0));item.setPickupDelay(0);item.setGlowing(true);}
    }
    private void queueLoot(List<QueuedLoot> rewards){
       LootSequence<QueuedLoot> queue=new LootSequence<>(rewards);
@@ -1726,58 +1730,41 @@ public final class RelicItems implements Listener {
       queuedLoot.put(queue,task);
    }
    void stopLootAnimations(){
-      for(var entry:animatedLoot.entrySet()){entry.getValue().cancel();if(entry.getKey().isValid()){entry.getKey().setGravity(true);entry.getKey().setPickupDelay(0);}}animatedLoot.clear();
+      for(var animation:new ArrayList<>(animatedLoot.values()))animation.delivery.finish();animatedLoot.clear();
       for(var entry:queuedLoot.entrySet()){entry.getValue().cancel();for(var reward:entry.getKey().drain())releaseLoot(reward,false);}queuedLoot.clear();
    }
-   private void dropWithAura(final Location var1, ItemStack var2, final Particle var3, UUID var4) {
-      final Item var5 = var1.getWorld().dropItem(var1.clone().add(0.0, 8.0, 0.0), var2);
-      var5.getPersistentDataContainer().set(this.dropEncounterKey, PersistentDataType.STRING, var4.toString());
-      if(!plugin.isEnabled())return;
-      var5.setPickupDelay(LootSpiral.DURATION+2);
-      var5.setGravity(false);
-      var5.setVelocity(new Vector(0,0,0));
-      var5.setGlowing(true);
-      final BukkitTask[] var6 = new BukkitTask[1];
-      var6[0] = this.plugin.getServer().getScheduler().runTaskTimer(this.plugin, new Runnable() {
-         int ticks;
-
-         @Override
-         public void run() {
-            try {
-            if (var5.isValid() && !var5.isDead() && (this.ticks+=2) <= LootSpiral.DURATION) {
-               if (this.ticks == LootSpiral.DURATION) {
-                  var5.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var5.getLocation(), 14, 0.25, 0.25, 0.25, 0.08);
-               }
-
-               if (this.ticks == LootSpiral.DURATION) {
-                  var5.setGravity(true);
-                  var5.setVelocity(new Vector(var5.getVelocity().getX(), -0.22, var5.getVelocity().getZ()));
-               }
-
-               if(this.ticks<=LootSpiral.DURATION){var point=LootSpiral.at(this.ticks,var5.getUniqueId().hashCode()*.01);var5.teleport(var1.clone().add(point.x(),point.y(),point.z()));}
-               if(this.ticks%4!=0)return;
-               Location var1x = var5.getLocation().add(0.0, 0.25, 0.0);
-               double var2x = this.ticks * 0.36;
-
-               for (int var4x = 0; var4x < 3; var4x++) {
-                  double var5x = var2x + var4x * Math.PI / 3.0;
-                  ParticleData.spawn(var1.getWorld(), var3, var1x.clone().add(Math.cos(var5x) * 0.48, var4x * 0.025, Math.sin(var5x) * 0.48), 1, 0.0, 0.0, 0.0, 0.0);
-               }
-
-               if (this.ticks == 4 || this.ticks == LootSpiral.DURATION || this.ticks == LootSpiral.DURATION+16) {
-                  var1.getWorld().spawnParticle(Particle.FIREWORK, var1x, 12, 0.25, 0.3, 0.25, 0.08);
-               }
-            } else {
-               if(var5.isValid())var5.setGravity(true);
-               animatedLoot.remove(var5);var6[0].cancel();
-            }
-            }catch(IllegalArgumentException invalid){
-               if(var5.isValid())var5.setGravity(true);
-               animatedLoot.remove(var5);var6[0].cancel();plugin.getLogger().warning("Se canceló un efecto de botín inválido: "+invalid.getMessage());
-            }
+   private void dropWithAura(final Location origin, ItemStack stack, final Particle particle, UUID encounter) {
+      QueuedLoot reward=new QueuedLoot(origin.clone(),stack.clone(),particle,encounter);
+      if(!plugin.isEnabled()){releaseLoot(reward,false);return;}
+      final org.bukkit.entity.ItemDisplay display;
+      double phase=ThreadLocalRandom.current().nextDouble(Math.PI*2);
+      var first=LootSpiral.at(0,phase);
+      try{
+         display=origin.getWorld().spawn(origin.clone().add(first.x(),first.y(),first.z()),org.bukkit.entity.ItemDisplay.class,entity->{
+            entity.setPersistent(false);entity.setInvulnerable(true);entity.setGravity(false);
+            entity.setItemStack(stack.clone());entity.setItemDisplayTransform(org.bukkit.entity.ItemDisplay.ItemDisplayTransform.FIXED);
+            entity.setTeleportDuration(2);entity.setInterpolationDuration(2);entity.setInterpolationDelay(0);
+            entity.setBrightness(new org.bukkit.entity.Display.Brightness(15,15));entity.setGlowing(true);
+            entity.getPersistentDataContainer().set(new NamespacedKey(plugin,"loot_visual"),PersistentDataType.BYTE,(byte)1);
+         });
+      }catch(IllegalArgumentException error){releaseLoot(reward,false);plugin.getLogger().warning("Botín entregado sin animación: "+error.getMessage());return;}
+      UUID id=display.getUniqueId();
+      DeathCompletion completion=new DeathCompletion(()->{
+         LootAnimation active=animatedLoot.remove(id);if(active!=null&&active.task!=null)active.task.cancel();
+         display.remove();releaseLoot(reward,false);
+      });
+      LootAnimation animation=new LootAnimation(display,completion);animatedLoot.put(id,animation);
+      animation.task=plugin.getServer().getScheduler().runTaskTimer(plugin,new Runnable(){int ticks;
+         public void run(){
+            ticks+=2;
+            if(!display.isValid()||ticks>=LootSpiral.DURATION+2){completion.finish();return;}
+            try{
+               var point=LootSpiral.at(ticks,phase);Location at=origin.clone().add(point.x(),point.y(),point.z());at.setYaw(ticks*4.5f);display.teleport(at);
+               if(ticks%4==0)for(int i=0;i<3;i++){double angle=ticks*.36+i*Math.PI*2/3;ParticleData.spawn(origin.getWorld(),particle,at.clone().add(Math.cos(angle)*.4,.1,Math.sin(angle)*.4),1,0,0,0,0);}
+               if(ticks==LootSpiral.DURATION)origin.getWorld().spawnParticle(Particle.FIREWORK,at,12,.2,.25,.2,.03);
+            }catch(IllegalArgumentException error){completion.finish();plugin.getLogger().warning("Botín liberado tras cancelar animación: "+error.getMessage());}
          }
-      }, 2L, 2L);
-      animatedLoot.put(var5,var6[0]);
+      },2L,2L);
    }
 
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

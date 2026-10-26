@@ -1,10 +1,10 @@
 {
-  "version": "1.9.3",
-  "sha256": "ff54ec17eb8d78ab800ee28be5298161ad6ff9d700cf343ad387e07bee5a71d8",
-  "size": 338066,
+  "version": "1.9.4",
+  "sha256": "9305cca75763f0314c971606dfd1f85bf0db665d0226838f3d0d0cc2647f2ea9",
+  "size": 339355,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 105,
+  "tests": 106,
   "server_executed": false,
   "categories": {
     "Legendarios": 11,
@@ -130,6 +130,7 @@
     "dev/cazajefes/RecipeSettings.class",
     "dev/cazajefes/RelicItems$1.class",
     "dev/cazajefes/RelicItems$2.class",
+    "dev/cazajefes/RelicItems$LootAnimation.class",
     "dev/cazajefes/RelicItems$LootResult.class",
     "dev/cazajefes/RelicItems$QueuedLoot.class",
     "dev/cazajefes/RelicItems.class",
