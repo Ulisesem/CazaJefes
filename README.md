@@ -1,3 +1,22 @@
+# CazaJefes 1.9.0 · Caída final y botín animado
+
+Al morir definitivamente, el cuerpo real se oculta mediante hideEntity y se crea una copia visual sin IA, colisión, recompensas ni vulnerabilidad. La copia sube 15 bloques en 60 ticks y cae en 20 ticks. Cerca del límite superior del mundo se limita la altura al espacio disponible. El renacimiento previo de los zombies conserva su comportamiento: esta secuencia solo ocurre al morir de verdad.
+
+Un círculo de seis bloques y avisos sobre la hotbar anuncian el impacto. Al caer se reproducen partículas y sonido de explosión, sin llamar a createExplosion: no rompe bloques, no inicia fuego y no destruye el botín.
+
+- Jugadores en supervivencia o aventura a seis bloques o menos del punto de muerte: 6–7 puntos de daño (3–3½ corazones), omitiendo armadura y Protección para mantener esa potencia.
+- Se respetan cancelaciones del evento, absorción, bloqueo y reducciones por inmunidad; pueden reducir o impedir la pérdida real. Otros plugins que modifiquen después el evento también pueden alterar el resultado.
+- Tras un impacto aceptado con daño positivo: Lentitud II (6 s), Debilidad I (8 s) y Ceguera I (2 s). No afecta creativo ni espectador.
+- El botín orbita suspendido a 2,7 bloques durante cuatro segundos, cae con brillo y estela, y se puede recoger a partir de 4,5 segundos. Al desactivar el plugin se restauran gravedad y recogida.
+- Partículas de botín cada cuatro ticks; no se aumentan las auras permanentes optimizadas de 1.8.0.
+
+Validación: Maven verify, 99 pruebas sin errores; geometría del ascenso y caída, radio, rango de daño y conservación de cancelación/absorción. No se ha probado visualmente en un servidor Paper; la ocultación de la animación vanilla debe comprobarse con clientes reales y otros plugins instalados.
+
+Instalación: detener el servidor, sustituir el JAR anterior por CazaJefes-1.9.0.jar y arrancar. Conservar la configuración.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.8.0 · Auras optimizadas
 
 Las auras permanentes usan un único temporizador, geometría compartida entre espectadores, selección de bosses cercanos y presupuestos de envíos. Se conserva el combate de 1.7.5.

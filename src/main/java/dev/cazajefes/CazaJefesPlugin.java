@@ -73,6 +73,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(relicItems!=null)relicItems.stopLootAnimations();
       if(deathVisuals!=null)deathVisuals.stop();
       if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
