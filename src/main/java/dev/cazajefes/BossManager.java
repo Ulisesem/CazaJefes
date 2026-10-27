@@ -848,7 +848,7 @@ public final class BossManager implements Listener {
                }
                if(((CazaJefesPlugin)plugin).abilities.tick(boss,definition,var2,phase))return;
                if(boss instanceof org.bukkit.entity.Shulker){
-                  long now=System.currentTimeMillis();if(now>=nextSpecialAt){((CazaJefesPlugin)plugin).abilities.special(boss,definition,var2,specialRotation++%3);nextSpecialAt=now+10000;return;}
+
                   ((CazaJefesPlugin)plugin).shulkers.tick(boss,var2,phase);return;}
                long var3 = System.currentTimeMillis();
                   if (this.boss instanceof Mob var5) {
@@ -859,18 +859,10 @@ public final class BossManager implements Listener {
                      this.attacks++;
                      this.pursue(var2);
                      this.attackNearby(var2);
-                     if (var3 >= this.nextSpecialAt) {
-                        this.miniSpecial(var2, this.specialRotation++ % 8);
-                        this.nextSpecialAt = var3 + 10000L;
-                     }
                   } else {
                      this.pursue(var2);
                      this.attackNearby(var2);
                      this.attacks++;
-                     if (var3 >= this.nextSpecialAt) {
-                        this.miniSpecial(var2, this.specialRotation++ % 8);
-                        this.nextSpecialAt = var3 + 10000L;
-                     }
 
                      if (this.attacks % 300 == 0) {
                         this.summonMinions(var2);

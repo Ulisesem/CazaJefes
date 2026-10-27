@@ -45,6 +45,7 @@ final class BossDeathVisuals implements Listener {
    if(player.isDead()||!player.isOnline()||(player.getGameMode()!=GameMode.SURVIVAL&&player.getGameMode()!=GameMode.ADVENTURE)||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
    UUID id=player.getUniqueId();blastDamage.put(id,DeathFlight.damage(java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
    try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event!=null&&!event.isCancelled()&&event.getFinalDamage()>0){
+    VectorBack.push(player,center);
     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS,120,1));
     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS,160,0));
     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.BLINDNESS,40,0));
@@ -53,7 +54,7 @@ final class BossDeathVisuals implements Listener {
  }
  @SuppressWarnings("deprecation") static void fixedBlastDamage(EntityDamageEvent event,double amount){
   if(event.isCancelled())return;
-  for(var modifier:EntityDamageEvent.DamageModifier.values())if(event.isApplicable(modifier)&&modifier!=EntityDamageEvent.DamageModifier.ABSORPTION&&modifier!=EntityDamageEvent.DamageModifier.INVULNERABILITY_REDUCTION&&modifier!=EntityDamageEvent.DamageModifier.BLOCKING)event.setDamage(modifier,modifier==EntityDamageEvent.DamageModifier.BASE?amount:0);
+  for(var modifier:EntityDamageEvent.DamageModifier.values())if(event.isApplicable(modifier)&&modifier!=EntityDamageEvent.DamageModifier.INVULNERABILITY_REDUCTION&&modifier!=EntityDamageEvent.DamageModifier.BLOCKING)event.setDamage(modifier,modifier==EntityDamageEvent.DamageModifier.BASE?amount:0);
   SafeDamage.normalize(event);
  }
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void explosionDamage(EntityDamageEvent event){Double amount=blastDamage.get(event.getEntity().getUniqueId());if(amount!=null&&event.getCause()==EntityDamageEvent.DamageCause.CUSTOM){fixedBlastDamage(event,amount);blastEvents.put(event.getEntity().getUniqueId(),event);}}
