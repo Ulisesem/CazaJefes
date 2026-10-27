@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: dev.cazajefes.ProgressionTest
 -------------------------------------------------------------------------------
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in dev.cazajefes.ProgressionTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in dev.cazajefes.ProgressionTest
