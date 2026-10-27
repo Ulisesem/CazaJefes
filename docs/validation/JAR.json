@@ -1,7 +1,7 @@
 {
-  "version": "1.12.0",
-  "sha256": "dadb92e092ffc24292594ce604ae616823f5ece62c8af32f284d9f56104401c7",
-  "size": 378299,
+  "version": "1.12.1",
+  "sha256": "61f8e3dc4014abbabc9c9409e6e747905eb650ba57844828a5e51b4735018d83",
+  "size": 373303,
   "zip_crc": "OK",
   "bytecode_major": 65,
   "tests": 130,
