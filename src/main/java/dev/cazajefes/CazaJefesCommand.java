@@ -1303,6 +1303,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          this.deny(var1);
       } else {
          this.plugin.reloadConfig();
+         ConfigMigration.canonicalBossIds((CazaJefesPlugin)plugin);
          ((CazaJefesPlugin)this.plugin).recipeSettings.reload();
          this.items.reloadRares();
          var1.sendMessage(Component.text("Configuración recargada.", NamedTextColor.GREEN));

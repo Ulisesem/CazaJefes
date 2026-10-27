@@ -13,9 +13,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 final class BossAbilities implements Listener {
  static final long SPECIAL_COOLDOWN=10000,ULTIMATE_COOLDOWN=15000;
- private final BossDisplacement displacement=new BossDisplacement();
+ private final BossDisplacement displacement;
  private final CazaJefesPlugin plugin;private final NamespacedKey readyKey;private final Map<UUID,Cast> casts=new HashMap<>();
- BossAbilities(CazaJefesPlugin plugin){this.plugin=plugin;readyKey=new NamespacedKey(plugin,"ultimate_ready_at");}
+ BossAbilities(CazaJefesPlugin plugin){this.plugin=plugin;displacement=new BossDisplacement(plugin);readyKey=new NamespacedKey(plugin,"ultimate_ready_at");}
  boolean busy(LivingEntity boss){return casts.containsKey(boss.getUniqueId());}
  static boolean ready(int phase,long now,long ready,boolean busy){return phase==3&&!busy&&now>=ready;}
  boolean tick(LivingEntity boss,BossCatalog.Definition definition,Player target,int phase){
@@ -56,5 +56,5 @@ final class BossAbilities implements Listener {
  }
  @EventHandler public void death(EntityDeathEvent event){displacement.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish();}
  @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){displacement.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish();}}
- void stop(){displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish();BossWarnings.clear();}
+ void stop(){BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish();BossWarnings.clear();}
 }

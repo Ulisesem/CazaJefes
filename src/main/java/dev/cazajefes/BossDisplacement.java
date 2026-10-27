@@ -5,6 +5,7 @@ import org.bukkit.util.Vector;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 final class BossDisplacement {
+ private final CazaJefesPlugin plugin;BossDisplacement(CazaJefesPlugin plugin){this.plugin=plugin;}
  private final PhaseImpulse clock=new PhaseImpulse();
  void tick(LivingEntity boss,BossCatalog.Definition definition,int phase,long now){
   if(!clock.ready(boss.getUniqueId(),phase,now))return;
@@ -17,7 +18,7 @@ final class BossDisplacement {
    player.spawnParticle(Particle.GUST,at.clone().add(0,.5,0),6,.35,.4,.35,.015);
    if(phase==3&&!BossWarnings.active(player))BossWarnings.send(player,Component.text("⚠ ATAQUE ESPECIAL · "+BurstVisuals.name(definition),NamedTextColor.WHITE).decorate(TextDecoration.BOLD));
   }
-  if(hit){BurstVisuals.show(center.clone().add(0,1,0),3);boss.getWorld().playSound(center,Sound.ENTITY_BREEZE_WIND_BURST,1,phase==2?1.2f:.7f);}
+  if(hit){BurstVisuals.show(plugin,center.clone().add(0,1,0),3);boss.getWorld().playSound(center,Sound.ENTITY_BREEZE_WIND_BURST,1,phase==2?1.2f:.7f);}
  }
  void remove(java.util.UUID id){clock.remove(id);}void clear(){clock.clear();}
 }
