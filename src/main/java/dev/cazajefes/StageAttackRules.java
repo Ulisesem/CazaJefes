@@ -4,7 +4,7 @@ final class StageAttackRules {
  static int groundCount(int phase){return phase>=3?2:3;}
  static long groundCooldown(int phase,int slot){return phase>=3&&slot==1?15000:phase==1?12000:10000;}
  static long gap(int phase){return phase==1?4000:phase==2?3000:2500;}
- static double lift(int phase){return 1.55+Math.max(1,Math.min(3,phase))*.15;}
+ static double lift(int phase){return CombatPower.lift(phase);}
  static final String LIFT="Ascensión del Firmamento",REPEL="Ruptura del Horizonte";
  static BossAbilityCatalog.Ultimate profile(BossCatalog.Definition boss,int phase,int slot){
   var base=BossAbilityCatalog.ultimate(boss);if(phase>=3&&slot==1)return base;

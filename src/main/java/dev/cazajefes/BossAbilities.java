@@ -50,7 +50,9 @@ final class BossAbilities implements Listener {
    for(Player player:players()){
     if(!hits(player.getLocation(),pulse)||player.getLocation().distanceSquared(boss.getLocation())>576||!boss.hasLineOfSight(player))continue;
     if(profile.pattern()==BossAbilityCatalog.Pattern.VORTEX&&pulse<profile.pulses()-1){Vector pull=center.toVector().subtract(player.getLocation().toVector());if(pull.lengthSquared()>.1)player.setVelocity(pull.normalize().multiply(.4).setY(.1));}
-    boolean damaged=AbilityDamage.hit(player,boss,(ultimate?12:6)+definition.tier().ordinal()*(ultimate?2.5:1.2));
+    var attack=boss.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
+    double baseline=attack==null?definition.tier().damage:Math.max(definition.tier().damage,attack.getValue());
+    boolean damaged=AbilityDamage.hit(player,boss,CombatPower.special(baseline,definition.tier().ordinal(),BossStages.phase(boss),ultimate));
     if(damaged&&!player.isDead()&&CombatGuard.eligible(player))player.addPotionEffect(new PotionEffect(profile.effect().potion(),ultimate?80:40,0));
    }
    if(pulse+1<profile.pulses())preview();

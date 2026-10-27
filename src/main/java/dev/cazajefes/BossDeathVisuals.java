@@ -42,10 +42,9 @@ final class BossDeathVisuals implements Listener {
   center.getWorld().strikeLightningEffect(center);
   for(int i=0;i<4;i++){double angle=i*Math.PI/2;center.getWorld().strikeLightningEffect(center.clone().add(Math.cos(angle)*3.5,0,Math.sin(angle)*3.5));}
   for(Player player:center.getWorld().getPlayers()){
-   if(player.isDead()||!player.isOnline()||(player.getGameMode()!=GameMode.SURVIVAL&&player.getGameMode()!=GameMode.ADVENTURE)||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
+   if(player.isDead()||!player.isOnline()||!plugin.guard.canAttackBoss(player)||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
    UUID id=player.getUniqueId();blastDamage.put(id,DeathFlight.damage(java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
-   try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event!=null&&!event.isCancelled()&&event.getFinalDamage()>0){
-    VectorBack.push(player,center);
+   try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event==null||!event.isCancelled()){VectorBack.push(player,center);plugin.getServer().getScheduler().runTask(plugin,()->{if(player.isOnline()&&!player.isDead()&&player.getWorld().equals(center.getWorld())&&player.getLocation().distanceSquared(center)<=100)VectorBack.push(player,center);});}if(event!=null&&!event.isCancelled()&&event.getFinalDamage()>0){
     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS,120,1));
     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS,160,0));
     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.BLINDNESS,40,0));
