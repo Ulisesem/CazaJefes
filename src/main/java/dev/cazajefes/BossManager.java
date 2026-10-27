@@ -1138,7 +1138,7 @@ public final class BossManager implements Listener {
       }
 
       private void summonMinions(Player var1) {
-         if(definition.mini()&&!java.util.Set.of("melisara_emperatriz_del_enjambre","kitsar_acechador_carmesi","brakk_colmillo_del_averno","volkar_corazon_del_cataclismo").contains(definition.id())){summonCustom(definition.entityType(),var1,2,"animal_guard");return;}
+         if(AnimalMinions.animal(definition.entityType())){summonCustom(definition.entityType(),var1,2,"animal_guard");return;}
          if (this.definition.id().equals("melisara_emperatriz_del_enjambre")) {
             this.summonCustom(EntityType.BEE, var1, 2, "abeja_enfurecida");
          } else if (this.definition.id().equals("kitsar_acechador_carmesi")) {
@@ -1329,7 +1329,7 @@ public final class BossManager implements Listener {
                   }
 
                   var9.customName(
-                     Component.text(var4.equals("fox_sheep") ? "Presa del Zorro" : "Custodio del Eclipse · " + this.definition.name(), this.definition.tier().color)
+                     Component.text(var4.equals("fox_sheep") ? "Presa del Zorro" : (var4.equals("animal_guard")?"Guardián Salvaje · ":"Custodio del Eclipse · ") + this.definition.name(), this.definition.tier().color)
                   );
                   var9.setCustomNameVisible(true);
                   this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
@@ -1359,6 +1359,7 @@ public final class BossManager implements Listener {
                var7.setBaseValue(var2.equals("spider_guard")?8:0);
             }
 
+            ((CazaJefesPlugin)plugin).animalMinions.track(var3,boss,definition.tier().ordinal());
             AttributeInstance var8 = var3.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
             if (var8 != null) {
                var8.setBaseValue(0.1);
