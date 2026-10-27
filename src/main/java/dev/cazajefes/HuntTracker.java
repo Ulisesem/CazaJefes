@@ -29,6 +29,7 @@ public final class HuntTracker implements Listener {
    private final BukkitTask task;
    private final Map<UUID,Long> nextArrow=new HashMap<>();
    private final Map<UUID,String> signal=new HashMap<>();
+   private final Map<UUID,Location> compassTargets=new HashMap<>();
 
    public HuntTracker(JavaPlugin var1, BossManager var2, RelicItems var3) {
       this.plugin = var1;
@@ -37,8 +38,9 @@ public final class HuntTracker implements Listener {
       this.task = var1.getServer().getScheduler().runTaskTimer(var1, this::update, 1L, 4L);
    }
 
+   static List<BossManager.TrackedEncounter> eggTargets(List<BossManager.TrackedEncounter> all){return all.stream().filter(BossManager.TrackedEncounter::egg).toList();}
    private void update() {
-      List<BossManager.TrackedEncounter> var1 = this.bosses.trackedEncounters();
+      List<BossManager.TrackedEncounter> var1 = eggTargets(this.bosses.trackedEncounters());
 
       for (Player var3 : Bukkit.getOnlinePlayers()) {
          if (!this.hasCompass(var3)) {
@@ -49,12 +51,13 @@ public final class HuntTracker implements Listener {
                .min((var1x, var2) -> Double.compare(var1x.location().distanceSquared(var3.getLocation()), var2.location().distanceSquared(var3.getLocation())))
                .orElse(null);
             if (var4 == null) {
-               announceSignal(var3,"none:"+var3.getWorld().getUID(),"✦ Brújula · No hay bosses ni huevos activos en este mundo.");
-               this.showNoSignal(var3);
+               clearTracking(var3,false);
+               announceSignal(var3,"none:"+var3.getWorld().getUID(),"✦ Brújula · No hay huevos sin despertar en este mundo.");
+
             } else {
                announceSignal(var3,var4.id().toString(),"✦ Brújula · "+(var4.egg()?"Huevo detectado: ":"Boss detectado: ")+var4.name());
                Location var5 = var4.location().clone();
-               var3.setCompassTarget(var5);
+               compassTargets.putIfAbsent(var3.getUniqueId(),var3.getCompassTarget().clone());var3.setCompassTarget(var5);
                var5.add(0.5, 0.8, 0.5);
                this.drawTrail(var3, var5);
                this.showTarget(var3, var4, var5);
@@ -127,8 +130,9 @@ public final class HuntTracker implements Listener {
       }
    }
 
-   private void restore(Player var1) {
-      signal.remove(var1.getUniqueId());
+   private void restore(Player var1){clearTracking(var1,true);}
+   private void clearTracking(Player var1,boolean resetSignal) {
+      if(resetSignal)signal.remove(var1.getUniqueId());nextArrow.remove(var1.getUniqueId());Location previous=compassTargets.remove(var1.getUniqueId());if(previous!=null)var1.setCompassTarget(previous.getWorld().equals(var1.getWorld())?previous:var1.getWorld().getSpawnLocation());
       HuntTracker.Session var2 = this.sessions.remove(var1.getUniqueId());
       if (var2 != null && var1.getScoreboard() == var2.board) {
          var1.setScoreboard(var2.previous);
@@ -137,7 +141,7 @@ public final class HuntTracker implements Listener {
 
    @EventHandler
    public void onQuit(PlayerQuitEvent var1) {
-      this.sessions.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());signal.remove(var1.getPlayer().getUniqueId());
+      this.sessions.remove(var1.getPlayer().getUniqueId());compassTargets.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());signal.remove(var1.getPlayer().getUniqueId());
    }
 
    @EventHandler

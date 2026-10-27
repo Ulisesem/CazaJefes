@@ -7,12 +7,12 @@ public class ProgressionTest {
  @Test public void everyBossAppearsInExactlyOneCategory(){
   Set<String> seen=new HashSet<>();int total=0;
   for(var category:BestiaryCategory.values())for(var boss:BossCatalog.all())if(category.matches(boss)){assertTrue(seen.add(boss.id()));assertEquals(category,BestiaryCategory.of(boss));total++;}
-  assertEquals(76,total);
+  assertEquals(168,total);
  }
  @Test public void canonicalIdsMatchNamesAndOldIdsStillResolve(){
   for(var boss:BossCatalog.all()){
    assertEquals(BossCatalog.canonicalId(boss.name()),boss.id());assertTrue(boss.id().matches("[a-z0-9]+(_[a-z0-9]+)*"));
-   assertSame(boss,BossCatalog.get(boss.legacyId()));assertSame(boss,BossCatalog.get(boss.id()));
+   assertSame(boss,BossCatalog.get(boss.migrationId()));assertSame(boss,BossCatalog.get(boss.id()));
   }
  }
  @Test public void wardensAreAbyssalAndRenamed(){

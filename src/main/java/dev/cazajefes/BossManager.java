@@ -229,55 +229,55 @@ public final class BossManager implements Listener {
          double var8 = var4.mini() ? 1.35 + var4.tier().ordinal() * 0.12 : var4.tier().scale;
          double var10 = var4.tier().health * (var4.mini() ? 0.28 : 1.0);
          double var12 = var4.tier().damage * (var4.mini() ? 0.72 : 1.0);
-         if (var4.legacyId().equals("reina_abeja")) {
+         if (var4.id().equals("melisara_emperatriz_del_enjambre")) {
             var8 = 1.45;
             var10 = 520.0;
             var12 = 16.0;
          }
 
-         if (var4.legacyId().equals("zorro_salvaje")) {
+         if (var4.id().equals("kitsar_acechador_carmesi")) {
             var8 = 1.38;
             var10 = 530.0;
             var12 = 25.0;
          }
 
-         if (var4.legacyId().equals("jabali_infernal")) {
+         if (var4.id().equals("brakk_colmillo_del_averno")) {
             var8 = 1.22;
             var10 = 680.0;
             var12 = 30.0;
          }
 
-         if (var4.legacyId().equals("volcano")) {
+         if (var4.id().equals("volkar_corazon_del_cataclismo")) {
             var8 = 1.6;
             var10 = 2000.0;
             var12 = 38.0;
          }
 
-         if (var4.legacyId().equals("oso_tundra")) {
+         if (var4.id().equals("boreon_garra_de_la_ventisca")) {
             var8 = 1.55;
             var10 = 620.0;
             var12 = 27.0;
          }
 
-         if (var4.legacyId().equals("lobo_ceniza")) {
+         if (var4.id().equals("fenrak_aullido_de_ceniza")) {
             var8 = 1.28;
             var10 = 480.0;
             var12 = 25.0;
          }
 
-         if (var4.legacyId().equals("cabra_quebrada")) {
+         if (var4.id().equals("kragnar_rompecumbres")) {
             var8 = 1.45;
             var10 = 540.0;
             var12 = 28.0;
          }
 
-         if (var4.legacyId().equals("tortuga_baluarte")) {
+         if (var4.id().equals("aegora_bastion_viviente")) {
             var8 = 1.8;
             var10 = 900.0;
             var12 = 30.0;
          }
 
-         if (var4.legacyId().equals("llama_saqueadora")) {
+         if (var4.id().equals("zalira_saqueadora_del_yermo")) {
             var8 = 1.42;
             var10 = 560.0;
             var12 = 26.0;
@@ -286,19 +286,19 @@ public final class BossManager implements Listener {
          var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".scale", var8)));
          var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".health", var10)));
          var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".damage", var12)));
-         if (var4.entityType()==EntityType.WARDEN) { var10=Math.max(var10, var4.legacyId().equals("warden_abismal") ? 14000 : 10000); var12=Math.max(var12,90); }
+         if (var4.entityType()==EntityType.WARDEN) { var10=Math.max(var10, var4.id().equals("nharzul_soberano_del_abismo") ? 14000 : 10000); var12=Math.max(var12,90); }
          this.setAttribute(var5, Attribute.MAX_HEALTH, var10);
          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));
-         double var14 = var4.legacyId().equals("zorro_salvaje")
+         double var14 = var4.id().equals("kitsar_acechador_carmesi")
             ? 0.28
             : (
-               var4.legacyId().equals("reina_abeja")
+               var4.id().equals("melisara_emperatriz_del_enjambre")
                   ? 0.38
-                  : (var4.legacyId().equals("jabali_infernal") ? 0.43 : (var4.legacyId().equals("volcano") ? 0.27 : 0.28 + var4.tier().ordinal() * 0.025))
+                  : (var4.id().equals("brakk_colmillo_del_averno") ? 0.43 : (var4.id().equals("volkar_corazon_del_cataclismo") ? 0.27 : 0.28 + var4.tier().ordinal() * 0.025))
             );
          this.setAttribute(var5, Attribute.MOVEMENT_SPEED, var14);
-         if (var5 instanceof Bee var16 && var4.legacyId().equals("reina_abeja")) {
+         if (var5 instanceof Bee var16 && var4.id().equals("melisara_emperatriz_del_enjambre")) {
             var16.setAnger(24000);
          }
 
@@ -306,7 +306,7 @@ public final class BossManager implements Listener {
             var21.setImmuneToZombification(true);
          }
 
-         var5.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, var4.legacyId().equals("zorro_salvaje")?0:1, true, false));
+         var5.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, var4.id().equals("kitsar_acechador_carmesi")?0:1, true, false));
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          this.encounters.put(var19, new BossManager.Encounter(var19, var4, var5.getLocation(), var5, var3));
@@ -326,6 +326,7 @@ public final class BossManager implements Listener {
    }
 
    private void startBossSystems(UUID var1, LivingEntity var2, BossCatalog.Definition var3, long var4) {
+      var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
       ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);
       if (!this.attacks.containsKey(var1)) {
          if (var2 instanceof Mob var6) {
@@ -437,14 +438,18 @@ public final class BossManager implements Listener {
       return var1;
    }
 
-   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+   @EventHandler(priority = EventPriority.HIGHEST)
    public void onEggInteract(PlayerInteractEvent var1) {
       if (var1.getAction() == Action.RIGHT_CLICK_BLOCK && var1.getClickedBlock() != null) {
          BossManager.Encounter var2 = this.eggsByBlock.get(this.key(var1.getClickedBlock().getLocation()));
+         if(var2==null)var2=this.eggsByBlock.get(this.key(var1.getClickedBlock().getRelative(BlockFace.UP).getLocation()));
          if (var2 != null) {
             var1.setCancelled(true);
             Player var3 = var1.getPlayer();
-            if (!var3.hasPermission("rareitemhunter.hunter.hatch") || !((CazaJefesPlugin)plugin).guard.canAttackBoss(var3)) return;
+            boolean hatch=EggActivation.permission(var3.isPermissionSet("cazajefes.hunter.hatch"),var3.hasPermission("cazajefes.hunter.hatch"),var3.hasPermission("rareitemhunter.hunter.hatch"));
+            if(!hatch){var3.sendMessage("No tienes permiso para despertar huevos: cazajefes.hunter.hatch.");return;}
+            if(!((CazaJefesPlugin)plugin).guard.canAttackBoss(var3)){var3.sendMessage("Despierta el huevo en supervivencia o aventura.");return;}
+            if(this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName())==null){var3.sendMessage("No se pudo despertar al boss; el huevo se conserva.");return;}
             this.eggsByBlock.remove(this.key(var2.location));
             this.encounters.remove(var2.id);
             this.stopEggEffects(var2.id);
@@ -460,7 +465,7 @@ public final class BossManager implements Listener {
                   Component.text(var2.definition.name(), var2.definition.tier().color)
                )
             );
-            this.spawnBoss(var2.definition.id(), var2.location.clone().add(0.5, 0.0, 0.5), var3.getName());
+
          }
       }
    }
@@ -498,7 +503,7 @@ public final class BossManager implements Listener {
       if (var1.getEntity() instanceof LivingEntity var2 && var2.getPersistentDataContainer().has(this.bossKey, PersistentDataType.BYTE)) {
          var2.setFireTicks(0);
          String var10 = (String)var2.getPersistentDataContainer().get(this.typeKey, PersistentDataType.STRING);
-         if ("jabali_infernal".equals(var10)) {
+         if ("brakk_colmillo_del_averno".equals(var10)) {
             Player var4 = var1.getDamager() instanceof Player var7
                ? var7
                : (var1.getDamager() instanceof Projectile var6 && var6.getShooter() instanceof Player var5 ? var5 : null);
@@ -540,7 +545,7 @@ public final class BossManager implements Listener {
       }
 
       if (var9 != null && var9.getPersistentDataContainer().has(this.bossKey, PersistentDataType.BYTE) && !(var1.getEntity() instanceof Player)) {
-         boolean var13 = "zorro_salvaje".equals(var9.getPersistentDataContainer().get(this.typeKey, PersistentDataType.STRING))
+         boolean var13 = "kitsar_acechador_carmesi".equals(var9.getPersistentDataContainer().get(this.typeKey, PersistentDataType.STRING))
             && var1.getEntity().getPersistentDataContainer().has(this.minionKey, PersistentDataType.BYTE)
             && "fox_sheep".equals(var1.getEntity().getPersistentDataContainer().get(new NamespacedKey(this.plugin, "minion_kind"), PersistentDataType.STRING));
          if (!var13) {
@@ -640,7 +645,7 @@ public final class BossManager implements Listener {
          var1.setDroppedExp(0);
          BossCatalog.Definition var7 = var5 == null ? BossCatalog.get((String)var3.get(this.typeKey, PersistentDataType.STRING)) : var5.definition;
          if (var7 == null) {
-            var7 = BossCatalog.get("coloso");
+            var7 = BossCatalog.get("gorath_quebrantador_de_mundos");
          }
 
          String var8 = var2.getKiller() == null ? (String)var3.get(this.awakenerKey, PersistentDataType.STRING) : var2.getKiller().getName();
@@ -826,7 +831,7 @@ public final class BossManager implements Listener {
             if (this.boss.isInvulnerable()) return;
             BossBuffs.apply(boss);
             AquaticCombat.maintain(boss);
-            int speed=definition.legacyId().equals("zorro_salvaje")?0:1;
+            int speed=definition.id().equals("kitsar_acechador_carmesi")?0:1;
             PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
             if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,100,speed,true,false));}
             stages.update();
@@ -882,13 +887,13 @@ public final class BossManager implements Listener {
       private void attackNearby(Player var1) {
          long var2 = System.currentTimeMillis();
          if (boss.hasLineOfSight(var1) && !(var1.getLocation().distanceSquared(this.boss.getLocation()) > 14.44) && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
-            String var6 = this.definition.legacyId();
+            String var6 = this.definition.id();
 
             double var4 = switch (var6) {
-               case "reina_abeja" -> 9.0;
-               case "zorro_salvaje" -> 12.0;
-               case "jabali_infernal" -> 16.0;
-               case "volcano" -> 18.0;
+               case "melisara_emperatriz_del_enjambre" -> 9.0;
+               case "kitsar_acechador_carmesi" -> 12.0;
+               case "brakk_colmillo_del_averno" -> 16.0;
+               case "volkar_corazon_del_cataclismo" -> 18.0;
                default -> 10.0;
             };
             var1.damage(var4, this.boss);
@@ -995,13 +1000,13 @@ public final class BossManager implements Listener {
 
       private void signatureSpecial(Player var1) {
          Location var2 = this.boss.getLocation();
-         String var3 = this.definition.legacyId();
-         Particle var4 = var3.equals("reina_abeja")
+         String var3 = this.definition.id();
+         Particle var4 = var3.equals("melisara_emperatriz_del_enjambre")
             ? Particle.HAPPY_VILLAGER
-            : (var3.equals("zorro_salvaje") ? Particle.CRIT : (var3.equals("jabali_infernal") ? Particle.FLAME : Particle.CLOUD));
-         this.boss.getWorld().playSound(var2, var3.equals("jabali_infernal") ? Sound.ENTITY_RAVAGER_ROAR : Sound.ENTITY_WARDEN_ATTACK_IMPACT, 1.5F, 0.8F);
+            : (var3.equals("kitsar_acechador_carmesi") ? Particle.CRIT : (var3.equals("brakk_colmillo_del_averno") ? Particle.FLAME : Particle.CLOUD));
+         this.boss.getWorld().playSound(var2, var3.equals("brakk_colmillo_del_averno") ? Sound.ENTITY_RAVAGER_ROAR : Sound.ENTITY_WARDEN_ATTACK_IMPACT, 1.5F, 0.8F);
          ParticleData.spawn(this.boss.getWorld(), var4, var2.clone().add(0.0, 1.0, 0.0), 85, 1.3, 0.8, 1.3, 0.15);
-         if (var3.equals("zorro_salvaje")) {
+         if (var3.equals("kitsar_acechador_carmesi")) {
             this.summonMinions(var1);
 
             for (int var16 = 0; var16 < 3; var16++) {
@@ -1020,7 +1025,7 @@ public final class BossManager implements Listener {
                   }
                }, var16 * 5L);
             }
-         } else if (var3.equals("jabali_infernal")) {
+         } else if (var3.equals("brakk_colmillo_del_averno")) {
             Vector var15 = var1.getLocation().toVector().subtract(var2.toVector()).setY(0);
             if (var15.lengthSquared() > 0.01) {
                this.boss.setVelocity(var15.normalize().multiply(1.3).setY(0.35));
@@ -1036,7 +1041,7 @@ public final class BossManager implements Listener {
             }
 
             this.boss.getWorld().spawnParticle(Particle.EXPLOSION, var2, 2, 0.7, 0.4, 0.7, 0.05);
-         } else if (var3.equals("volcano")) {
+         } else if (var3.equals("volkar_corazon_del_cataclismo")) {
             for (Player var21 : this.boss.getWorld().getPlayers()) {
             if (!CombatGuard.eligible(var21)) continue;
                if (var21.getLocation().distanceSquared(var2) <= 49.0) {
@@ -1141,13 +1146,14 @@ public final class BossManager implements Listener {
       }
 
       private void summonMinions(Player var1) {
-         if (this.definition.legacyId().equals("reina_abeja")) {
+         if(definition.mini()&&!java.util.Set.of("melisara_emperatriz_del_enjambre","kitsar_acechador_carmesi","brakk_colmillo_del_averno","volkar_corazon_del_cataclismo").contains(definition.id())){summonCustom(definition.entityType(),var1,2,"animal_guard");return;}
+         if (this.definition.id().equals("melisara_emperatriz_del_enjambre")) {
             this.summonCustom(EntityType.BEE, var1, 2, "abeja_enfurecida");
-         } else if (this.definition.legacyId().equals("zorro_salvaje")) {
+         } else if (this.definition.id().equals("kitsar_acechador_carmesi")) {
             this.summonCustom(EntityType.SHEEP, var1, 2, "fox_sheep");
-         } else if (this.definition.legacyId().equals("jabali_infernal")) {
+         } else if (this.definition.id().equals("brakk_colmillo_del_averno")) {
             this.summonCustom(EntityType.PIGLIN, var1, 2, "hoglin_guard");
-         } else if (this.definition.legacyId().equals("volcano")) {
+         } else if (this.definition.id().equals("volkar_corazon_del_cataclismo")) {
             this.summonCustom(EntityType.SNIFFER, var1, 2, "sniffer_young");
          } else if (this.definition.entityType() != EntityType.SPIDER && this.definition.entityType() != EntityType.CAVE_SPIDER) {
             int var2 = this.definition.mini() ? 1 : 2 + this.definition.tier().ordinal();

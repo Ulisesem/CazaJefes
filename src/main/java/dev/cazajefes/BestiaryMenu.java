@@ -41,13 +41,16 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER A CATEGORÍAS",NamedTextColor.GOLD,true));
   }else{
    Material icon=Material.matchMaterial(detail.entityType().name()+"_SPAWN_EGG");if(icon==null)icon=Material.DRAGON_HEAD;
-   inv.setItem(22,PremiumStyle.tile(icon,detail.name(),color,true,detail.description(),"Categoría: "+category.title,"ID actual: "+detail.id(),"ID anterior compatible: "+detail.legacyId()));
-   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"LAS TRES FASES",NamedTextColor.AQUA,true,"I · Vida superior al 65 %","II · Daño ×1,35 · recibe 18 % menos","III · Daño ×1,80 · recibe 35 % menos","Debilidad, lentitud y oscuridad/marchitar","Última fase: 2 % de alterar inventario por tirada","Máximo 1 tirada/10 s; éxito: espera de 60 s"));
+   inv.setItem(22,PremiumStyle.tile(icon,detail.name(),color,true,detail.description(),"Categoría: "+category.title,"ID: "+detail.id()));
+   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"RITMO DEL COMBATE",NamedTextColor.AQUA,true,"I · Acecho: el encuentro comienza","II · Ruptura: mayor presión y empuje","III · Furia: nova, efectos y definitivo","Los avisos de etapa llegan a quienes luchan","Los ataques especiales se anuncian sobre la barra"));
+   inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"DEFENSAS DEL GUARDIÁN",color,true,"Protección: "+BossProtection.level(detail),"Fuerza: "+BattleRules.strength(detail),"El equipo del boss no es su botín"));
+   var ultimate=BossAbilityCatalog.ultimate(detail);
+   inv.setItem(30,PremiumStyle.tile(Material.NETHER_STAR,"ATAQUE DEFINITIVO",color,true,ultimate.name(),"Se prepara durante la tercera etapa","Radio: "+(int)ultimate.radius()+" bloques · Pulsos: "+ultimate.pulses(),"Recarga: 15 segundos tras finalizar"));
    int rank=detail.tier().ordinal();
    inv.setItem(24,PremiumStyle.tile(Material.CHEST,"TESOROS DEL ENCUENTRO",color,true,detail.mini()?"1–2 tributos, 1–3 fragmentos y cristal común":"Fragmentos garantizados; cristales solo en minis",detail.mini()?"Sin armas ni armaduras":rank<2?"Equipo a partir de categoría Épica":"Armadura: "+Math.round((0.08+rank*0.035)*100)+" % · arma: "+Math.round((0.06+rank*0.025)*100)+" %",detail.mini()?"Primer peldaño de la progresión":"Rares, núcleos, esencias y materiales posibles"));
    inv.setItem(31,detail.mini()?items.crystal(BossCatalog.Tier.COMMON,1):items.tribute("Cazador"));
    if(!detail.mini())inv.setItem(33,items.bossHeart(detail));
-   if(player.hasPermission("cazajefes.admin")||player.hasPermission("rareitemhunter.admin.egg"))inv.setItem(40,PremiumStyle.tile(Material.DRAGON_EGG,"✦ COLOCAR HUEVO DEL BOSS ✦",NamedTextColor.RED,true,"Clic para colocarlo junto a ti","Aparece sobre un pedestal de bedrock","Clic derecho en el huevo para despertar al boss"));
+   if(AdminPermissions.allows(player::hasPermission,"rareitemhunter.admin.egg"))inv.setItem(40,PremiumStyle.tile(Material.DRAGON_EGG,"✦ COLOCAR HUEVO DEL BOSS ✦",NamedTextColor.RED,true,"Clic para colocarlo junto a ti","Aparece sobre un pedestal de bedrock","Clic derecho en el huevo para despertar al boss"));
    inv.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A "+category.title.toUpperCase(java.util.Locale.ROOT),color,false));
   }
   player.openInventory(inv);

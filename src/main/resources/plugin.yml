@@ -1,5 +1,5 @@
 name: CazaJefes
-version: '1.11.1'
+version: '1.12.0'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
 description: Jefes grandes con ataques especiales, botín y recetas.
@@ -22,6 +22,9 @@ commands:
     usage: /ri <help|egg|boss|compass|essence|book|fragment|tribute|rare>
     aliases: [cazajefes]
 permissions:
+  cazajefes.hunter.hatch:
+    description: Permite despertar huevos propios de CazaJefes sin OP.
+    default: true
   cazajefes.admin:
     description: Acceso administrativo completo de CazaJefes.
     default: op

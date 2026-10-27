@@ -364,7 +364,7 @@ public final class RelicItems implements Listener {
                               }
                            }
 
-                           BurstVisuals.show(var4.getLocation().clone().add(0,1,0),Math.min(4,var25));
+                           BurstVisuals.show(plugin,var4.getLocation().clone().add(0,1,0),Math.min(4,var25));
                            break;
                         case "magicbag":
                            var4.openInventory(var4.getEnderChest());
@@ -1375,11 +1375,11 @@ public final class RelicItems implements Listener {
    }
 
    private String rareForBoss(BossCatalog.Definition var1) {
-      if (var1.legacyId().equals("coloso")) {
+      if (var1.id().equals("gorath_quebrantador_de_mundos")) {
          return "hacha_sismica";
-      } else if (var1.legacyId().equals("viuda")) {
+      } else if (var1.id().equals("nyxara_tejedora_del_ocaso")) {
          return "espada_brezal";
-      } else if (var1.legacyId().equals("centinela")) {
+      } else if (var1.id().equals("varkhos_vigia_de_las_cenizas")) {
          return "arco_ceniciento";
       } else {
          return switch (var1.tier()) {
@@ -1395,7 +1395,7 @@ public final class RelicItems implements Listener {
    private ItemStack component(BossCatalog.Definition var1) {
       return this.named(
          Material.ECHO_SHARD,
-         "componente_" + var1.legacyId(),
+         "componente_" + var1.id(),
          coreName(var1.tier()),
          var1.tier().color,
          1,
@@ -1405,7 +1405,7 @@ public final class RelicItems implements Listener {
    }
 
    public ItemStack componentForRecipe() {
-      BossCatalog.Definition var1 = BossCatalog.get("coloso");
+      BossCatalog.Definition var1 = BossCatalog.get("gorath_quebrantador_de_mundos");
       ItemStack var2 = this.component(var1);
       this.addRiftDropClassification(var2, var1.tier());
       return var2;
@@ -1425,6 +1425,7 @@ public final class RelicItems implements Listener {
       else if(id.startsWith("componente_")){
          BossCatalog.Definition definition=BossCatalog.get(id.substring("componente_".length()));if(definition!=null)replacement=component(definition);
       }
+      if(id.startsWith("corazon_boss_")){var definition=BossCatalog.get(id.substring("corazon_boss_".length()));if(definition!=null)replacement=bossHeart(definition);}
       if(id.startsWith("armadura_"))return EquipmentSets.migrateArmor(stack,id,itemKey);
       if(id.startsWith("arma_"))return EquipmentSets.migrateWeapon(stack,id,itemKey);
       if(id.equals("tracking_compass"))replacement=compass();
@@ -1443,7 +1444,7 @@ public final class RelicItems implements Listener {
    }
 
    public ItemStack bossHeart(BossCatalog.Definition boss) {
-      ItemStack stack=named(Material.HEART_OF_THE_SEA,"corazon_boss_"+boss.legacyId(),"✦ Corazón de "+boss.name(),boss.tier().color,1,
+      ItemStack stack=named(Material.HEART_OF_THE_SEA,"corazon_boss_"+boss.id(),"✦ Corazón de "+boss.name(),boss.tier().color,1,
          "RARE · Trofeo "+boss.tier().display,"Solo puede caer de un boss principal.","Un corazón encantado de la Grieta.");
       ItemMeta meta=stack.getItemMeta();meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"boss_rare"),PersistentDataType.BYTE,(byte)1);stack.setItemMeta(meta);return stack;
    }
