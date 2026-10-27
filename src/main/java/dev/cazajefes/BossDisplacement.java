@@ -32,5 +32,6 @@ final class BossDisplacement {
   return false;
  }
  private void warn(List<Player> players,String text){for(Player player:players)BossWarnings.send(player,Component.text(text,NamedTextColor.WHITE).decorate(TextDecoration.BOLD));}
+ boolean busy(UUID id){State state=states.get(id);return state!=null&&state.pending!=0||anchor.held(id);}
  void remove(UUID id){anchor.remove(id);states.remove(id);}void clear(){anchor.clear();states.clear();}
 }

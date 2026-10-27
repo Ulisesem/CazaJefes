@@ -884,6 +884,7 @@ public final class RelicItems implements Listener {
    @EventHandler(ignoreCancelled = true)
    public void onRareDoubleJump(PlayerToggleFlightEvent var1) {
       Player var2 = var1.getPlayer();
+      if(((CazaJefesPlugin)plugin).burstLaunch.lifting(var2)){var1.setCancelled(true);return;}
       if (var2.getGameMode() != GameMode.CREATIVE && var2.getGameMode() != GameMode.SPECTATOR) {
          ItemStack var3 = var2.getInventory().getBoots();
          if (var3 != null && var3.hasItemMeta()) {
@@ -909,6 +910,7 @@ public final class RelicItems implements Listener {
 
    @EventHandler(ignoreCancelled = true)
    public void onWindStep(PlayerMoveEvent var1) {
+      if(((CazaJefesPlugin)plugin).burstLaunch.lifting(var1.getPlayer())){var1.getPlayer().setFlying(false);var1.getPlayer().setAllowFlight(false);return;}
       if (var1.getTo() != null
          && (
             var1.getFrom().getBlockX() != var1.getTo().getBlockX()
