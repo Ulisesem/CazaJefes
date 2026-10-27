@@ -10,6 +10,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    RecipeSettings recipeSettings;
    CombatGuard guard;
    ShulkerCombat shulkers;
+   PillagerCombat pillagers;
    BossAbilities abilities;
    BossAuras auras;
    AnimalMinions animalMinions;
@@ -37,6 +38,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);
       animalMinions=new AnimalMinions(this);getServer().getPluginManager().registerEvents(animalMinions,this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
+      pillagers=new PillagerCombat(this);getServer().getPluginManager().registerEvents(pillagers,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
       this.deathVisuals=new BossDeathVisuals(this);getServer().getPluginManager().registerEvents(deathVisuals,this);
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
@@ -79,6 +81,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();

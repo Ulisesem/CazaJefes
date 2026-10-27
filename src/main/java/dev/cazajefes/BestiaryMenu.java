@@ -46,6 +46,7 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"DEFENSAS DEL GUARDIÁN",color,true,"Protección: "+BossProtection.level(detail),"Fuerza: "+BattleRules.strength(detail),"El equipo del boss no es su botín"));
    var ultimate=BossAbilityCatalog.ultimate(detail);
    inv.setItem(30,PremiumStyle.tile(Material.NETHER_STAR,"ATAQUE DEFINITIVO",color,true,ultimate.name(),"Se prepara durante la tercera etapa","Radio: "+(int)ultimate.radius()+" bloques · Pulsos: "+ultimate.pulses(),"Recarga: 15 segundos tras finalizar"));
+   if(detail.entityType()==org.bukkit.entity.EntityType.PILLAGER)inv.setItem(23,PremiumStyle.tile(Material.CROSSBOW,"TEMPESTAD DEL DESTIERRO",NamedTextColor.GOLD,true,"Represalia tras cinco golpes recientes","Carga rápida X · Multidisparo XV","Infinidad I · Perforación X · Empuje X","Irrompibilidad X · Reparación I","15 flechas no recogibles · recarga 12 s"));
    int rank=detail.tier().ordinal();
    inv.setItem(24,PremiumStyle.tile(Material.CHEST,"TESOROS DEL ENCUENTRO",color,true,detail.mini()?"1–2 tributos, 1–3 fragmentos y cristal común":"Fragmentos garantizados; cristales solo en minis",detail.mini()?"Sin armas ni armaduras":rank<2?"Equipo a partir de categoría Épica":"Armadura: "+Math.round((0.08+rank*0.035)*100)+" % · arma: "+Math.round((0.06+rank*0.025)*100)+" %",detail.mini()?"Primer peldaño de la progresión":"Rares, núcleos, esencias y materiales posibles"));
    inv.setItem(31,detail.mini()?items.crystal(BossCatalog.Tier.COMMON,1):items.tribute("Cazador"));

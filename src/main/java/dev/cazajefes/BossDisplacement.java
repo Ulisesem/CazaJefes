@@ -20,7 +20,7 @@ final class BossDisplacement {
    int attack=state.pending;state.pending=0;if(attack==1)state.lift=now+10000;else state.repel=now+8000;
    Location center=boss.getLocation();BurstVisuals.show(plugin,center.clone().add(0,1,0),4);
    boss.getWorld().playSound(center,attack==1?Sound.ENTITY_BREEZE_WIND_BURST:Sound.ENTITY_WARDEN_SONIC_BOOM,1,attack==1?1.3f:.7f);
-   for(Player player:players){if(!BurstVisuals.movable(player.isOp()))continue;var delta=player.getLocation().toVector().subtract(center.toVector()).setY(0);if(delta.lengthSquared()<.001)delta=new Vector(0,0,1);delta.normalize();plugin.burstLaunch.launch(player,delta.multiply(attack==1?.35:CombatPower.repel()).setY(attack==1?StageAttackRules.lift(phase):.5));}
+   for(Player player:players){if(!BurstVisuals.movable(player.isOp()))continue;var delta=player.getLocation().toVector().subtract(center.toVector()).setY(0);if(delta.lengthSquared()<.001)delta=new Vector(0,0,1);delta.normalize();plugin.burstLaunch.launch(player,delta.multiply(attack==1?CombatPower.ASCENT_LATERAL:CombatPower.repel()).setY(attack==1?StageAttackRules.lift(phase):.5));}
    warn(players,"✦ "+name+" · "+definition.name());return true;
   }
   if(anchor.held(boss.getUniqueId()))return true;

@@ -329,7 +329,7 @@ public final class BossManager implements Listener {
       ((CazaJefesPlugin)plugin).abilities.track(var2,var3);
       AnimalBossSizing.apply(var2,var3);
       var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
-      ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);
+      ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);
       if (!this.attacks.containsKey(var1)) {
          if (var2 instanceof Mob var6) {
             var6.setAware(true);

@@ -21,11 +21,12 @@ final class BossAbilities implements Listener {
  private final CazaJefesPlugin plugin;private final NamespacedKey readyKey;private final Map<UUID,Cast> casts=new HashMap<>();
  BossAbilities(CazaJefesPlugin plugin){this.plugin=plugin;displacement=new BossDisplacement(plugin);readyKey=new NamespacedKey(plugin,"ultimate_ready_at");burstTimer=plugin.getServer().getScheduler().runTaskTimer(plugin,this::tickBursts,5,5);}
  void track(LivingEntity boss,BossCatalog.Definition definition){tracked.put(boss.getUniqueId(),new Tracked(boss,definition));}
- private void tickBursts(){long now=System.currentTimeMillis();for(var it=tracked.entrySet().iterator();it.hasNext();){var entry=it.next();var active=entry.getValue();var boss=active.boss();if(!boss.isValid()||boss.isDead()){displacement.remove(entry.getKey());it.remove();continue;}if(!boss.isInvulnerable())displacement.tick(boss,active.definition(),BossStages.phase(boss),now,busy(boss));}}
+ private void tickBursts(){long now=System.currentTimeMillis();for(var it=tracked.entrySet().iterator();it.hasNext();){var entry=it.next();var active=entry.getValue();var boss=active.boss();if(!boss.isValid()||boss.isDead()){displacement.remove(entry.getKey());it.remove();continue;}if(!boss.isInvulnerable())displacement.tick(boss,active.definition(),BossStages.phase(boss),now,busy(boss)||plugin.pillagers.charging(boss.getUniqueId()));}}
+ boolean occupied(LivingEntity boss){return busy(boss)||displacement.busy(boss.getUniqueId());}
  boolean busy(LivingEntity boss){return casts.containsKey(boss.getUniqueId());}
  static boolean ready(int phase,long now,long ready,boolean busy){return phase==3&&!busy&&now>=ready;}
  boolean tick(LivingEntity boss,BossCatalog.Definition definition,Player target,int phase){
-  long now=System.currentTimeMillis();if(displacement.busy(boss.getUniqueId())||busy(boss))return true;
+  long now=System.currentTimeMillis();if(displacement.busy(boss.getUniqueId())||busy(boss)||plugin.pillagers.charging(boss.getUniqueId()))return true;
   boolean ultimateReady=ready(phase,now,boss.getPersistentDataContainer().getOrDefault(readyKey,PersistentDataType.LONG,0L),false);
   int slot=rotations.computeIfAbsent(boss.getUniqueId(),id->new StageAttackRules.Rotation()).select(phase,now,ultimateReady);
   if(slot>=0){begin(boss,definition,target,StageAttackRules.profile(definition,phase,slot),phase>=3&&slot==1);return true;}return false;
