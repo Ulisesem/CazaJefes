@@ -13,6 +13,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossAbilities abilities;
    BossAuras auras;
    AnimalMinions animalMinions;
+   BurstLaunch burstLaunch;
    BossSpawnpoints spawnpoints;
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
@@ -33,6 +34,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.itemKey = new NamespacedKey(this, "relic_id");
       this.relicItems = new RelicItems(this, this.itemKey);
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
+      burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);
       animalMinions=new AnimalMinions(this);getServer().getPluginManager().registerEvents(animalMinions,this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
@@ -77,6 +79,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();
       if(deathVisuals!=null)deathVisuals.stop();

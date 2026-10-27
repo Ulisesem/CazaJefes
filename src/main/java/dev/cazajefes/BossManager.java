@@ -326,6 +326,7 @@ public final class BossManager implements Listener {
    }
 
    private void startBossSystems(UUID var1, LivingEntity var2, BossCatalog.Definition var3, long var4) {
+      AnimalBossSizing.apply(var2,var3);
       var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
       ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);
       if (!this.attacks.containsKey(var1)) {
