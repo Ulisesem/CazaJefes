@@ -1,3 +1,15 @@
+# CazaJefes 1.11.1 · Nova blanca y libros en el aire
+
+- La habilidad de desplazamiento de etapa 3 se llama «Nova de la Grieta · nombre del boss» y se recarga cada diez segundos. Conserva la elevación anterior, alcance de ocho bloques y línea de visión. El empuje de etapa 2 sigue cada diez segundos, sin el mensaje «Empuje X».
+- Los jugadores con isOp() no reciben el desplazamiento de estas habilidades ni de Burst/GreaterBurst de los libros. Es una excepción del burst: otros ataques y daños de bosses mantienen sus reglas.
+- Burst, GreaterBurst y la onda de los bosses muestran una esfera blanca de 64 puntos. La esfera de boss aparece cuando hay un objetivo elegible; respeta el alcance de visualización de 32 bloques y no aumenta las auras permanentes.
+- Los libros se activan con clic derecho en el aire aunque Paper haya marcado la interacción como cancelada de forma predictiva por no haber bloque que usar. Una prohibición explícita de usar el objeto sigue bloqueando la activación. El clic a un bloque cancelado también se respeta. Se conservan costes y recargas.
+
+Validación: Maven verify, pruebas de exclusión OP, geometría de esfera, recarga e interacción predictiva/denegada. Sin ejecución visual en un servidor Paper. Sustituir el JAR con el servidor detenido.
+
+---
+Documentación histórica:
+
 # CazaJefes 1.11.0 · Apariciones programadas y lluvia mágica de botín
 
 ## Puntos con reaparición automática

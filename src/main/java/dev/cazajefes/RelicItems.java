@@ -281,8 +281,9 @@ public final class RelicItems implements Listener {
       }
    }
 
-   @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+   @EventHandler(priority = EventPriority.HIGHEST)
    public void onSpellUse(PlayerInteractEvent var1) {
+      if(var1.getHand()==null||!SpellInteraction.allowed(var1.getAction(),var1.isCancelled(),var1.useItemInHand()))return;
       if (var1.getAction() == Action.RIGHT_CLICK_AIR || var1.getAction() == Action.RIGHT_CLICK_BLOCK) {
          ItemStack var2 = var1.getItem();
          if (var2 == null || !var2.hasItemMeta()) {
@@ -351,7 +352,7 @@ public final class RelicItems implements Listener {
                            double var25 = (var3.equals("burst") ? 3 : 5) + var23 * 2;
 
                            for (Entity var16 : var4.getNearbyEntities(var25, var25, var25)) {
-                              if (var16 instanceof LivingEntity var17 && !var17.getUniqueId().equals(var4.getUniqueId())) {
+                              if (var16 instanceof LivingEntity var17 && !(var17 instanceof Player operator&&!BurstVisuals.movable(operator.isOp())) && !var17.getUniqueId().equals(var4.getUniqueId())) {
                                  Vector var18 = var17.getLocation().toVector().subtract(var4.getLocation().toVector());
                                  if (var18.lengthSquared() < 0.01) {
                                     var18 = var4.getLocation().getDirection().multiply(-1);
@@ -363,8 +364,7 @@ public final class RelicItems implements Listener {
                               }
                            }
 
-                           var4.getWorld()
-                              .spawnParticle(var3.equals("burst") ? Particle.EXPLOSION : Particle.CLOUD, var4.getLocation(), 22, 1.4, 0.6, 1.4, 0.12);
+                           BurstVisuals.show(var4.getLocation().clone().add(0,1,0),Math.min(4,var25));
                            break;
                         case "magicbag":
                            var4.openInventory(var4.getEnderChest());
