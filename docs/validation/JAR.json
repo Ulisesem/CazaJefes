@@ -1,10 +1,10 @@
 {
-  "version": "1.13.2",
-  "sha256": "c5010a1204902db2c10eabb3210f3b1b7997361c91632cea61b91d42350e184a",
-  "size": 397079,
+  "version": "1.13.3",
+  "sha256": "d7068e40f4a751e4e43f3559be4d602be90202c67e20117c2f627f251e8971b0",
+  "size": 399970,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 142,
+  "tests": 143,
   "server_executed": false,
   "categories": {
     "Legendarios": 28,
@@ -45,6 +45,7 @@
     "dev/cazajefes/BestiaryMenu.class",
     "dev/cazajefes/BossAbilities$1.class",
     "dev/cazajefes/BossAbilities$Cast.class",
+    "dev/cazajefes/BossAbilities$Tracked.class",
     "dev/cazajefes/BossAbilities.class",
     "dev/cazajefes/BossAbilityCatalog$Debuff.class",
     "dev/cazajefes/BossAbilityCatalog$Pattern.class",
