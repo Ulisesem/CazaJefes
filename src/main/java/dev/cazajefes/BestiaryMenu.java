@@ -42,7 +42,7 @@ final class BestiaryMenu implements CommandExecutor,Listener {
   }else{
    Material icon=Material.matchMaterial(detail.entityType().name()+"_SPAWN_EGG");if(icon==null)icon=Material.DRAGON_HEAD;
    inv.setItem(22,PremiumStyle.tile(icon,detail.name(),color,true,detail.description(),"Categoría: "+category.title,"ID: "+detail.id()));
-   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"RITMO DEL COMBATE",NamedTextColor.AQUA,true,"I · Acecho: el encuentro comienza","II · Ruptura: mayor presión y empuje","III · Furia: nova, efectos y definitivo","Los avisos de etapa llegan a quienes luchan","Los ataques especiales se anuncian sobre la barra"));
+   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"ATAQUES POR ETAPA",NamedTextColor.AQUA,true,"I · Ascensión, Anillo, Corte y Barrido","II · Ascensión, Espiral, Runas y Vórtice","III · Ascensión, Ruptura, Lluvia y Definitivo","Ascensión del Firmamento · recarga 10 s","Ruptura del Horizonte · fase III · 8 s","La carga y la recarga aparecen sobre la barra"));
    inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"DEFENSAS DEL GUARDIÁN",color,true,"Protección: "+BossProtection.level(detail),"Fuerza: "+BattleRules.strength(detail),"El equipo del boss no es su botín"));
    var ultimate=BossAbilityCatalog.ultimate(detail);
    inv.setItem(30,PremiumStyle.tile(Material.NETHER_STAR,"ATAQUE DEFINITIVO",color,true,ultimate.name(),"Se prepara durante la tercera etapa","Radio: "+(int)ultimate.radius()+" bloques · Pulsos: "+ultimate.pulses(),"Recarga: 15 segundos tras finalizar"));
