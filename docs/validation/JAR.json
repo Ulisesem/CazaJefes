@@ -1,10 +1,10 @@
 {
-  "version": "1.14.0",
-  "sha256": "9c146ef15254276fcfc9ff1d20d3310358be785f84069f533a82f42095ba4558",
-  "size": 414368,
+  "version": "1.14.1",
+  "sha256": "13700bc5d89963188dcad3c59ee44f266482350c33f6456c4da9cf69b9146914",
+  "size": 417632,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 147,
+  "tests": 151,
   "server_executed": false,
   "categories": {
     "Legendarios": 28,
@@ -153,6 +153,7 @@
     "dev/cazajefes/PillagerCombat$Shot.class",
     "dev/cazajefes/PillagerCombat$Volley.class",
     "dev/cazajefes/PillagerCombat.class",
+    "dev/cazajefes/PillagerRules$Burst.class",
     "dev/cazajefes/PillagerRules$Hits.class",
     "dev/cazajefes/PillagerRules.class",
     "dev/cazajefes/PremiumStyle$1.class",
