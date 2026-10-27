@@ -1422,10 +1422,6 @@ public final class RelicItems implements Listener {
       ItemStack replacement=null;
       if(id.equals("fragmento_grieta"))replacement=fragment(stack.getAmount());
       else if(id.equals("tributo_grieta"))replacement=tribute("Cazador");
-      else if(id.startsWith("componente_")){
-         BossCatalog.Definition definition=BossCatalog.get(id.substring("componente_".length()));if(definition!=null)replacement=component(definition);
-      }
-      if(id.startsWith("corazon_boss_")){var definition=BossCatalog.get(id.substring("corazon_boss_".length()));if(definition!=null)replacement=bossHeart(definition);}
       if(id.startsWith("armadura_"))return EquipmentSets.migrateArmor(stack,id,itemKey);
       if(id.startsWith("arma_"))return EquipmentSets.migrateWeapon(stack,id,itemKey);
       if(id.equals("tracking_compass"))replacement=compass();

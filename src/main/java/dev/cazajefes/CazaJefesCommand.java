@@ -543,8 +543,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          new CazaJefesCommand.VisualRecipe(
             "armadura_grieta_yelmo",
             "Yelmo: Warden de la Grieta",
-            this.items.craftedArmor("warden_abismal", 0),
-            this.items.craftedArmor("warden_abismal", 0),
+            this.items.craftedArmor("nharzul_soberano_del_abismo", 0),
+            this.items.craftedArmor("nharzul_soberano_del_abismo", 0),
             new String[]{"MHM", "N N", "F F"},
             Map.of('M', var2, 'H', var5, 'N', new ItemStack(Material.NETHERITE_INGOT), 'F', this.items.fragment(1))
          )
@@ -553,8 +553,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          new CazaJefesCommand.VisualRecipe(
             "armadura_grieta_pechera",
             "Pechera: Coloso",
-            this.items.craftedArmor("coloso", 1),
-            this.items.craftedArmor("coloso", 1),
+            this.items.craftedArmor("gorath_quebrantador_de_mundos", 1),
+            this.items.craftedArmor("gorath_quebrantador_de_mundos", 1),
             new String[]{"N N", "MGM", "NPN"},
             Map.of('N', new ItemStack(Material.NETHERITE_INGOT), 'M', var2, 'G', var3, 'P', var4)
          )
@@ -563,8 +563,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          new CazaJefesCommand.VisualRecipe(
             "armadura_grieta_grebas",
             "Grebas: Leviatán del End",
-            this.items.craftedArmor("leviatan_ender", 2),
-            this.items.craftedArmor("leviatan_ender", 2),
+            this.items.craftedArmor("leviatan_del_end", 2),
+            this.items.craftedArmor("leviatan_del_end", 2),
             new String[]{"NPN", "M M", "F F"},
             Map.of('N', new ItemStack(Material.NETHERITE_INGOT), 'P', var4, 'M', var2, 'F', this.items.fragment(1))
          )
@@ -573,8 +573,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          new CazaJefesCommand.VisualRecipe(
             "armadura_grieta_botas",
             "Botas: Rey de las Brasas",
-            this.items.craftedArmor("rey_brasas", 3),
-            this.items.craftedArmor("rey_brasas", 3),
+            this.items.craftedArmor("rey_de_las_brasas", 3),
+            this.items.craftedArmor("rey_de_las_brasas", 3),
             new String[]{"P P", "M M", "B B"},
             Map.of('P', var4, 'M', var2, 'B', var6)
          )
@@ -1303,7 +1303,6 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          this.deny(var1);
       } else {
          this.plugin.reloadConfig();
-         ConfigMigration.canonicalBossIds((CazaJefesPlugin)plugin);
          ((CazaJefesPlugin)this.plugin).recipeSettings.reload();
          this.items.reloadRares();
          var1.sendMessage(Component.text("Configuración recargada.", NamedTextColor.GREEN));

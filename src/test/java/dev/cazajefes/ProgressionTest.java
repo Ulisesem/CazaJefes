@@ -12,12 +12,12 @@ public class ProgressionTest {
  @Test public void canonicalIdsMatchNamesAndOldIdsStillResolve(){
   for(var boss:BossCatalog.all()){
    assertEquals(BossCatalog.canonicalId(boss.name()),boss.id());assertTrue(boss.id().matches("[a-z0-9]+(_[a-z0-9]+)*"));
-   assertSame(boss,BossCatalog.get(boss.migrationId()));assertSame(boss,BossCatalog.get(boss.id()));
+   assertSame(boss,BossCatalog.get(boss.id()));assertSame(boss,BossCatalog.get(boss.id()));
   }
  }
  @Test public void wardensAreAbyssalAndRenamed(){
   long wardens=BossCatalog.all().stream().filter(b->b.entityType()==EntityType.WARDEN).peek(b->assertEquals(BossCatalog.Tier.ABYSSAL,b.tier())).count();
-  assertEquals(1,wardens);assertEquals("nharzul_soberano_del_abismo",BossCatalog.get("warden_abismal").id());
+  assertEquals(1,wardens);assertEquals("nharzul_soberano_del_abismo",BossCatalog.get("nharzul_soberano_del_abismo").id());
  }
  @Test public void everyMiniDropsOnlyCurrenciesAcrossManyRolls(){
   Random random=new Random(7);

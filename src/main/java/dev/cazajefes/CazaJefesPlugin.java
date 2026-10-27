@@ -24,7 +24,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
 
    public void onEnable() {
       this.saveDefaultConfig();
-      ConfigMigration.run(this);ConfigMigration.canonicalBossIds(this);
+      ConfigMigration.run(this);
       this.recipeSettings = new RecipeSettings(this);
       this.guard = new CombatGuard(this);
       getServer().getPluginManager().registerEvents(guard, this);
