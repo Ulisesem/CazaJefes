@@ -1621,7 +1621,7 @@ public final class RelicItems implements Listener {
             this.plugin.getServer().addRecipe(var27);
          }
       }
-      registerCrystalRecipes();
+      registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
    }
 
    private int rareCatalystVariant(String var1) {
@@ -1641,6 +1641,8 @@ public final class RelicItems implements Listener {
       BossCatalog.Tier rank=EquipmentSets.tier(customId(stack));return rank==null?BossCatalog.Tier.COMMON:rank;
    }
 
+   void addDuelRecipe(String id,ItemStack result,String[] shape,Map<Character,RecipeChoice> choices){addRecipe(id,result,shape,choices);}
+   RecipeChoice coreChoice(){return bossCoreChoice();}
    private void addRecipe(String var1, ItemStack var2, String[] var3, Map<Character, RecipeChoice> var4) {
       if (var1.startsWith("armadura_set_") || var1.startsWith("arma_set_")) {
          BossCatalog.Tier rank=equipmentTier(var2);

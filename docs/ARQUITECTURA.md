@@ -17,3 +17,5 @@ Los IDs canónicos se obtienen del nombre actual. Definition ya no guarda un ID 
 Las pruebas unitarias están en src/test/java. docs/validation contiene la última ejecución de Maven y la inspección del JAR; no constituye una prueba de juego en un servidor Paper.
 
 Componentes de 1.15.0: BossIntegrity/SlimeHealth (ciclo nativo y vida), EncounterSafety (espacio y refugios), BurstCadence/AbyssalGaze (coordinación), MobCombos/SpellVisuals/BossEffects (combos y efectos), CosmeticFX (presupuesto compartido), BossStatistics (victorias y exportación), RareAppearance (presentación de propiedades).
+
+Forja PvP 1.16.0: DuelCatalog define las ocho piezas y reglas puras; DuelRelics registra materiales/recetas y procesa disparos y daños aceptados. RaresMenu añade dos categorías y enlaces entre recetas asociadas. Los poderes no comparten el temporizador de debuffs de bosses.

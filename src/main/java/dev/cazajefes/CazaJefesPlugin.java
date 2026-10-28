@@ -19,7 +19,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
    DamageDiagnostics damageDiagnostics;
-   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;
+   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;
    public BossStatistics statistics(){return statistics;}
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -62,6 +62,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getCommand("ri").setExecutor(var1);
       this.getCommand("ri").setTabCompleter(var1);
       this.getServer().getPluginManager().registerEvents(var1, this);
+      duel=new DuelRelics(this,relicItems);getServer().getPluginManager().registerEvents(duel,this);
       this.relicItems.registerRecipes();
       this.bestiary=new BestiaryMenu(this,bossManager,relicItems);
       this.getCommand("bestiario").setExecutor(bestiary);
@@ -85,7 +86,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
-      if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
+      if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();

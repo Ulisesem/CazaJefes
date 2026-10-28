@@ -24,6 +24,6 @@ public class InteractionRegressionTest {
   assertTrue(PassiveCombat.assist(EntityType.TURTLE,false));assertTrue(PassiveCombat.assist(EntityType.MOOSHROOM,false));assertTrue(PassiveCombat.assist(EntityType.GIANT,true));assertFalse(PassiveCombat.assist(EntityType.ZOMBIE,true));
  }
  @Test public void forgeKeepsCurrenciesAndCrystalsSeparate(){
-  assertEquals(7,RaresMenu.Category.values().length);assertEquals(RaresMenu.Category.CURRENCIES,RaresMenu.Category.category("tributo_cazador"));assertEquals(RaresMenu.Category.CRYSTALS,RaresMenu.Category.category("cristal_common"));
+  assertEquals(9,RaresMenu.Category.values().length);assertEquals(RaresMenu.Category.CURRENCIES,RaresMenu.Category.category("tributo_cazador"));assertEquals(RaresMenu.Category.CRYSTALS,RaresMenu.Category.category("cristal_common"));
  }
 }
