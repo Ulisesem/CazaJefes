@@ -2,7 +2,7 @@ package dev.cazajefes;
 import java.util.*;
 import java.util.random.RandomGenerator;
 final class LootRules {
- enum Kind { FRAGMENT,TRIBUTE,CRYSTAL,CORE,ARMOR,WEAPON,RARE,ESSENCE,ABYSSAL_ESSENCE,BOOK,MATERIAL }
+ enum Kind { FRAGMENT,TRIBUTE,CRYSTAL,CORE,ARMOR,WEAPON,BASE_ESSENCE,ESSENCE,ABYSSAL_ESSENCE,MATERIAL }
  record Reward(Kind kind,int amount,int variant) {}
  static double probability(double value) { return Double.isFinite(value) ? Math.max(0,Math.min(1,value)) : 0; }
  static List<Reward> roll(BossCatalog.Definition boss,RandomGenerator random) {
@@ -15,10 +15,10 @@ final class LootRules {
   add(out,random,Kind.CORE,0.50+rank*0.05,1,0);
   if(rank>=2)add(out,random,Kind.ARMOR,0.08+rank*0.035,1,random.nextInt(4));
   if(rank>=2)add(out,random,Kind.WEAPON,0.06+rank*0.025,1,random.nextInt(2));
-  add(out,random,Kind.RARE,0.08+rank*0.035,1,0);
+  add(out,random,Kind.BASE_ESSENCE,0.08+rank*0.035,1,0);
   add(out,random,Kind.ESSENCE,0.12+rank*0.055,1,0);
   if(rank==5) add(out,random,Kind.ABYSSAL_ESSENCE,0.15,1,0);
-  add(out,random,Kind.BOOK,0.08+rank*0.03,1,random.nextInt(39));
+  add(out,random,Kind.BASE_ESSENCE,0.08+rank*0.03,1,random.nextInt(39));
   add(out,random,Kind.MATERIAL,0.55,1+random.nextInt(2),random.nextInt(4));
   return List.copyOf(out);
  }

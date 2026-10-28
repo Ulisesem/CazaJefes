@@ -19,3 +19,5 @@ Las pruebas unitarias están en src/test/java. docs/validation contiene la últi
 Componentes de 1.15.0: BossIntegrity/SlimeHealth (ciclo nativo y vida), EncounterSafety (espacio y refugios), BurstCadence/AbyssalGaze (coordinación), MobCombos/SpellVisuals/BossEffects (combos y efectos), CosmeticFX (presupuesto compartido), BossStatistics (victorias y exportación), RareAppearance (presentación de propiedades).
 
 Forja PvP 1.16.0: DuelCatalog define las ocho piezas y reglas puras; DuelRelics registra materiales/recetas y procesa disparos y daños aceptados. RaresMenu añade dos categorías y enlaces entre recetas asociadas. Los poderes no comparten el temporizador de debuffs de bosses.
+
+Combate 1.18.0: BossSpecies/ArmadilloCycle controlan coberturas; SkeletonCombat gestiona arcos predictivos; MageCombat/MageRules coordinan hechizos y sanadores; HordeRules reserva lotes de seis; BurstVisuals usa dimensiones reales. Se reutilizan los controladores compartidos y se retiran temporizadores de movimiento antiguos de súbditos.

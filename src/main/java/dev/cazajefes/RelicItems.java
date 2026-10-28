@@ -1251,17 +1251,15 @@ public final class RelicItems implements Listener {
             case CORE -> component(var2);
             case ARMOR -> armor(var2,reward.variant());
             case WEAPON -> weaponDrop(var2,reward.variant());
-            case RARE -> looseBossRare(ThreadLocalRandom.current().nextInt(100000),false);
+            case BASE_ESSENCE -> essence();
             case ESSENCE -> var2.tier().ordinal()>=4 ? primordialEssence() : essence();
             case ABYSSAL_ESSENCE -> abyssalEssence();
-            case BOOK -> looseBossRare(reward.variant(),true);
             case MATERIAL -> riftMaterial(reward.variant());
          };
          if (stack!=null) { stack.setAmount(reward.amount()); var4.add(prepareBossDrop(stack)); }
       }
       if(LootRules.heartEligible(var2.mini(),Math.random(),plugin.getConfig().getDouble("loot.boss-heart-chance",0.01)))var4.add(bossHeart(var2));
-      double sealChance=plugin.getConfig().getDouble("loot.awakening-seal-chance."+var2.tier().name().toLowerCase(Locale.ROOT),RareCompatibility.sealChance(var2.tier(),var2.mini()));
-      if(!var2.mini()&&var2.tier().ordinal()>=2&&Math.random()<LootRules.probability(sealChance))var4.add(awakeningSeal());
+      List<ItemStack> merged=new ArrayList<>();for(ItemStack stack:var4){ItemStack same=merged.stream().filter(existing->existing.isSimilar(stack)).findFirst().orElse(null);if(same==null)merged.add(stack);else same.setAmount(same.getAmount()+stack.getAmount());}var4.clear();var4.addAll(merged);
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
       Component summary=Component.empty();
       for(int i=0;i<var4.size();i++){
@@ -1394,7 +1392,6 @@ public final class RelicItems implements Listener {
    ItemStack awakeningSeal(){ItemStack stack=named(Material.MAGMA_CREAM,"sello_resonancia_primigenia","✦ Resonancia Primigenia ✦",NamedTextColor.GOLD,1,"Rare de desbloqueo · Nivel I","Abre las infusiones de UNA pieza de boss.","Mesa: pieza sellada + una Resonancia Primigenia","Conserva encantamientos, desgaste y mejoras existentes.");var meta=stack.getItemMeta();meta.getPersistentDataContainer().set(rareBookKey,PersistentDataType.STRING,"despertar");meta.getPersistentDataContainer().set(rareEssenceLevelKey,PersistentDataType.INTEGER,1);stack.setItemMeta(meta);return stack;}
    private boolean bossInfusionGear(ItemStack stack){return stack!=null&&stack.hasItemMeta()&&RareAppearance.equipment(stack.getType())&&RareCompatibility.bossGear(customId(stack),stack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"boss_reward"),PersistentDataType.BYTE));}
    private boolean infusionBlocked(ItemStack stack){return RareCompatibility.blocked(bossInfusionGear(stack),stack!=null&&stack.hasItemMeta()&&stack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE));}
-   private ItemStack looseBossRare(int index,boolean books){List<String> pool=catalogIds().stream().filter(id->!id.equals("despertar")&&(books||!spellIds().contains(id))).toList();return rareBook(pool.get(Math.floorMod(index,pool.size())),1);}
    private ItemStack carryBossSeal(ItemStack result,ItemStack... inputs){if(result==null||!RareAppearance.equipment(result.getType())||java.util.Arrays.stream(inputs).noneMatch(this::bossInfusionGear))return result;ItemStack out=result.clone();var meta=out.getItemMeta();meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"boss_reward"),PersistentDataType.BYTE,(byte)1);ItemStack base=java.util.Arrays.stream(inputs).filter(i->i!=null&&!i.getType().isAir()).findFirst().orElse(null);if(base==null||!base.hasItemMeta()||!base.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE))meta.getPersistentDataContainer().remove(new NamespacedKey(plugin,"infusion_unlocked"));else meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE,(byte)1);out.setItemMeta(meta);return refreshAppearance(out);}
    @EventHandler(priority=EventPriority.HIGHEST)public void sealAnvil(org.bukkit.event.inventory.PrepareAnvilEvent e){e.setResult(carryBossSeal(e.getResult(),e.getInventory().getItem(0),e.getInventory().getItem(1)));}
    @EventHandler(priority=EventPriority.HIGHEST)public void sealGrindstone(org.bukkit.event.inventory.PrepareGrindstoneEvent e){e.setResult(carryBossSeal(e.getResult(),e.getInventory().getItem(0),e.getInventory().getItem(1)));}

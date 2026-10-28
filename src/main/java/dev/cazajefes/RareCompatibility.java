@@ -13,5 +13,4 @@ final class RareCompatibility {
  static boolean bossGear(String id,boolean marked){return marked||id!=null&&(id.startsWith("armadura_")||id.startsWith("arma_")||Set.of("espada_brezal","hacha_sismica","arco_ceniciento","lanza_magma","mandoble_vacio").contains(id));}
  static boolean canAwaken(boolean boss,boolean unlocked,int count){return boss&&!unlocked&&count==1;}
  static boolean blocked(boolean boss,boolean unlocked){return boss&&!unlocked;}
- static double sealChance(BossCatalog.Tier tier,boolean mini){return mini||tier.ordinal()<2?0:(tier.ordinal()-1)*.005;}
 }

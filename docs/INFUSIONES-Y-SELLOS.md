@@ -35,7 +35,7 @@ Consultar y fabricar en `/rares` → Cámara de infusiones → Resonancia Primig
 
 Después, en la mesa de crafteo: **una pieza sellada + una Resonancia Primigenia**. Produce esa misma pieza despierta, conservando encantamientos, desgaste, nombre y propiedades anteriores. No añade un ataque ni regala una rare ofensiva. No permite gastar varias a la vez ni volver a despertar una pieza ya abierta.
 
-El sello también tiene una probabilidad base baja en bosses: Épico 0,5 %, Legendario 1 %, Mítico 1,5 % y Abismal 2 %. No cae en minis ni raros. Ajustable con `loot.awakening-seal-chance.epic`, `.legendary`, `.mythic` y `.abyssal`. Requiere el crédito de combate válido usado por el botín normal.
+Desde 1.18.0 el sello solo se obtiene por receta. Se retira su caída para que los bosses no entreguen rares preparadas; las claves antiguas de probabilidad ya no activan ese drop.
 
 ## Reparaciones y mejoras
 
@@ -43,7 +43,7 @@ Yunque, afiladora, herrería y reparación en mesa conservan la condición de pi
 
 ## Cambios en drops
 
-Ninguna arma o armadura nueva del botín incorpora rares personalizadas. Conservan sus encantamientos vanilla de categoría, como Filo o Protección. La tirada que antes producía un arma rare preinfundida entrega ahora una rare suelta, para aplicar después del desbloqueo. Los libros, materiales y demás recompensas conservan sus rutas.
+Ninguna arma o armadura nueva del botín incorpora rares personalizadas. Conservan sus encantamientos vanilla de categoría, como Filo o Protección. La tirada que antes producía un arma rare preinfundida entrega ahora Rare Essence base sin poder asignado, para aplicar después del desbloqueo. Los libros, materiales y demás recompensas conservan sus rutas.
 
 No se eliminan rares de objetos que los jugadores ya poseen. Las armas especiales que se fabrican por recetas antiguas tampoco se presentan como nuevos drops: la restricción solicitada se aplica al botín de bosses y a nuevas infusiones del equipo de su colección.
 

@@ -50,7 +50,7 @@ final class PillagerCombat implements Listener {
     static boolean specialShot(Entity entity) {
         return entity.getPersistentDataContainer().has(SPECIAL, PersistentDataType.BYTE);
     }
-    static double arrowRangeSquared(Entity entity){return entity.getPersistentDataContainer().has(ARROW,PersistentDataType.BYTE)?2304:576;}
+    static double arrowRangeSquared(Entity entity){return entity.getPersistentDataContainer().has(ARROW,PersistentDataType.BYTE)||entity.getPersistentDataContainer().has(SkeletonCombat.ARROW,PersistentDataType.BYTE)?2304:576;}
     private Player target(Raider state) {
         Player focus = state.focus == null ? null : plugin.getServer().getPlayer(state.focus);
         if (eligible(state.boss, focus)) return focus;

@@ -5,7 +5,7 @@ final class StageAttackRules {
  static long groundCooldown(int phase,int slot){return phase>=3&&slot==1?15000:phase==1?12000:10000;}
  static long gap(int phase){return phase==1?4000:phase==2?3000:2500;}
  static double lift(int phase){return CombatPower.lift(phase);}
- static final String LIFT="Ascensión del Firmamento",REPEL="Ruptura del Horizonte";
+ static final String LIFT="Ascensión del Firmamento",REPEL="Cataclismo del Destierro · Empuje X";
  static BossAbilityCatalog.Ultimate profile(BossCatalog.Definition boss,int phase,int slot){
   var base=BossAbilityCatalog.ultimate(boss);if(phase>=3&&slot==1)return base;
   String[] names=phase==1?new String[]{"Anillo de Ruptura","Corte del Umbral","Barrido del Guardián"}:phase==2?new String[]{"Espiral de Asedio","Runas de Fractura","Vórtice del Ocaso"}:new String[]{"Lluvia del Cataclismo"};

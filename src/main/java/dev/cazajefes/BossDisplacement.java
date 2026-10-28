@@ -18,7 +18,7 @@ final class BossDisplacement {
   if(state.pending!=0){String name=state.pending==1?StageAttackRules.LIFT:StageAttackRules.REPEL;
    if(now<state.release){if(now>=state.lastHud){warn(players,"⚠ CARGANDO · "+name+" · "+Math.max(1,(state.release-now+999)/1000)+"s");state.lastHud=now+350;}return true;}
    int attack=state.pending;state.last=attack;state.pending=0;state.cadence.released(now);state.lift=state.cadence.next();state.repel=state.lift;
-   Location center=boss.getLocation();BurstVisuals.show(plugin,center.clone().add(0,1,0),4);
+   Location center=boss.getLocation();BurstVisuals.showBoss(plugin,boss);
    boss.getWorld().playSound(center,attack==1?Sound.ENTITY_BREEZE_WIND_BURST:Sound.ENTITY_WARDEN_SONIC_BOOM,1,attack==1?1.3f:.7f);
    for(Player player:players){if(!BurstVisuals.movable(player.isOp()))continue;var delta=player.getLocation().toVector().subtract(center.toVector()).setY(0);if(delta.lengthSquared()<.001)delta=new Vector(0,0,1);delta.normalize();plugin.burstLaunch.launch(player,delta.multiply(attack==1?CombatPower.ASCENT_LATERAL:CombatPower.repel()).setY(attack==1?StageAttackRules.lift(phase):.5));}
    plugin.shulkers.afterBurst(boss);warn(players,"✦ "+name+" · "+definition.name());return true;

@@ -19,7 +19,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
    DamageDiagnostics damageDiagnostics;
-   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;
+   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;BossSpecies species;SkeletonCombat archers;MageCombat mages;
    public BossStatistics statistics(){return statistics;}
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -40,12 +40,15 @@ public final class CazaJefesPlugin extends JavaPlugin {
       getServer().getPluginManager().registerEvents(new BossIntegrity(),this);
       burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);
       animalMinions=new AnimalMinions(this);getServer().getPluginManager().registerEvents(animalMinions,this);
+      species=new BossSpecies();getServer().getPluginManager().registerEvents(species,this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
       pillagers=new PillagerCombat(this);getServer().getPluginManager().registerEvents(pillagers,this);
+      archers=new SkeletonCombat(this);getServer().getPluginManager().registerEvents(archers,this);
       this.shulkers=new ShulkerCombat(this);getServer().getPluginManager().registerEvents(shulkers,this);
       this.deathVisuals=new BossDeathVisuals(this);getServer().getPluginManager().registerEvents(deathVisuals,this);
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
       this.auras=new BossAuras(this);getServer().getPluginManager().registerEvents(auras,this);
+      mages=new MageCombat(this);getServer().getPluginManager().registerEvents(mages,this);
       safety=new EncounterSafety(this);getServer().getPluginManager().registerEvents(safety,this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);
@@ -86,7 +89,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
-      if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
+      if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();
