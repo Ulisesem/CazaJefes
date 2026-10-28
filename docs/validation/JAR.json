@@ -1,10 +1,10 @@
 {
-  "version": "1.16.0",
-  "sha256": "e1950e06e2d6e6638b75483b5a3ca09ce7974e8386131d64abb7bc05316b52cf",
-  "size": 487267,
+  "version": "1.17.0",
+  "sha256": "5490c59d3a443ffa2eed341b81ced871e1469cc6ffe7ce8d1ce8d4aca11f443d",
+  "size": 494083,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 173,
+  "tests": 177,
   "server_executed": false,
   "categories": {
     "Legendarios": 28,
@@ -185,6 +185,8 @@
     "dev/cazajefes/PremiumStyle$1.class",
     "dev/cazajefes/PremiumStyle.class",
     "dev/cazajefes/RareAppearance.class",
+    "dev/cazajefes/RareCompatibility$Group.class",
+    "dev/cazajefes/RareCompatibility.class",
     "dev/cazajefes/RaresMenu$Category.class",
     "dev/cazajefes/RaresMenu$Menu.class",
     "dev/cazajefes/RaresMenu.class",

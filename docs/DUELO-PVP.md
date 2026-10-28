@@ -21,7 +21,7 @@ Estas son propiedades de nivel I fijo. No existe todavía una mejora de nivel pa
 
 `/rares` → **Materiales de duelo** → escoger material → ver ingredientes → Fabricar una unidad.
 
-`/rares` → **Rares PvP · Forja de duelo** → escoger pieza → consultar su material exclusivo con el botón vinculado → Fabricar una unidad.
+`/rares` → **Rares PvP · Forja de duelo** → escoger equipo compatible → escoger pieza → consultar su material exclusivo con el botón vinculado → Fabricar una unidad.
 
 Ambos apartados tienen enlaces de ida y vuelta entre pieza y material. También se registran como recetas reales de mesa. El permiso de forja existente permanece en vigor.
 
@@ -75,3 +75,5 @@ Las 16 recetas aceptan overrides y desactivación en recipes.yml con claves `pvp
 ## Validación
 
 Maven verify y 173 pruebas automatizadas, incluidos catálogo, disparadores, recargas, condiciones del combo y rutas de categorías. JAR revisado para Java 21. No se ha ejecutado un duelo real ni revisado visualmente la interfaz en Paper; el balance competitivo necesita pruebas con jugadores y los demás plugins instalados.
+
+Desde 1.17.0, las infusiones del equipo de boss requieren Resonancia Primigenia; las piezas PvP de esta colección no son drops de boss y conservan su ruta de fabricación.
