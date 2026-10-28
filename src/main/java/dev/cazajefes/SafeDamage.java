@@ -18,5 +18,6 @@ final class SafeDamage {
   }
   double result=event.getFinalDamage();if(result<0&&Double.isFinite(result))event.setDamage(DamageModifier.BASE,base-result+Math.ulp(base));else if(!Double.isFinite(result))zero(event);
  }
+ static void finishLowHealth(EntityDamageEvent event,double health){if(event.isCancelled())return;normalize(event);double result=event.getFinalDamage(),desired=DamageProgress.finishing(health,result);if(desired>result)event.setDamage(DamageModifier.BASE,event.getDamage()+desired-result);normalize(event);}
  static void floor(EntityDamageEvent event){if(event.isCancelled())return;normalize(event);double result=event.getFinalDamage(),desired=DamageProgress.floor(event.getDamage(),result);if(result>0&&desired>result)event.setDamage(DamageModifier.BASE,event.getDamage()+desired-result);normalize(event);}
 }

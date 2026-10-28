@@ -10,7 +10,7 @@ final class StageAttackRules {
   var base=BossAbilityCatalog.ultimate(boss);if(phase>=3&&slot==1)return base;
   String[] names=phase==1?new String[]{"Anillo de Ruptura","Corte del Umbral","Barrido del Guardián"}:phase==2?new String[]{"Espiral de Asedio","Runas de Fractura","Vórtice del Ocaso"}:new String[]{"Lluvia del Cataclismo"};
   var patterns=phase==1?new BossAbilityCatalog.Pattern[]{BossAbilityCatalog.Pattern.RINGS,BossAbilityCatalog.Pattern.CROSS,BossAbilityCatalog.Pattern.CONE}:phase==2?new BossAbilityCatalog.Pattern[]{BossAbilityCatalog.Pattern.SPIRAL,BossAbilityCatalog.Pattern.GEYSERS,BossAbilityCatalog.Pattern.VORTEX}:new BossAbilityCatalog.Pattern[]{BossAbilityCatalog.Pattern.METEORS};
-  int i=Math.floorMod(slot,names.length);return new BossAbilityCatalog.Ultimate(names[i],patterns[i],base.effect(),phase==1?6:phase==2?7:8,phase==1?1:2,base.angle());
+  int i=Math.floorMod(slot,names.length);return new BossAbilityCatalog.Ultimate(SpellVisuals.mage(boss.entityType())?SpellVisuals.name(phase,i):names[i],patterns[i],base.effect(),phase==1?6:phase==2?7:8,phase==1?1:2,base.angle());
  }
  static final class Rotation {
   int phase,index;long next;long[] ready;

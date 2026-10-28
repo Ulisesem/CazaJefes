@@ -11,7 +11,7 @@ final class BossTactics {
  }
  void tick(Player target,int phase){
   if(boss instanceof Shulker)return;
-  if(AquaticCombat.swimming(boss)){if(boss instanceof Mob mob)mob.setTarget(target);Vector destination=target.getLocation().add(0,.3,0).toVector().subtract(boss.getLocation().toVector());if(boss.hasLineOfSight(target))boss.setVelocity(AquaticCombat.motion(destination,fox));return;}
+  if(AquaticCombat.swimming(boss)){if(boss instanceof Mob mob)mob.setTarget(target);Vector destination=target.getLocation().add(0,.3,0).toVector().subtract(boss.getLocation().toVector());if(boss.hasLineOfSight(target))boss.setVelocity(AquaticCombat.motion(destination,fox,true));return;}
   ticks++;Location origin=boss.getLocation();Vector lead=target.getVelocity().clone().setY(0).multiply(4);if(lead.lengthSquared()>2)lead.normalize().multiply(1.4);
   Vector delta=target.getLocation().toVector().add(lead).subtract(origin.toVector()).setY(0);double distance=delta.length();if(distance<.2)return;
   Vector forward=delta.normalize();int beat=ticks/5;var move=TacticsRules.move(ranged,distance,beat,phase);Vector direction=forward.clone();

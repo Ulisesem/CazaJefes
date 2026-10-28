@@ -189,7 +189,7 @@ public final class BossManager implements Listener {
             this.eggsByBlock.put(this.key(var4.getLocation()), var8);
             this.saveEggs();
             this.startEggEffects(var8);
-            var4.getWorld().spawnParticle(Particle.FIREWORK, var4.getLocation().add(0.5, 1.0, 0.5), 35, 0.7, 0.8, 0.7, 0.16);
+            CosmeticFX.emit(Particle.FIREWORK, var4.getLocation().add(0.5, 1.0, 0.5), 35, 0.7, 0.8, 0.7, 0.16);
             var4.getWorld().playSound(var4.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1.2F, 0.6F);
             return true;
          }
@@ -210,6 +210,7 @@ public final class BossManager implements Listener {
             }
 
             var5 = var7;
+            if(var5 instanceof org.bukkit.entity.Slime slime)slime.setSize(4); // Set native size BEFORE custom attributes.
          } catch (IllegalArgumentException var18) {
             this.plugin.getLogger().warning("No se pudo crear el jefe " + var4.id() + " en este servidor.");
             return null;
@@ -283,6 +284,7 @@ public final class BossManager implements Listener {
             var12 = 26.0;
          }
 
+         if(var4.mini()){var10=Math.max(360,var10);var12=Math.max(26,var12);}
          var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".scale", var8)));
          var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".health", var10)));
          var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".damage", var12)));
@@ -306,15 +308,16 @@ public final class BossManager implements Listener {
             var21.setImmuneToZombification(true);
          }
 
-         var5.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, var4.id().equals("kitsar_acechador_carmesi")?0:1, true, false));
+         BossEffects.apply(var5,BossEffects.effect(PotionEffectType.SPEED, 100, var4.id().equals("kitsar_acechador_carmesi")?0:1, true, false));
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
+         AnimalBossSizing.apply(var5,var4);MiniBossSizing.apply(var5,var4);
+         if(!((CazaJefesPlugin)plugin).safety.place(var5)){var5.remove();return null;}
          this.encounters.put(var19, new BossManager.Encounter(var19, var4, var5.getLocation(), var5, var3));
          long var22 = this.plugin.getConfig().getLong("bosses.attack-interval-ticks", 50L);
          this.startBossSystems(var19, var5, var4, var22);
          var5.getWorld().playSound(var5.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.5F, 0.65F);
-         var5.getWorld().spawnParticle(Particle.REVERSE_PORTAL, var5.getLocation().add(0.0, 1.0, 0.0), 80, 1.2, 1.5, 1.2, 0.1);
-         this.plugin.getServer().broadcast(Component.text(var3 + " despertó a " + var4.name(), var4.tier().color).decorate(TextDecoration.BOLD));
+         CosmeticFX.emit(Particle.REVERSE_PORTAL, var5.getLocation().add(0.0, 1.0, 0.0), 80, 1.2, 1.5, 1.2, 0.1);
          return var5;
       }
       return null;
@@ -326,8 +329,9 @@ public final class BossManager implements Listener {
    }
 
    private void startBossSystems(UUID var1, LivingEntity var2, BossCatalog.Definition var3, long var4) {
+      BossIntegrity.restore(var2);
       ((CazaJefesPlugin)plugin).abilities.track(var2,var3);
-      AnimalBossSizing.apply(var2,var3);
+      AnimalBossSizing.apply(var2,var3);MiniBossSizing.apply(var2,var3);((CazaJefesPlugin)plugin).safety.track(var2);
       var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
       ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);
       if (!this.attacks.containsKey(var1)) {
@@ -452,14 +456,15 @@ public final class BossManager implements Listener {
             if(!hatch){var3.sendMessage("No tienes permiso para despertar huevos: cazajefes.hunter.hatch.");return;}
             if(!((CazaJefesPlugin)plugin).guard.canAttackBoss(var3)){var3.sendMessage("Despierta el huevo en supervivencia o aventura.");return;}
             if(this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName())==null){var3.sendMessage("No se pudo despertar al boss; el huevo se conserva.");return;}
+            for(Player online:plugin.getServer().getOnlinePlayers())online.sendMessage(Component.text("✦ "+var3.getName()+" ha abierto el huevo de ",net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD).append(Component.text(var2.definition.name(),var2.definition.tier().color)));
             this.eggsByBlock.remove(this.key(var2.location));
             this.encounters.remove(var2.id);
             this.stopEggEffects(var2.id);
             var2.location.getBlock().setType(Material.AIR, false);
             this.restoreSupport(var2);
             this.saveEggs();
-            var2.location.getWorld().spawnParticle(Particle.EXPLOSION, var2.location.clone().add(0.5, 0.7, 0.5), 1);
-            var2.location.getWorld().spawnParticle(Particle.PORTAL, var2.location.clone().add(0.5, 0.6, 0.5), 110, 0.9, 1.0, 0.9, 0.16);
+            CosmeticFX.emit(Particle.EXPLOSION, var2.location.clone().add(0.5, 0.7, 0.5), 1);
+            CosmeticFX.emit(Particle.PORTAL, var2.location.clone().add(0.5, 0.6, 0.5), 110, 0.9, 1.0, 0.9, 0.16);
             var2.location.getWorld().playSound(var2.location, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1.4F, 0.7F);
             var3.showTitle(
                Title.title(
@@ -520,7 +525,7 @@ public final class BossManager implements Listener {
                      }
 
                      if (var19 instanceof LivingEntity var27) {
-                        var27.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 1, true, false));
+                        BossEffects.apply(var27,BossEffects.effect(PotionEffectType.SPEED, 1200, 1, true, false));
                      }
                   }
                }
@@ -618,7 +623,7 @@ public final class BossManager implements Listener {
                if (var14 != null && var14.boss != null && var14.boss.isValid()) {
                   double var15 = var14.boss.getAttribute(Attribute.MAX_HEALTH).getValue();
                   var14.boss.setHealth(Math.min(var15, var14.boss.getHealth() + var15 * 0.05));
-                  var14.boss.getWorld().spawnParticle(Particle.HEART, var14.boss.getLocation().add(0.0, 1.0, 0.0), 5, 0.3, 0.4, 0.3, 0.02);
+                  CosmeticFX.emit(Particle.HEART, var14.boss.getLocation().add(0.0, 1.0, 0.0), 5, 0.3, 0.4, 0.3, 0.02);
                }
             } catch (Exception var10) {
             }
@@ -660,13 +665,14 @@ public final class BossManager implements Listener {
          var3.set(paid, PersistentDataType.BYTE,(byte)1);
          final boolean credited=((CazaJefesPlugin)plugin).guard.canDrop(var2);
          final BossCatalog.Definition defeated=var7;
+         if(credited)((CazaJefesPlugin)plugin).statistics.defeated(var2,defeated,var4);
          final String winner=var8;
          final Location dropLocation=var2.getLocation().clone();
          ((CazaJefesPlugin)plugin).deathVisuals.show(var2,defeated,()->{
             RelicItems.LootResult result=credited?this.relicItems.dropBossLoot(dropLocation,defeated,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
             this.plugin.getServer().broadcast(DamageLedger.report(var2,defeated,winner,result));
          });
-         var2.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
+         CosmeticFX.emit(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
          var2.getWorld().playSound(var2.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0F, 1.25F);
       }
    }
@@ -752,10 +758,8 @@ public final class BossManager implements Listener {
                               Location var1x = var1.location.clone().add(0.5, 0.7, 0.5);
                               this.angle += Math.PI / 12;
                               CombatVisuals.egg(var1x,var1.definition.tier(),this.angle);
-                              var1.location.getWorld().spawnParticle(Particle.PORTAL, var1x, 10, 0.45, 0.55, 0.45, 0.05);
-                              var1.location
-                                 .getWorld()
-                                 .spawnParticle(
+                              CosmeticFX.emit(Particle.PORTAL, var1x, 10, 0.45, 0.55, 0.45, 0.05);
+                              CosmeticFX.emit(
                                     Particle.ENCHANT, var1x.clone().add(Math.cos(this.angle), 0.35, Math.sin(this.angle)), 3, 0.08, 0.08, 0.08, 0.01
                                  );
                            } else {
@@ -835,7 +839,7 @@ public final class BossManager implements Listener {
             AquaticCombat.maintain(boss);
             int speed=definition.id().equals("kitsar_acechador_carmesi")?0:1;
             PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
-            if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,100,speed,true,false));}
+            if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);BossEffects.apply(boss,BossEffects.effect(PotionEffectType.SPEED,100,speed,true,false));}
             stages.update();
             Player var2=tactics.pickTarget();
             if (var2 != null) {
@@ -890,10 +894,10 @@ public final class BossManager implements Listener {
                case "volkar_corazon_del_cataclismo" -> 18.0;
                default -> 10.0;
             };
-            var1.damage(var4, this.boss);
-            var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
+            var1.damage(definition.mini()?Math.max(18,var4):var4, this.boss);
+            BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
             this.meleeCooldowns.put(var1.getUniqueId(), var2 + BattleRules.MELEE_COOLDOWN_MS);
-            var1.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, var1.getLocation().add(0.0, 1.0, 0.0), 6, 0.3, 0.35, 0.3, 0.04);
+            CosmeticFX.emit(Particle.DAMAGE_INDICATOR, var1.getLocation().add(0.0, 1.0, 0.0), 6, 0.3, 0.35, 0.3, 0.04);
          }
       }
 
@@ -939,7 +943,7 @@ public final class BossManager implements Listener {
          if(BossWarnings.active(target))return;
          target.sendActionBar(Component.text("¡" + definition.name() + " prepara su ataque! · Aléjate", NamedTextColor.RED));
          Location warning = target.getLocation().clone();
-         boss.getWorld().spawnParticle(Particle.FLAME, warning, 24, 0.8, 0.1, 0.8, 0);
+         CosmeticFX.emit(Particle.FLAME, warning, 24, 0.8, 0.1, 0.8, 0);
          plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (!((CazaJefesPlugin)plugin).abilities.busy(boss)&&boss.isValid() && !boss.isDead() && !boss.isInvulnerable() && CombatGuard.eligible(target)
                 && target.getWorld().equals(boss.getWorld()) && target.getLocation().distanceSquared(boss.getLocation()) <= 576
@@ -1014,7 +1018,7 @@ public final class BossManager implements Listener {
 
                      if (var1.getLocation().distanceSquared(this.boss.getLocation()) < 20.25) {
                         var1.damage(8.0, this.boss);
-                        var1.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 45, 0));
+                        BossEffects.apply(var1,BossEffects.effect(PotionEffectType.POISON, 45, 0));
                      }
                   }
                }, var16 * 5L);
@@ -1030,22 +1034,22 @@ public final class BossManager implements Listener {
                if (var7.getLocation().distanceSquared(var2) <= 30.25) {
                   var7.damage(12.0, this.boss);
                   var7.setFireTicks(Math.max(var7.getFireTicks(), 100));
-                  var7.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0));
+                  BossEffects.apply(var7,BossEffects.effect(PotionEffectType.WEAKNESS, 80, 0));
                }
             }
 
-            this.boss.getWorld().spawnParticle(Particle.EXPLOSION, var2, 2, 0.7, 0.4, 0.7, 0.05);
+            CosmeticFX.emit(Particle.EXPLOSION, var2, 2, 0.7, 0.4, 0.7, 0.05);
          } else if (var3.equals("volkar_corazon_del_cataclismo")) {
             for (Player var21 : this.boss.getWorld().getPlayers()) {
             if (!CombatGuard.eligible(var21)) continue;
                if (var21.getLocation().distanceSquared(var2) <= 49.0) {
                   var21.damage(14.0, this.boss);
-                  var21.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 1));
+                  BossEffects.apply(var21,BossEffects.effect(PotionEffectType.SLOWNESS, 100, 1));
                   var21.setVelocity(var21.getLocation().toVector().subtract(var2.toVector()).normalize().multiply(0.7).setY(0.75));
                }
             }
 
-            this.boss.getWorld().spawnParticle(Particle.BLOCK, var2, 55, 2.0, 0.3, 2.0, 0.1, Material.MOSS_BLOCK.createBlockData());
+            CosmeticFX.emit(Particle.BLOCK, var2, 55, 2.0, 0.3, 2.0, 0.1, Material.MOSS_BLOCK.createBlockData());
          } else {
             switch (this.definition.entityType()) {
                case ZOMBIE:
@@ -1054,11 +1058,11 @@ public final class BossManager implements Listener {
             if (!CombatGuard.eligible(var20)) continue;
                      if (var20.getLocation().distanceSquared(var2) <= 25.0) {
                         var20.damage(11.0, this.boss);
-                        var20.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0));
+                        BossEffects.apply(var20,BossEffects.effect(PotionEffectType.WEAKNESS, 100, 0));
                      }
                   }
 
-                  this.boss.getWorld().spawnParticle(Particle.SOUL, var2, 60, 1.5, 0.7, 1.5, 0.08);
+                  CosmeticFX.emit(Particle.SOUL, var2, 60, 1.5, 0.7, 1.5, 0.08);
                   return;
                case SKELETON:
                case STRAY:
@@ -1066,22 +1070,20 @@ public final class BossManager implements Listener {
                   Vector var12 = var1.getLocation().toVector().subtract(var2.toVector()).normalize();
 
                   for (int var19 = 1; var19 <= 12; var19++) {
-                     this.boss
-                        .getWorld()
-                        .spawnParticle(Particle.CRIT, var2.clone().add(var12.clone().multiply(var19)).add(0.0, 1.0, 0.0), 5, 0.15, 0.15, 0.15, 0.02);
+                     CosmeticFX.emit(Particle.CRIT, var2.clone().add(var12.clone().multiply(var19)).add(0.0, 1.0, 0.0), 5, 0.15, 0.15, 0.15, 0.02);
                   }
 
                   if (var1.getLocation().distanceSquared(var2) <= 169.0) {
                      var1.damage(14.0, this.boss);
-                     var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 75, 0));
+                     BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 0));
                   }
 
                   return;
                case CAVE_SPIDER:
                case SPIDER:
                   var1.damage(10.0, this.boss);
-                  var1.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 120, 1));
-                  this.boss.getWorld().spawnParticle(Particle.SPORE_BLOSSOM_AIR, var1.getLocation(), 50, 0.8, 0.7, 0.8, 0.06);
+                  BossEffects.apply(var1,BossEffects.effect(PotionEffectType.POISON, 120, 1));
+                  CosmeticFX.emit(Particle.SPORE_BLOSSOM_AIR, var1.getLocation(), 50, 0.8, 0.7, 0.8, 0.06);
                   return;
                case BLAZE:
                   for (Player var18 : this.boss.getWorld().getPlayers()) {
@@ -1092,7 +1094,7 @@ public final class BossManager implements Listener {
                      }
                   }
 
-                  this.boss.getWorld().spawnParticle(Particle.FLAME, var2, 90, 1.8, 1.0, 1.8, 0.1);
+                  CosmeticFX.emit(Particle.FLAME, var2, 90, 1.8, 1.0, 1.8, 0.1);
                   return;
                case SLIME:
                   for (Player var17 : this.boss.getWorld().getPlayers()) {
@@ -1103,14 +1105,14 @@ public final class BossManager implements Listener {
                      }
                   }
 
-                  this.boss.getWorld().spawnParticle(Particle.ITEM_SLIME, var2, 70, 1.6, 0.7, 1.6, 0.1);
+                  CosmeticFX.emit(Particle.ITEM_SLIME, var2, 70, 1.6, 0.7, 1.6, 0.1);
                   return;
                case PHANTOM:
                   Vector var9 = var1.getLocation().toVector().subtract(var2.toVector()).normalize();
                   this.boss.setVelocity(var9.multiply(1.4));
                   var1.damage(12.0, this.boss);
-                  var1.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 55, 0));
-                  this.boss.getWorld().spawnParticle(Particle.SOUL, var2, 60, 0.8, 0.5, 0.8, 0.1);
+                  BossEffects.apply(var1,BossEffects.effect(PotionEffectType.BLINDNESS, 55, 0));
+                  CosmeticFX.emit(Particle.SOUL, var2, 60, 0.8, 0.5, 0.8, 0.1);
                   return;
                case VINDICATOR:
                   Vector var8 = var1.getLocation().toVector().subtract(var2.toVector()).setY(0);
@@ -1122,15 +1124,15 @@ public final class BossManager implements Listener {
                      var1.damage(16.0, this.boss);
                   }
 
-                  this.boss.getWorld().spawnParticle(Particle.SWEEP_ATTACK, var2, 18, 0.6, 0.6, 0.6, 0.1);
+                  CosmeticFX.emit(Particle.SWEEP_ATTACK, var2, 18, 0.6, 0.6, 0.6, 0.1);
                   return;
                default:
                   for (Player var6 : this.boss.getWorld().getPlayers()) {
             if (!CombatGuard.eligible(var6)) continue;
                      if (var6.getLocation().distanceSquared(var2) <= 36.0) {
                         var6.damage(8.0, this.boss);
-                        var6.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
-                        var6.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 45, 0));
+                        BossEffects.apply(var6,BossEffects.effect(PotionEffectType.POISON, 100, 1));
+                        BossEffects.apply(var6,BossEffects.effect(PotionEffectType.BLINDNESS, 45, 0));
                      }
                   }
 
@@ -1139,6 +1141,8 @@ public final class BossManager implements Listener {
          }
       }
 
+      private long lastHorde;
+      private void hordeWarning(){long now=System.currentTimeMillis();if(now-lastHorde<2000)return;lastHorde=now;for(Player player:boss.getWorld().getPlayers())if(CombatGuard.eligible(player)&&player.getLocation().distanceSquared(boss.getLocation())<=1024)BossWarnings.send(player,Component.text("⚠ CUIDADO · Horda de "+definition.name(),net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}
       private void summonMinions(Player var1) {
          if(AnimalMinions.animal(definition.entityType())){summonCustom(definition.entityType(),var1,2,"animal_guard");return;}
          if (this.definition.id().equals("melisara_emperatriz_del_enjambre")) {
@@ -1178,8 +1182,8 @@ public final class BossManager implements Listener {
                      var11.getPersistentDataContainer().set(this.minionKey, PersistentDataType.BYTE, (byte)1);
                      var11.getPersistentDataContainer().set(new NamespacedKey(plugin, "minion_parent"), PersistentDataType.STRING,
                         boss.getPersistentDataContainer().get(new NamespacedKey(plugin, "encounter_id"), PersistentDataType.STRING));
-                     this.strengthenMinion(var11, "generic");
-                     CombatVisuals.summon(var10,this.definition);
+                     this.strengthenMinion(var11, "generic");if(!var11.isValid())continue;
+                     hordeWarning();CombatVisuals.summon(var10,this.definition);
                      if (var11 instanceof Mob var12) {
                         var12.setTarget(var1);
                         var12.setPersistent(false);
@@ -1197,7 +1201,7 @@ public final class BossManager implements Listener {
                   }
                }
 
-               this.boss.getWorld().spawnParticle(Particle.REVERSE_PORTAL, this.boss.getLocation(), 30, 1.0, 0.8, 1.0, 0.1);
+               CosmeticFX.emit(Particle.REVERSE_PORTAL, this.boss.getLocation(), 30, 1.0, 0.8, 1.0, 0.1);
                this.boss.getWorld().playSound(this.boss.getLocation(), Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1.0F, 0.8F);
             }
          } else {
@@ -1234,11 +1238,11 @@ public final class BossManager implements Listener {
                            var12.setImmuneToZombification(true);
                         }
 
-                        var11.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 1, true, false));
+                        BossEffects.apply(var11,BossEffects.effect(PotionEffectType.SPEED, 1200, 1, true, false));
                      } else if (var4.equals("spider_guard")) {
                         var11.setTarget(var2);
-                        var11.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 4, true, false));
-                        var11.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 1200, 0, true, false));
+                        BossEffects.apply(var11,BossEffects.effect(PotionEffectType.SPEED, 1200, 4, true, false));
+                        BossEffects.apply(var11,BossEffects.effect(PotionEffectType.STRENGTH, 1200, 0, true, false));
                      } else {
                         var11.setTarget(var2);
                         if (var11 instanceof Bee var16) {
@@ -1247,8 +1251,9 @@ public final class BossManager implements Listener {
                      }
                   }
 
-                  if(var9 instanceof LivingEntity minion){minion.removePotionEffect(PotionEffectType.STRENGTH);minion.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,1200,0,true,false));}
-                  CombatVisuals.summon(var8,this.definition);
+                  if(var9 instanceof LivingEntity minion){minion.removePotionEffect(PotionEffectType.STRENGTH);BossEffects.apply(minion,BossEffects.effect(PotionEffectType.STRENGTH,1200,0,true,false));}
+                  if(var9 instanceof LivingEntity unit)((CazaJefesPlugin)plugin).safety.minion(unit);if(!var9.isValid())continue;
+                  hordeWarning();CombatVisuals.summon(var8,this.definition);
                   if (!var4.equals("fox_sheep")) {
                      this.strengthenMinion(var9, var4);
                   }
@@ -1317,7 +1322,7 @@ public final class BossManager implements Listener {
 
                                        if (var1x.getLocation().distanceSquared(var9.getLocation()) < 7.839999999999999) {
                                           var1x.damage(8.0, (LivingEntity)var9);
-                                          var1x.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 45, 0));
+                                          BossEffects.apply(var1x,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
                                        }
                                     }
                                  } else {
@@ -1347,7 +1352,7 @@ public final class BossManager implements Listener {
 
       private void strengthenMinion(Entity var1, String var2) {
          if (var1 instanceof LivingEntity var3) {
-            var3.removePotionEffect(PotionEffectType.STRENGTH);var3.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,1200,0,true,false));
+            var3.removePotionEffect(PotionEffectType.STRENGTH);BossEffects.apply(var3,BossEffects.effect(PotionEffectType.STRENGTH,1200,0,true,false));
             if(var2.equals("spider_guard")){var size=var3.getAttribute(Attribute.SCALE);if(size!=null)size.setBaseValue(0.55);var damage=var3.getAttribute(Attribute.ATTACK_DAMAGE);if(damage!=null)damage.setBaseValue(6+definition.tier().ordinal()*1.5);}
             double var4 = var2.equals("abeja_enfurecida") ? 100.0 : (var2.equals("sniffer_young") ? 100.0 : (var2.equals("spider_guard") ? 120.0 : 70.0));
             AttributeInstance var6 = var3.getAttribute(Attribute.MAX_HEALTH);
@@ -1361,6 +1366,8 @@ public final class BossManager implements Listener {
                var7.setBaseValue(var2.equals("spider_guard")?8:0);
             }
 
+            ((CazaJefesPlugin)plugin).safety.minion(var3);
+            if(!var3.isValid())return;
             ((CazaJefesPlugin)plugin).animalMinions.track(var3,boss,definition.tier().ordinal());
             AttributeInstance var8 = var3.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
             if (var8 != null) {
@@ -1405,7 +1412,7 @@ public final class BossManager implements Listener {
          Location var2 = this.boss.getLocation();
          Vector var3 = var1.getLocation().toVector().subtract(var2.toVector()).setY(0).normalize();
          this.boss.getWorld().playSound(var2, Sound.ENTITY_RAVAGER_ROAR, 1.2F, 0.7F);
-         this.boss.getWorld().spawnParticle(Particle.CLOUD, var2, 32, 0.7, 0.4, 0.7, 0.12);
+         CosmeticFX.emit(Particle.CLOUD, var2, 32, 0.7, 0.4, 0.7, 0.12);
          this.boss.setVelocity(var3.multiply(1.12).setY(0.34));
          if (var1.getLocation().distanceSquared(var2) <= 49.0) {
             var1.damage(Math.max(4.0, this.definition.tier().damage * 0.22), this.boss);
@@ -1454,25 +1461,25 @@ public final class BossManager implements Listener {
       private void debuff(Player var1) {
          switch (this.definition.tier()) {
             case COMMON:
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 50, 0));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 50, 0));
                break;
             case RARE:
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 70, 0));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.POISON, 70, 0));
                break;
             case EPIC:
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 70, 0));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.WEAKNESS, 70, 0));
                break;
             case LEGENDARY:
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 75, 1));
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 35, 0));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 1));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.BLINDNESS, 35, 0));
                break;
             case MYTHIC:
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 90, 1));
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 90, 1));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.WITHER, 90, 1));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 90, 1));
                break;
             case ABYSSAL:
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 120, 1));
-               var1.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.WITHER, 120, 1));
+               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 100, 2));
          }
       }
    }

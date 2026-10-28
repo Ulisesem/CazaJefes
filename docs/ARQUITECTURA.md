@@ -15,3 +15,5 @@
 Los IDs canónicos se obtienen del nombre actual. Definition ya no guarda un ID de migración y BossCatalog.get solo acepta IDs actuales. Los cambios de entidades e inventarios se ejecutan desde las tareas del servidor. Los temporizadores y efectos se cancelan al desactivar el plugin.
 
 Las pruebas unitarias están en src/test/java. docs/validation contiene la última ejecución de Maven y la inspección del JAR; no constituye una prueba de juego en un servidor Paper.
+
+Componentes de 1.15.0: BossIntegrity/SlimeHealth (ciclo nativo y vida), EncounterSafety (espacio y refugios), BurstCadence/AbyssalGaze (coordinación), MobCombos/SpellVisuals/BossEffects (combos y efectos), CosmeticFX (presupuesto compartido), BossStatistics (victorias y exportación), RareAppearance (presentación de propiedades).

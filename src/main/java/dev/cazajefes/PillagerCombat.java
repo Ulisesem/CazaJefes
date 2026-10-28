@@ -119,6 +119,7 @@ final class PillagerCombat implements Listener {
 
     private void fire(Raider state, Player player, boolean special, long now) {
         Pillager boss = state.boss;
+        if(shots.size()+(special?PillagerRules.VOLLEY_SIZE:1)>512)return;
         var levitation=player.getPotionEffect(org.bukkit.potion.PotionEffectType.LEVITATION);
         Vector direction=PillagerRules.aim(boss.getEyeLocation().toVector(),player.getEyeLocation().toVector(),player.getVelocity(),PillagerRules.ARROW_SPEED,levitation==null?0:levitation.getAmplifier()+1,!player.isOnGround());
         UUID volleyId = UUID.randomUUID();
@@ -127,6 +128,8 @@ final class PillagerCombat implements Listener {
         double baseline = Math.max(state.definition.tier().damage, attribute == null ? 18 : attribute.getValue());
         double damage = special ? Math.min(200,CombatPower.special(baseline, state.definition.tier().ordinal(), BossStages.phase(boss), false)*1.35)
                                 : Math.max(6, baseline * .55);
+        damage=Math.min(200,damage*3.75); // Scripted Power X: 1 + .25*(10+1).
+        final double shotDamage=damage;
         List<Vector> directions = special ? PillagerRules.fan(direction) : List.of(direction.clone().normalize());
         int shotIndex=0;
         for (Vector aim : directions) {
@@ -140,7 +143,7 @@ final class PillagerCombat implements Listener {
                 if (special) a.getPersistentDataContainer().set(SPECIAL, PersistentDataType.BYTE, (byte) 1);
                 a.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
                 a.setShotFromCrossbow(true); a.setPierceLevel(10); a.setKnockbackStrength(0);
-                a.setDamage(damage / PillagerRules.ARROW_SPEED); a.setCritical(false); a.setPersistent(false);
+                a.setDamage(shotDamage / PillagerRules.ARROW_SPEED); a.setCritical(false); a.setPersistent(false);
             });
             if (arrow.isValid()) shots.put(arrow.getUniqueId(), new Shot(arrow, boss.getUniqueId(), volleyId, player.getUniqueId(),shotIndex==0,special,damage,now + PillagerRules.ARROW_LIFETIME));
             shotIndex++;
@@ -177,7 +180,7 @@ final class PillagerCombat implements Listener {
         if (!(event.getEntity() instanceof Player player) || !CombatGuard.eligible(player)) { event.setCancelled(true); return; }
         Volley volley = volleys.get(shot.volley());
         if (volley != null && volley.hit.contains(player.getUniqueId())) { event.setCancelled(true); return; }
-        if (shot.special()) SafeDamage.setBase(event, shot.damage());
+        SafeDamage.setBase(event, shot.damage());
     }
     @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
     public void arrowImpact(EntityDamageByEntityEvent event) {
