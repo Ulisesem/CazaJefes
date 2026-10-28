@@ -12,9 +12,9 @@ final class BossDeathVisuals implements Listener {
  private final CazaJefesPlugin plugin;private final Map<UUID,BukkitRunnable> tasks=new HashMap<>();private final Map<UUID,DeathCompletion> rewards=new HashMap<>();
  BossDeathVisuals(CazaJefesPlugin plugin){this.plugin=plugin;}
  private boolean visual(Entity e){return e.getPersistentDataContainer().has(VISUAL,PersistentDataType.BYTE);}
- void show(LivingEntity original,BossCatalog.Definition definition,Runnable reward){DeathCompletion completion=new DeathCompletion(reward);Location start=original.getLocation().clone();
+ void show(LivingEntity original,BossCatalog.Definition definition,Runnable reward){BossEffects.finish(original);DeathCompletion completion=new DeathCompletion(reward);Location start=original.getLocation().clone();
   original.setInvisible(true);for(Player viewer:plugin.getServer().getOnlinePlayers())viewer.hideEntity(plugin,original);
-  for(Player player:start.getWorld().getPlayers())if(player.getLocation().distanceSquared(start)<=144){player.sendActionBar(net.kyori.adventure.text.Component.text("⚠ CAÍDA FINAL · ¡Aléjate del boss!",net.kyori.adventure.text.format.NamedTextColor.RED));}
+  for(Player player:start.getWorld().getPlayers())if(player.getLocation().distanceSquared(start)<=144){BossWarnings.send(player,net.kyori.adventure.text.Component.text("⚠ CAÍDA FINAL · ¡Aléjate del boss!",net.kyori.adventure.text.format.NamedTextColor.RED));}
   try{
   Entity ghost=start.getWorld().spawnEntity(start,original.getType(),CreatureSpawnEvent.SpawnReason.CUSTOM,e->{e.getPersistentDataContainer().set(VISUAL,PersistentDataType.BYTE,(byte)1);e.setPersistent(false);e.setSilent(true);e.setInvulnerable(true);e.setGravity(false);e.customName(original.customName());e.setCustomNameVisible(true);if(e instanceof LivingEntity living){living.setCollidable(false);living.setCanPickupItems(false);if(living instanceof Mob mob)mob.setAI(false);var scale=living.getAttribute(Attribute.SCALE);var old=original.getAttribute(Attribute.SCALE);if(scale!=null&&old!=null)scale.setBaseValue(old.getBaseValue());if(living.getEquipment()!=null&&original.getEquipment()!=null){living.getEquipment().setArmorContents(original.getEquipment().getArmorContents());living.getEquipment().setItemInMainHand(original.getEquipment().getItemInMainHand().clone());living.getEquipment().setItemInOffHand(original.getEquipment().getItemInOffHand().clone());for(var slot:new org.bukkit.inventory.EquipmentSlot[]{org.bukkit.inventory.EquipmentSlot.HEAD,org.bukkit.inventory.EquipmentSlot.CHEST,org.bukkit.inventory.EquipmentSlot.LEGS,org.bukkit.inventory.EquipmentSlot.FEET,org.bukkit.inventory.EquipmentSlot.HAND,org.bukkit.inventory.EquipmentSlot.OFF_HAND})living.getEquipment().setDropChance(slot,0);}}});
   double rise=Math.max(0,Math.min(15,start.getWorld().getMaxHeight()-start.getY()-original.getHeight()-1));
@@ -27,9 +27,9 @@ final class BossDeathVisuals implements Listener {
     if(!ghost.isValid()){finish();return;}
     Location at=start.clone().add(0,DeathFlight.height(tick,rise),0);ghost.teleport(at);
     if(tick==DeathFlight.PEAK)start.getWorld().playSound(at,Sound.ENTITY_WITHER_SPAWN,.6f,1.6f);
-    if(tick%10==0){CombatVisuals.signatureRing(start,definition,6,24);for(Player player:start.getWorld().getPlayers())if(player.getLocation().distanceSquared(start)<=144)player.sendActionBar(net.kyori.adventure.text.Component.text("⚠ IMPACTO FINAL · Sal del círculo",net.kyori.adventure.text.format.NamedTextColor.RED));}
+    if(tick%10==0){CombatVisuals.signatureRing(start,definition,6,24);for(Player player:start.getWorld().getPlayers())if(player.getLocation().distanceSquared(start)<=144)BossWarnings.send(player,net.kyori.adventure.text.Component.text("⚠ IMPACTO FINAL · Sal del círculo",net.kyori.adventure.text.format.NamedTextColor.RED));}
     if(tick%2==0){CosmeticFX.emit(Particle.END_ROD,at.clone().add(0,1,0),5,.5,.6,.5,.015);CosmeticFX.emit(Particle.SOUL,at,4,.4,.5,.4,.01);}
-    if(tick==DeathFlight.END){try{blast(start);CombatVisuals.signatureRing(start,definition,2,24);CosmeticFX.emit(Particle.FIREWORK,start.clone().add(0,1,0),30,.8,.8,.8,.03);}finally{ghost.remove();}}
+    if(tick==DeathFlight.END){try{blast(start);BossEffects.finish(original);CombatVisuals.signatureRing(start,definition,2,24);CosmeticFX.emit(Particle.FIREWORK,start.clone().add(0,1,0),30,.8,.8,.8,.03);}finally{ghost.remove();}}
    }
   };
   tasks.put(id,task);rewards.put(id,completion);task.runTaskTimer(plugin,1,1);
@@ -46,11 +46,7 @@ final class BossDeathVisuals implements Listener {
   for(Player player:center.getWorld().getPlayers()){
    if(player.isDead()||!player.isOnline()||!plugin.guard.canAttackBoss(player)||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
    UUID id=player.getUniqueId();blastDamage.put(id,DeathFlight.damage(java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
-   try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event==null||!event.isCancelled()){VectorBack.push(player,center);plugin.getServer().getScheduler().runTask(plugin,()->{if(player.isOnline()&&!player.isDead()&&player.getWorld().equals(center.getWorld())&&player.getLocation().distanceSquared(center)<=100)VectorBack.push(player,center);});}if(event!=null&&!event.isCancelled()&&event.getFinalDamage()>0){
-    BossEffects.apply(player,BossEffects.effect(org.bukkit.potion.PotionEffectType.SLOWNESS,120,1));
-    BossEffects.apply(player,BossEffects.effect(org.bukkit.potion.PotionEffectType.WEAKNESS,160,0));
-    BossEffects.apply(player,BossEffects.effect(org.bukkit.potion.PotionEffectType.BLINDNESS,40,0));
-   }}finally{blastDamage.remove(id);blastEvents.remove(id);}
+   try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event==null||!event.isCancelled()){VectorBack.push(player,center);plugin.getServer().getScheduler().runTask(plugin,()->{if(player.isOnline()&&!player.isDead()&&player.getWorld().equals(center.getWorld())&&player.getLocation().distanceSquared(center)<=100)VectorBack.push(player,center);});}}finally{blastDamage.remove(id);blastEvents.remove(id);}
   }
  }
  @SuppressWarnings("deprecation") static void fixedBlastDamage(EntityDamageEvent event,double amount){

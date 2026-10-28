@@ -7,6 +7,9 @@ import org.bukkit.inventory.meta.PotionMeta;
 final class RecipeAlchemy {
  record Profile(PotionType potion,Material reagent,BossCatalog.Tier rank){}
  static final Map<String,Profile> PROFILES=Map.ofEntries(
+  Map.entry("strength",new Profile(PotionType.STRENGTH,Material.BLAZE_ROD,BossCatalog.Tier.LEGENDARY)),
+  Map.entry("turtle",new Profile(PotionType.TURTLE_MASTER,Material.TURTLE_SCUTE,BossCatalog.Tier.EPIC)),
+  Map.entry("garlic",new Profile(PotionType.REGENERATION,Material.HONEYCOMB,BossCatalog.Tier.LEGENDARY)),
   Map.entry("poison",new Profile(PotionType.POISON,Material.SPIDER_EYE,BossCatalog.Tier.COMMON)),
   Map.entry("backstab",new Profile(PotionType.SWIFTNESS,Material.FLINT,BossCatalog.Tier.RARE)),
   Map.entry("blinding",new Profile(PotionType.NIGHT_VISION,Material.INK_SAC,BossCatalog.Tier.RARE)),
@@ -21,7 +24,7 @@ final class RecipeAlchemy {
   Map.entry("fertilize",new Profile(PotionType.REGENERATION,Material.BONE_MEAL,BossCatalog.Tier.COMMON)),
   Map.entry("meltobsidian",new Profile(PotionType.FIRE_RESISTANCE,Material.OBSIDIAN,BossCatalog.Tier.RARE)),
   Map.entry("smelt",new Profile(PotionType.FIRE_RESISTANCE,Material.COAL,BossCatalog.Tier.COMMON)),
-  Map.entry("spore",new Profile(PotionType.POISON,Material.BROWN_MUSHROOM,BossCatalog.Tier.RARE)),
+  Map.entry("spore",new Profile(PotionType.POISON,Material.SPORE_BLOSSOM,BossCatalog.Tier.RARE)),
   Map.entry("veinminer",new Profile(PotionType.STRENGTH,Material.RAW_IRON,BossCatalog.Tier.EPIC)),
   Map.entry("treefeller",new Profile(PotionType.SWIFTNESS,Material.OAK_LOG,BossCatalog.Tier.RARE)),
   Map.entry("magneto",new Profile(PotionType.SWIFTNESS,Material.IRON_INGOT,BossCatalog.Tier.EPIC)),
@@ -38,7 +41,7 @@ final class RecipeAlchemy {
   Map.entry("nofalldamage",new Profile(PotionType.SLOW_FALLING,Material.FEATHER,BossCatalog.Tier.RARE)),
   Map.entry("doublejump",new Profile(PotionType.LEAPING,Material.RABBIT_FOOT,BossCatalog.Tier.EPIC)),
   Map.entry("fly",new Profile(PotionType.SLOW_FALLING,Material.ELYTRA,BossCatalog.Tier.ABYSSAL)),
-  Map.entry("hardy",new Profile(PotionType.STRENGTH,Material.NETHERITE_SCRAP,BossCatalog.Tier.EPIC)),
+  Map.entry("hardy",new Profile(PotionType.STRONG_HEALING,Material.HEART_OF_THE_SEA,BossCatalog.Tier.EPIC)),
   Map.entry("saturacion",new Profile(PotionType.REGENERATION,Material.GOLDEN_APPLE,BossCatalog.Tier.MYTHIC)),
   Map.entry("flame",new Profile(PotionType.FIRE_RESISTANCE,Material.BLAZE_POWDER,BossCatalog.Tier.EPIC)),
   Map.entry("vampirismo",new Profile(PotionType.REGENERATION,Material.CRIMSON_FUNGUS,BossCatalog.Tier.MYTHIC)),

@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 /** One shared five-tick controller, no player teleports or location locking. */
 final class AbyssalGaze implements Listener {
- static final long DURATION=5000,COOLDOWN=25000,CHARGE=2000;
+ static final long DURATION=5000,COOLDOWN=25000,CHARGE=3000;
  static boolean available(BossCatalog.Tier tier,int phase){return tier==BossCatalog.Tier.ABYSSAL&&phase==3;}
  private static final class State {long ready,release,end;}
  private record Lock(UUID owner,Player player,UUID world,float pitch,long end){}
@@ -19,7 +19,7 @@ final class AbyssalGaze implements Listener {
  boolean tick(LivingEntity boss,BossCatalog.Definition d,int phase,long now,boolean blocked){UUID id=boss.getUniqueId();
   if(!available(d.tier(),phase)){remove(id);return false;}
   State s=states.computeIfAbsent(id,k->{State state=new State();state.ready=now+12500;return state;});
-  if(s.end>0){if(now>=s.end){release(id);s.end=0;}else{for(Lock lock:new ArrayList<>(locks.values()))if(lock.owner().equals(id)){Player p=lock.player();if(!CombatGuard.eligible(p)||!p.getWorld().getUID().equals(lock.world())||p.getLocation().distanceSquared(boss.getLocation())>1024){unlock(p.getUniqueId());continue;}p.setRotation(p.getYaw(),-85);}return true;}}
+  if(s.end>0){if(now>=s.end){release(id);s.end=0;plugin.abilities.rest(boss);}else{for(Lock lock:new ArrayList<>(locks.values()))if(lock.owner().equals(id)){Player p=lock.player();if(!CombatGuard.eligible(p)||!p.getWorld().getUID().equals(lock.world())||p.getLocation().distanceSquared(boss.getLocation())>1024){unlock(p.getUniqueId());continue;}p.setRotation(p.getYaw(),-85);}return true;}}
   if(s.release>0){if(now<s.release){warn(players(boss),"⚠ CENIT DEL ABISMO · Cargando · ¡Aléjate!");SpellVisuals.charge(boss,d,(int)(now%1000/50));return true;}
    s.release=0;s.ready=now+COOLDOWN;s.end=now+DURATION;for(Player p:players(boss)){if(now<immunity.getOrDefault(p.getUniqueId(),0L))continue;locks.put(p.getUniqueId(),new Lock(id,p,p.getWorld().getUID(),p.getPitch(),s.end));immunity.put(p.getUniqueId(),now+COOLDOWN);p.setRotation(p.getYaw(),-85);}
    boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_WARDEN_SONIC_BOOM,.8f,.6f);CombatVisuals.special(boss,d);warn(players(boss),"✦ CENIT DEL ABISMO · Mirada sellada · 5 s");return true;

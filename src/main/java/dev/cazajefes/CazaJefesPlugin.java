@@ -27,7 +27,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    private HuntTracker tracker;
 
    public void onEnable() {
-      this.saveDefaultConfig();
+      this.saveDefaultConfig();BossWarnings.start(this);
       ConfigMigration.run(this);
       this.recipeSettings = new RecipeSettings(this);
       statistics=new BossStatistics(this);getServer().getServicesManager().register(BossStatistics.class,statistics,this,org.bukkit.plugin.ServicePriority.Normal);
@@ -89,7 +89,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
-      if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
+      BossEffects.clear();BossWarnings.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();

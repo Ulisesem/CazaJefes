@@ -838,7 +838,7 @@ public final class BossManager implements Listener {
             AquaticCombat.maintain(boss);
             int speed=definition.id().equals("kitsar_acechador_carmesi")?0:1;
             PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
-            if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);BossEffects.apply(boss,BossEffects.effect(PotionEffectType.SPEED,100,speed,true,false));}
+            if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);BossEffects.applyFrom(boss,boss,BossEffects.effect(PotionEffectType.SPEED,100,speed,true,false));}
             stages.update();if(((CazaJefesPlugin)plugin).species.defending(boss))return;
             Player var2=tactics.pickTarget();
             if (var2 != null) {
@@ -895,7 +895,7 @@ public final class BossManager implements Listener {
                default -> 10.0;
             };
             var1.damage(definition.mini()?Math.max(18,var4):var4, this.boss);
-            BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
+            BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
             this.meleeCooldowns.put(var1.getUniqueId(), var2 + BattleRules.MELEE_COOLDOWN_MS);
             CosmeticFX.emit(Particle.DAMAGE_INDICATOR, var1.getLocation().add(0.0, 1.0, 0.0), 6, 0.3, 0.35, 0.3, 0.04);
          }
@@ -1018,7 +1018,7 @@ public final class BossManager implements Listener {
 
                      if (var1.getLocation().distanceSquared(this.boss.getLocation()) < 20.25) {
                         var1.damage(8.0, this.boss);
-                        BossEffects.apply(var1,BossEffects.effect(PotionEffectType.POISON, 45, 0));
+                        BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.POISON, 45, 0));
                      }
                   }
                }, var16 * 5L);
@@ -1034,7 +1034,7 @@ public final class BossManager implements Listener {
                if (var7.getLocation().distanceSquared(var2) <= 30.25) {
                   var7.damage(12.0, this.boss);
                   var7.setFireTicks(Math.max(var7.getFireTicks(), 100));
-                  BossEffects.apply(var7,BossEffects.effect(PotionEffectType.WEAKNESS, 80, 0));
+                  BossEffects.applyFrom(boss,var7,BossEffects.effect(PotionEffectType.WEAKNESS, 80, 0));
                }
             }
 
@@ -1044,7 +1044,7 @@ public final class BossManager implements Listener {
             if (!CombatGuard.eligible(var21)) continue;
                if (var21.getLocation().distanceSquared(var2) <= 49.0) {
                   var21.damage(14.0, this.boss);
-                  BossEffects.apply(var21,BossEffects.effect(PotionEffectType.SLOWNESS, 100, 1));
+                  BossEffects.applyFrom(boss,var21,BossEffects.effect(PotionEffectType.SLOWNESS, 100, 1));
                   var21.setVelocity(var21.getLocation().toVector().subtract(var2.toVector()).normalize().multiply(0.7).setY(0.75));
                }
             }
@@ -1058,7 +1058,7 @@ public final class BossManager implements Listener {
             if (!CombatGuard.eligible(var20)) continue;
                      if (var20.getLocation().distanceSquared(var2) <= 25.0) {
                         var20.damage(11.0, this.boss);
-                        BossEffects.apply(var20,BossEffects.effect(PotionEffectType.WEAKNESS, 100, 0));
+                        BossEffects.applyFrom(boss,var20,BossEffects.effect(PotionEffectType.WEAKNESS, 100, 0));
                      }
                   }
 
@@ -1075,14 +1075,14 @@ public final class BossManager implements Listener {
 
                   if (var1.getLocation().distanceSquared(var2) <= 169.0) {
                      var1.damage(14.0, this.boss);
-                     BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 0));
+                     BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 0));
                   }
 
                   return;
                case CAVE_SPIDER:
                case SPIDER:
                   var1.damage(10.0, this.boss);
-                  BossEffects.apply(var1,BossEffects.effect(PotionEffectType.POISON, 120, 1));
+                  BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.POISON, 120, 1));
                   CosmeticFX.emit(Particle.SPORE_BLOSSOM_AIR, var1.getLocation(), 50, 0.8, 0.7, 0.8, 0.06);
                   return;
                case BLAZE:
@@ -1111,7 +1111,7 @@ public final class BossManager implements Listener {
                   Vector var9 = var1.getLocation().toVector().subtract(var2.toVector()).normalize();
                   this.boss.setVelocity(var9.multiply(1.4));
                   var1.damage(12.0, this.boss);
-                  BossEffects.apply(var1,BossEffects.effect(PotionEffectType.BLINDNESS, 55, 0));
+                  BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.BLINDNESS, 55, 0));
                   CosmeticFX.emit(Particle.SOUL, var2, 60, 0.8, 0.5, 0.8, 0.1);
                   return;
                case VINDICATOR:
@@ -1131,8 +1131,8 @@ public final class BossManager implements Listener {
             if (!CombatGuard.eligible(var6)) continue;
                      if (var6.getLocation().distanceSquared(var2) <= 36.0) {
                         var6.damage(8.0, this.boss);
-                        BossEffects.apply(var6,BossEffects.effect(PotionEffectType.POISON, 100, 1));
-                        BossEffects.apply(var6,BossEffects.effect(PotionEffectType.BLINDNESS, 45, 0));
+                        BossEffects.applyFrom(boss,var6,BossEffects.effect(PotionEffectType.POISON, 100, 1));
+                        BossEffects.applyFrom(boss,var6,BossEffects.effect(PotionEffectType.BLINDNESS, 45, 0));
                      }
                   }
 
@@ -1160,7 +1160,7 @@ public final class BossManager implements Listener {
 
       private void strengthenMinion(Entity var1, String var2) {
          if (var1 instanceof LivingEntity var3) {
-            var3.removePotionEffect(PotionEffectType.STRENGTH);BossEffects.apply(var3,BossEffects.effect(PotionEffectType.STRENGTH,1200,0,true,false));
+            var3.removePotionEffect(PotionEffectType.STRENGTH);BossEffects.applyFrom(boss,var3,BossEffects.effect(PotionEffectType.STRENGTH,1200,0,true,false));
             if(var2.equals("spider_guard")){var size=var3.getAttribute(Attribute.SCALE);if(size!=null)size.setBaseValue(0.55);var damage=var3.getAttribute(Attribute.ATTACK_DAMAGE);if(damage!=null)damage.setBaseValue(6+definition.tier().ordinal()*1.5);}
             double var4 = var2.equals("abeja_enfurecida") ? 100.0 : (var2.equals("sniffer_young") ? 100.0 : (var2.equals("spider_guard") ? 120.0 : 70.0));
             AttributeInstance var6 = var3.getAttribute(Attribute.MAX_HEALTH);
@@ -1269,25 +1269,25 @@ public final class BossManager implements Listener {
       private void debuff(Player var1) {
          switch (this.definition.tier()) {
             case COMMON:
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 50, 0));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 50, 0));
                break;
             case RARE:
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.POISON, 70, 0));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.POISON, 70, 0));
                break;
             case EPIC:
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.WEAKNESS, 70, 0));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.WEAKNESS, 70, 0));
                break;
             case LEGENDARY:
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 1));
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.BLINDNESS, 35, 0));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 1));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.BLINDNESS, 35, 0));
                break;
             case MYTHIC:
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.WITHER, 90, 1));
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 90, 1));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.WITHER, 90, 1));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 90, 1));
                break;
             case ABYSSAL:
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.WITHER, 120, 1));
-               BossEffects.apply(var1,BossEffects.effect(PotionEffectType.SLOWNESS, 100, 2));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.WITHER, 120, 1));
+               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 100, 2));
          }
       }
    }

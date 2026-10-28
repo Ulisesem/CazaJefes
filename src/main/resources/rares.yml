@@ -7,14 +7,14 @@ calllighting: { useCost: 4, maxLvl: 5, cooldownSeconds: 15, recipe: "hacha + ese
 confuse: { useCost: 3, maxLvl: 5, cooldownSeconds: 12, recipe: "espada + esencia" }
 disarm: { useCost: 4, maxLvl: 5, cooldownSeconds: 18, recipe: "hacha + tributo" }
 slow: { useCost: 2, maxLvl: 5, cooldownSeconds: 8, recipe: "espada + fragmento" }
-vampiricregeneration: { useCost: 4, maxLvl: 5, cooldownSeconds: 15, recipe: "espada + esencia primordial" }
+vampiricregeneration: { useCost: 4, maxLvl: 3, cooldownSeconds: 15, recipe: "espada + esencia primordial" }
 weaken: { useCost: 3, maxLvl: 5, cooldownSeconds: 12, recipe: "arco + tributo" }
 execute: { useCost: 5, maxLvl: 5, cooldownSeconds: 20, recipe: "hacha + esencia primordial + tributo" }
 bleed: { useCost: 4, maxLvl: 5, cooldownSeconds: 15, recipe: "espada + fragmentos + tributo" }
 fertilize: { useCost: 2, maxLvl: 5, cooldownSeconds: 5, recipe: "azada + esencia" }
 meltobsidian: { useCost: 3, maxLvl: 5, cooldownSeconds: 8, recipe: "pico + esencia" }
 smelt: { useCost: 3, maxLvl: 5, cooldownSeconds: 8, recipe: "pico + esencia + fragmento" }
-spore: { useCost: 2, maxLvl: 5, cooldownSeconds: 6, recipe: "azada + fragmento" }
+spore: { useCost: 2, maxLvl: 3, cooldownSeconds: 6, recipe: "azada + fragmento" }
 veinminer: { useCost: 5, maxLvl: 5, cooldownSeconds: 15, recipe: "pico + esencia primordial" }
 treefeller: { useCost: 4, maxLvl: 5, cooldownSeconds: 12, recipe: "hacha + esencia" }
 burst: { useCost: 2, maxLvl: 5, cooldownSeconds: 10, recipe: "esencia + fragmentos" }
@@ -26,11 +26,11 @@ invisibility: { useCost: 4, maxLvl: 5, cooldownSeconds: 30, recipe: "esencia + t
 magicbag: { useCost: 2, maxLvl: 5, cooldownSeconds: 10, recipe: "esencia + fragmentos" }
 repairitem: { useCost: 2, maxLvl: 5, cooldownSeconds: 15, recipe: "esencia + catalizador" }
 durability: { useCost: 2, maxLvl: 5, cooldownSeconds: 10, recipe: "armadura + esencia" }
-regeneration: { useCost: 4, maxLvl: 5, cooldownSeconds: 20, recipe: "armadura + esencia primordial" }
+regeneration: { useCost: 4, maxLvl: 3, cooldownSeconds: 20, recipe: "armadura + esencia primordial" }
 nofalldamage: { useCost: 3, maxLvl: 5, cooldownSeconds: 15, recipe: "botas + fragmento" }
 doublejump: { useCost: 3, maxLvl: 5, cooldownSeconds: 12, recipe: "botas + esencia" }
 fly: { useCost: 8, maxLvl: 5, cooldownSeconds: 30, recipe: "pechera + esencia primordial + tributo" }
-hardy: { useCost: 5, maxLvl: 5, cooldownSeconds: 20, recipe: "solo pechera + esencia primordial" }
+hardy: { useCost: 0, maxLvl: 3, cooldownSeconds: 20, recipe: "solo pechera + esencia primordial" }
 saturacion: { useCost: 0, maxLvl: 5, cooldownSeconds: 0, recipe: "armadura + esencia de saturación" }
 flame: { useCost: 2, maxLvl: 5, cooldownSeconds: 5, recipe: "casco + esencia" }
 vampirismo: { useCost: 3, maxLvl: 5, cooldownSeconds: 10, recipe: "espada + esencia primordial" }
@@ -40,3 +40,7 @@ brasas: { useCost: 3, maxLvl: 5, cooldownSeconds: 10, recipe: "espada + esencia"
 paso_viento: { useCost: 3, maxLvl: 5, cooldownSeconds: 12, recipe: "botas + fragmento" }
 
 magneto: { useCost: 2, maxLvl: 5, cooldownSeconds: 5 }
+
+strength: { useCost: 4, maxLvl: 3 }
+turtle: { useCost: 0, maxLvl: 5 }
+garlic: { useCost: 0, maxLvl: 5 }

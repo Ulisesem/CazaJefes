@@ -3,7 +3,7 @@ import java.util.*;
 import org.bukkit.util.Vector;
 final class PillagerRules {
  static final int VOLLEY_SIZE=30;
- static final long CHARGE=500,COOLDOWN=12000,HIT_WINDOW=8000,ARROW_LIFETIME=3000;
+ static final long CHARGE=3000,COOLDOWN=12000,HIT_WINDOW=8000,ARROW_LIFETIME=3000;
  static final Map<String,Integer> ENCHANTMENTS=Map.of("quick_charge",10,"multishot",15,"unbreaking",10,"mending",1,"knockback",10,"piercing",10,"infinity",1,"power",10);
  static final int BURST_COUNT=6,MAX_LIVE_ARROWS=192;
  static final long BURST_GAP=250;

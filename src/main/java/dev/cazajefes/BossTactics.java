@@ -15,10 +15,10 @@ final class BossTactics {
   if(AquaticCombat.swimming(boss)){if(boss instanceof Mob mob)mob.setTarget(target);Vector destination=target.getLocation().add(0,.3,0).toVector().subtract(boss.getLocation().toVector());if(boss.hasLineOfSight(target))boss.setVelocity(AquaticCombat.motion(destination,fox,true));return;}
   ticks++;Location origin=boss.getLocation();Vector lead=target.getVelocity().clone().setY(0).multiply(4);if(lead.lengthSquared()>2)lead.normalize().multiply(1.4);
   Vector delta=target.getLocation().toVector().add(lead).subtract(origin.toVector()).setY(0);double distance=delta.length();if(distance<.2)return;
-  Vector forward=delta.normalize();int beat=ticks/5;var move=TacticsRules.move(ranged,distance,beat,phase);Vector direction=forward.clone();
+  Vector forward=delta.normalize();int beat=ticks/5;var move=TacticsRules.move(ranged,distance,beat,phase);if(!ranged&&target.isBlocking()&&distance<5)move=TacticsRules.Move.FLANK;Vector direction=forward.clone();
   if(move==TacticsRules.Move.RETREAT)direction.multiply(-1);else if(move==TacticsRules.Move.FLANK){int side=((definition.id().hashCode()+(beat/3))&1)==0?1:-1;direction=new Vector(-forward.getZ()*side,0,forward.getX()*side).add(forward.clone().multiply(distance>4?.45:-.15)).normalize();}
   Location waypoint=origin.clone().add(direction.clone().multiply(2));
-  long now=System.currentTimeMillis();if(boss instanceof Mob mob&&now>=nextPath){mob.setTarget(target);mob.getPathfinder().moveTo(move==TacticsRules.Move.APPROACH?target.getLocation():waypoint,fox?1.05:1.2);nextPath=now+700;}
+  long now=System.currentTimeMillis();if(boss instanceof Mob mob&&now>=nextPath){mob.setTarget(target);mob.getPathfinder().moveTo(move==TacticsRules.Move.APPROACH?target.getLocation():waypoint,fox?1.05:1.2);nextPath=now+500;}
   if(!boss.hasLineOfSight(target))return;
   Block ahead=origin.clone().add(direction.clone().multiply(.9)).getBlock();boolean water=origin.getBlock().isLiquid();boolean obstacle=!ahead.isPassable();
   if(!water&&!obstacle&&origin.clone().add(direction.clone().multiply(1.3)).getBlock().getRelative(0,-1,0).isPassable()&&boss.isOnGround())return;

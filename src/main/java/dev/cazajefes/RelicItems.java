@@ -86,9 +86,10 @@ public final class RelicItems implements Listener {
    private final Map<String, Long> passiveSaturation = new HashMap<>();
    private final Map<UUID, Long> flyDrain = new HashMap<>();
    private final Set<UUID> flyUsers = new HashSet<>();
+   private final ArmorRares armorRares;
 
    public RelicItems(JavaPlugin var1, NamespacedKey var2) {
-      this.plugin = var1;
+      this.plugin = var1;this.armorRares=new ArmorRares(this,var1);
       this.itemKey = var2;
       this.dropEncounterKey = new NamespacedKey(var1, "loot_encounter");
       this.rareBookKey = new NamespacedKey(var1, "rare_book");
@@ -114,7 +115,7 @@ public final class RelicItems implements Listener {
    }
 
    public int maxLevel(String var1) {
-      return var1.equals("despertar")?1:Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
+      return var1.equals("despertar")?1:ArmorRareRules.title(var1)!=null?ArmorRareRules.maximum(var1):Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
    }
 
    public List<String> catalogIds() {
@@ -151,7 +152,7 @@ public final class RelicItems implements Listener {
             "nofalldamage",
             "doublejump",
             "fly",
-            "hardy",
+            "hardy", "strength", "turtle", "garlic",
             "saturacion",
             "flame"
          )
@@ -237,18 +238,21 @@ public final class RelicItems implements Listener {
       };
    }
 
-   private int activePropertyLevel(ItemStack item,String property){
+   int activePropertyLevel(ItemStack item,String property){
       if(item==null||!item.hasItemMeta())return 0;
       String properties=item.getItemMeta().getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);
       return properties!=null&&Arrays.asList(properties.split(",")).contains(property)?propertyLevel(item,property):0;
    }
    public ItemStack armorSet(BossCatalog.Tier tier,int slot){return EquipmentSets.armor(tier,slot,itemKey);}
    public ItemStack weaponSet(BossCatalog.Tier tier,int slot){return EquipmentSets.weapon(tier,slot,itemKey);}
+   void stopArmorRares(){armorRares.stop();}
+   boolean armorFuel(Player p,ItemStack item,String id){return consumePassiveSaturation(p,item,id);}
    private void tickArmorProperties(){
       long now=System.currentTimeMillis();
       for(Player player:plugin.getServer().getOnlinePlayers()){
-         ItemStack chest=player.getInventory().getChestplate();int hardy=activePropertyLevel(chest,"hardy");
-         if(hardy>0&&consumePassiveSaturation(player,chest,"hardy"))player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH,40,Math.min(5,hardy)-1,true,false,true));
+         armorRares.tick(player);
+         if(player.isFlying()&&(player.getGameMode()==GameMode.SURVIVAL||player.getGameMode()==GameMode.ADVENTURE)&&flyUsers.contains(player.getUniqueId())&&now-flyDrain.getOrDefault(player.getUniqueId(),0L)>=10000){ItemStack wings=armorRares.strongest(player,"fly");if(wings==null||!consumeSaturation(player,wings,"fly")){player.setFlying(false);player.setAllowFlight(false);}flyDrain.put(player.getUniqueId(),now);}
+
          if(now-passiveRepair.getOrDefault(player.getUniqueId(),0L)<5000)continue;
          boolean repaired=false;
          for(ItemStack piece:player.getInventory().getArmorContents()){
@@ -364,7 +368,7 @@ public final class RelicItems implements Listener {
                               }
                            }
 
-                           BurstVisuals.show(plugin,var4.getLocation().clone().add(0,1,0),Math.min(4,var25));
+                           BurstVisuals.showBoss(plugin,var4);
                            break;
                         case "magicbag":
                            var4.openInventory(var4.getEnderChest());
@@ -561,11 +565,11 @@ public final class RelicItems implements Listener {
             String var15 = (String)var14.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
             if (var15 != null) {
                Map<String, Integer> var16 = this.parseLevels((String)var14.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
-               if (var15.contains("vampirismo") || var15.contains("vampiricregeneration")) {
+               if ((var15.contains("vampirismo") || var15.contains("vampiricregeneration")) && !(var1.getEntity() instanceof Player defended && armorRares.counter(defended,"garlic"))) {
                   int var19 = Math.max(var16.getOrDefault("vampirismo", 1), var16.getOrDefault("vampiricregeneration", 1));
                   if (Math.random() < 0.1 + var19 * 0.03
                      && this.consumeSaturation(var2, var14, var15.contains("vampirismo") ? "vampirismo" : "vampiricregeneration")) {
-                     var2.setHealth(Math.min(var2.getMaxHealth(), var2.getHealth() + 1.0 + var19));
+                     plugin.getServer().getScheduler().runTask(plugin,()->{if(!var1.isCancelled()&&var1.getFinalDamage()>0&&var2.isOnline()&&!var2.isDead())var2.setHealth(Math.min(var2.getMaxHealth(),var2.getHealth()+Math.min(var1.getFinalDamage(),1.0+var19)));});
                   }
                }
 
@@ -626,7 +630,7 @@ public final class RelicItems implements Listener {
                      SafeDamage.setBase(var1,var1.getDamage() * (1.2 + var16.getOrDefault("execute", 1).intValue() * 0.1));
                   }
 
-                  if (var15.contains("backstab")) {
+                  if (var15.contains("backstab") && !(var20 instanceof Player defended && armorRares.counter(defended,"turtle"))) {
                      Vector var26 = var2.getLocation().toVector().subtract(var20.getLocation().toVector()).setY(0);
                      Vector var11 = var20.getLocation().getDirection().setY(0);
                      if (var26.lengthSquared() > 0.001
@@ -708,7 +712,7 @@ public final class RelicItems implements Listener {
                   var1.getBlock().setType(Material.GRASS_BLOCK);
                }
 
-               if (var3.contains("spore") && var5 == Material.COBBLESTONE && this.consumeSaturation(var4, var2, "spore")) {
+               if (false && var3.contains("spore") && var5 == Material.COBBLESTONE && this.consumeSaturation(var4, var2, "spore")) {
                   var1.getBlock().setType(Material.MOSSY_COBBLESTONE);
                }
 
@@ -774,7 +778,7 @@ public final class RelicItems implements Listener {
                var4 = Material.GRASS_BLOCK;
             }
 
-            if (var2.contains("spore")
+            if (false && var2.contains("spore")
                && (var3 == Material.COBBLESTONE || var3 == Material.STONE)
                && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "spore")) {
                var4 = var3 == Material.COBBLESTONE ? Material.MOSSY_COBBLESTONE : Material.MOSSY_STONE_BRICKS;
@@ -906,7 +910,7 @@ public final class RelicItems implements Listener {
                String var11 = (String)var10.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
                if (var11 != null && var11.contains("fly")) {
                   var5 = true;
-                  var6 = this.propertyLevel(var10, "fly");
+                  var6 = Math.max(var6,this.propertyLevel(var10, "fly"));
                }
             }
          }
@@ -915,16 +919,7 @@ public final class RelicItems implements Listener {
             if (var5) {
                var2.setAllowFlight(true);
                this.flyUsers.add(var2.getUniqueId());
-               if (var2.isFlying() && System.currentTimeMillis() - this.flyDrain.getOrDefault(var2.getUniqueId(), 0L) > 10000L) {
-                  ItemStack var19 = var2.getInventory().getChestplate();
-                  if (var19 != null && this.consumeSaturation(var2, var19, "fly")) {
-                     this.flyDrain.put(var2.getUniqueId(), System.currentTimeMillis());
-                  } else {
-                     var2.setFlying(false);
-                     var2.setAllowFlight(false);
-                     var2.sendMessage(Component.text("La rare de vuelo está desactivada o se quedó sin saturación.", NamedTextColor.RED));
-                  }
-               }
+
             } else if (this.flyUsers.remove(var2.getUniqueId())) {
                var2.setFlying(false);
                var2.setAllowFlight(false);
@@ -938,9 +933,7 @@ public final class RelicItems implements Listener {
                   var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 30, 0, true, false, true));
                }
 
-               if (var26 != null && var26.contains("regeneration") && this.consumePassiveSaturation(var1.getPlayer(), var25, "regeneration")) {
-                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, 0, true, false, true));
-               }
+
 
 
 
@@ -1402,7 +1395,7 @@ public final class RelicItems implements Listener {
       if(stack==null||!stack.hasItemMeta())return stack;String id=customId(stack);var meta=stack.getItemMeta();String property=meta.getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING);Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));
       boolean essence=id!=null&&(id.startsWith("rare_essence")||id.startsWith("esencia_rare_"));boolean gear=RareAppearance.equipment(stack.getType());if(!essence&&levels.isEmpty()&&!bossInfusionGear(stack))return stack;ItemStack out=stack.clone();
       List<Component> lore=new ArrayList<>(meta.lore()==null?List.of():meta.lore());
-      if(essence){String type=property!=null?RareAppearance.title(property):id.equals("rare_essence_primordial")?"Primordial":id.equals("rare_essence_abyssal")?"Abismal":"Esencia de la Grieta";meta.displayName(Component.text("Rare Essence",NamedTextColor.GREEN).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Tipo de Rare:")||text.startsWith("Nivel:")||text.startsWith("Compatible:");});lore.add(0,Component.text("Tipo de Rare: "+type,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(property!=null){lore.add(1,Component.text("Nivel: "+RareAppearance.roman(meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lore.add(2,Component.text("Compatible: "+RareCompatibility.label(property),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}}
+      if(essence){String type=property!=null?RareAppearance.title(property):id.equals("rare_essence_primordial")?"Primordial":id.equals("rare_essence_abyssal")?"Abismal":"Esencia de la Grieta";meta.displayName(Component.text("Rare Essence",NamedTextColor.GREEN).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Tipo de Rare:")||text.startsWith("Nivel:")||text.startsWith("Compatible:");});lore.add(0,Component.text("Tipo de Rare: "+type,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(property!=null){String detail=ArmorRareRules.description(property);if(detail!=null){lore.removeIf(line->{String value=PlainTextComponentSerializer.plainText().serialize(line);return value.startsWith("Poder: ")||value.startsWith("Dominio máximo: ");});lore.add(Component.text("Dominio máximo: "+RareAppearance.roman(ArmorRareRules.maximum(property)),RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));for(String line:wrapRareText(detail,46))lore.add(Component.text("Poder: "+line,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}lore.add(1,Component.text("Nivel: "+RareAppearance.roman(meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lore.add(2,Component.text("Compatible: "+RareCompatibility.label(property),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}}
       if(!levels.isEmpty()){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Rare ")&&text.contains("Nivel")||levels.keySet().stream().anyMatch(key->text.startsWith("✦ "+RareAppearance.title(key)+" "));});for(var entry:levels.entrySet())lore.add(Component.text("✦ "+RareAppearance.title(entry.getKey())+" "+RareAppearance.roman(entry.getValue()),gear?RareAppearance.ORANGE:NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(gear&&meta.displayName()!=null)meta.displayName(Component.text(PlainTextComponentSerializer.plainText().serialize(meta.displayName()),RareAppearance.ORANGE).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));}
       if(bossInfusionGear(stack)){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("✧ Infusiones:")||text.startsWith("Desbloquea con:");});lore.add(Component.text(infusionBlocked(stack)?"✧ Infusiones: SELLADAS":"✧ Infusiones: DESPERTADAS",infusionBlocked(stack)?NamedTextColor.DARK_PURPLE:RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));if(infusionBlocked(stack))lore.add(Component.text("Desbloquea con: Resonancia Primigenia",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}
       meta.lore(lore);out.setItemMeta(meta);return out;
@@ -1616,6 +1609,7 @@ public final class RelicItems implements Listener {
       }
    }
 
+   private static List<String> wrapRareText(String text,int width){List<String> lines=new ArrayList<>();StringBuilder line=new StringBuilder();for(String word:text.split(" ")){if(line.length()+word.length()>width){lines.add(line.toString().trim());line.setLength(0);}line.append(word).append(' ');}if(!line.isEmpty())lines.add(line.toString().trim());return lines;}
    BossCatalog.Tier equipmentTier(ItemStack stack){
       BossCatalog.Tier rank=EquipmentSets.tier(customId(stack));return rank==null?BossCatalog.Tier.COMMON:rank;
    }
