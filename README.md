@@ -1,13 +1,13 @@
 # CazaJefes
 
-Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.15.0**.
+Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.16.0**.
 
 El bestiario contiene **168 bosses**, repartidos en seis categorías de 28: minijefes, raros, épicos, legendarios, míticos y abismales. Los encuentros comparten tres etapas de combate, habilidades especiales, recompensas por categoría y seguimiento del daño de los jugadores.
 
 ## Instalación
 
 1. Detener el servidor y guardar una copia de plugins/CazaJefes.
-2. Retirar el JAR anterior y colocar CazaJefes-1.15.0.jar en plugins.
+2. Retirar el JAR anterior y colocar CazaJefes-1.16.0.jar en plugins.
 3. Arrancar el servidor conservando la configuración existente.
 4. Consultar /bestiario y probar un encuentro antes de abrirlo a todos los jugadores.
 
@@ -26,6 +26,14 @@ Solo se admiten IDs actuales de bosses. Los datos con IDs antiguos ya no se conv
 Los libros activables usan clic derecho en el aire o sobre un bloque permitido. El burst no desplaza a jugadores con OP. Ascensión del Firmamento eleva jugadores en todas las etapas; Ruptura del Horizonte los repele en la tercera. Ambos usan potencia X y muestran carga y recarga sobre la hotbar. Los especiales ofensivos superan la referencia de daño de los golpes normales. Cada fase tiene cuatro ataques especiales y la dificultad aumenta durante el encuentro. Ascensión empuja en diagonal, conservando su elevación. Los saqueadores usan ballestas y responden a cinco golpes recientes con Tempestad del Destierro: seis ráfagas de treinta flechas no recogibles, puntería predictiva y empuje fuerte.
 
 Los huevos registrados pueden despertarse sin OP en supervivencia o aventura con permiso de eclosión. La brújula deja de seguirlos en cuanto se activan; puede pasar a otro huevo disponible.
+
+## Forja de duelo · Rares PvP
+
+Ocho rares nuevas para PvP: Juramento Carmesí, Desgarro del Bastión, Arco del Ocaso, Voz de la Tormenta, Vigía de Ónix, Coraza de Quitina, Grebas Rompecadenas y Paso Espectral. Cada pieza tiene un material exclusivo, una receta real, un disparador y recarga individual; no añade tareas periódicas de escaneo.
+
+Abrir `/rares` y seleccionar **Rares PvP** o **Materiales de duelo**. Las fichas enlazan la receta de cada pieza con su material. La pieza base se consume y el resultado no transfiere mejoras previas: usar una base sin mejoras.
+
+Ver [poderes, materiales y recetas](docs/DUELO-PVP.md). Son habilidades contra jugadores, con efectos breves, PvP habilitado y respeto por daño cancelado. Las ideas adicionales están separadas de lo implementado.
 
 ## Novedades de combate
 
@@ -57,8 +65,8 @@ Los especiales y adornos de combate usan un presupuesto compartido de partícula
 ## Administración y desarrollo
 
 - [Comandos, permisos y apariciones programadas](docs/ADMINISTRACION.md)
-- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.15.0.md)
-- [Catálogo completo de IDs](docs/BOSSES-IDS-1.15.0.csv)
+- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.16.0.md)
+- [Catálogo completo de IDs](docs/BOSSES-IDS-1.16.0.csv)
 - [Ideas de materiales y recetas, todavía propuestas](docs/IDEAS-MATERIALES.md)
 - [Organización del código](docs/ARQUITECTURA.md)
 - [Notas de versiones anteriores y reconstrucción](docs/HISTORIAL-LEGADO.md)
