@@ -34,7 +34,7 @@ final class BossDeathVisuals implements Listener {
   };
   tasks.put(id,task);rewards.put(id,completion);task.runTaskTimer(plugin,1,1);
  }catch(IllegalArgumentException error){plugin.getLogger().warning("No se pudo mostrar la animación de muerte de "+definition.id()+": "+error.getMessage());completion.finish();}}
- private void deathCylinder(Location center){new BukkitRunnable(){int frame;public void run(){if(frame++>=8){cancel();return;}for(int i=0;i<32;i++){double a=i*Math.PI*2/32+frame*.2;CosmeticFX.emit(Particle.END_ROD,center.clone().add(Math.cos(a)*2.5,(i%4)*.8+.3,Math.sin(a)*2.5),1,0,0,0,0,null);}}}.runTaskTimer(plugin,1,3);}
+ private void deathCylinder(Location center){new BukkitRunnable(){int frame;public void run(){if(frame++>=8){cancel();return;}for(int i=0;i<32;i++){double a=i*Math.PI*2/32+frame*.2;CosmeticFX.emit(Particle.END_ROD,center.clone().add(Math.cos(a)*2.5,(i%8)*(20.0/7),Math.sin(a)*2.5),1,0,0,0,0,null);}}}.runTaskTimer(plugin,1,3);}
  private final Map<UUID,Double> blastDamage=new HashMap<>();
  private final Map<UUID,EntityDamageEvent> blastEvents=new HashMap<>();
  private void blast(Location center){

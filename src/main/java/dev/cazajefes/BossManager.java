@@ -333,7 +333,7 @@ public final class BossManager implements Listener {
       ((CazaJefesPlugin)plugin).abilities.track(var2,var3);
       AnimalBossSizing.apply(var2,var3);MiniBossSizing.apply(var2,var3);((CazaJefesPlugin)plugin).safety.track(var2);
       var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
-      ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);
+      ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);((CazaJefesPlugin)plugin).archers.track(var2,var3);((CazaJefesPlugin)plugin).mages.track(var2,var3);
       if (!this.attacks.containsKey(var1)) {
          if (var2 instanceof Mob var6) {
             var6.setAware(true);
@@ -798,6 +798,8 @@ public final class BossManager implements Listener {
       }
    }
 
+   @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void nativeMageHorde(org.bukkit.event.entity.EntitySpellCastEvent event){if(event.getEntity().getPersistentDataContainer().has(minionKey,PersistentDataType.BYTE)&&event.getSpell()==org.bukkit.entity.Spellcaster.Spell.SUMMON_VEX){event.setCancelled(true);return;}if(event.getSpell()!=org.bukkit.entity.Spellcaster.Spell.SUMMON_VEX||!event.getEntity().getPersistentDataContainer().has(bossKey,PersistentDataType.BYTE))return;event.setCancelled(true);LivingEntity mage=event.getEntity();if(((CazaJefesPlugin)plugin).abilities.occupied(mage)||((CazaJefesPlugin)plugin).mages.busy(mage.getUniqueId()))return;var definition=BossCatalog.get(mage.getPersistentDataContainer().get(typeKey,PersistentDataType.STRING));if(definition==null)return;Player target=new BossTactics(mage,definition).pickTarget();if(target!=null)new BossAttackTask(plugin,mage,definition,minionKey).summonMinions(target);}
+
    public boolean isEggBlock(org.bukkit.block.Block block) { return eggsByBlock.containsKey(key(block.getLocation())); }
 
    public void stopAllAttacks() {
@@ -837,7 +839,7 @@ public final class BossManager implements Listener {
             int speed=definition.id().equals("kitsar_acechador_carmesi")?0:1;
             PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
             if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);BossEffects.apply(boss,BossEffects.effect(PotionEffectType.SPEED,100,speed,true,false));}
-            stages.update();
+            stages.update();if(((CazaJefesPlugin)plugin).species.defending(boss))return;
             Player var2=tactics.pickTarget();
             if (var2 != null) {
                if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
@@ -849,6 +851,7 @@ public final class BossManager implements Listener {
                   summonMinions(var2);
 
                }
+               if(CombatHitbox.distanceSquared(var2.getEyeLocation(),boss)>576){tactics.tick(var2,phase);return;}
                if(((CazaJefesPlugin)plugin).abilities.tick(boss,definition,var2,phase))return;
                if(boss instanceof org.bukkit.entity.Shulker){
 
@@ -1139,212 +1142,20 @@ public final class BossManager implements Listener {
       }
 
       private long lastHorde;
-      private void hordeWarning(){long now=System.currentTimeMillis();if(now-lastHorde<2000)return;lastHorde=now;for(Player player:boss.getWorld().getPlayers())if(CombatGuard.eligible(player)&&player.getLocation().distanceSquared(boss.getLocation())<=1024)BossWarnings.send(player,Component.text("⚠ CUIDADO · Horda de "+definition.name(),net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}
-      private void summonMinions(Player var1) {
-         if(AnimalMinions.animal(definition.entityType())){summonCustom(definition.entityType(),var1,2,"animal_guard");return;}
-         if (this.definition.id().equals("melisara_emperatriz_del_enjambre")) {
-            this.summonCustom(EntityType.BEE, var1, 2, "abeja_enfurecida");
-         } else if (this.definition.id().equals("kitsar_acechador_carmesi")) {
-            this.summonCustom(EntityType.SHEEP, var1, 2, "fox_sheep");
-         } else if (this.definition.id().equals("brakk_colmillo_del_averno")) {
-            this.summonCustom(EntityType.PIGLIN, var1, 2, "hoglin_guard");
-         } else if (this.definition.id().equals("volkar_corazon_del_cataclismo")) {
-            this.summonCustom(EntityType.SNIFFER, var1, 2, "sniffer_young");
-         } else if (this.definition.entityType() != EntityType.SPIDER && this.definition.entityType() != EntityType.CAVE_SPIDER) {
-            int var2 = this.definition.mini() ? 1 : 2 + this.definition.tier().ordinal();
-            long var3 = this.boss
-               .getWorld().getEntities()
-               .stream()
-               .filter(var1x -> var1x.getPersistentDataContainer().has(this.minionKey, PersistentDataType.BYTE))
-            .filter(e -> java.util.Objects.equals(e.getPersistentDataContainer().get(new NamespacedKey(plugin,"minion_parent"), PersistentDataType.STRING), boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"), PersistentDataType.STRING)))
-               .count();
-            if (var3 < var2) {
-               int var5 = this.definition.mini() ? 1 : 1 + this.definition.tier().ordinal() / 2;
-
-               EntityType[] var6 = switch (this.definition.tier()) {
-                  case COMMON -> new EntityType[]{EntityType.ZOMBIE, EntityType.HUSK, EntityType.SPIDER};
-                  case RARE -> new EntityType[]{EntityType.SPIDER, EntityType.CAVE_SPIDER, EntityType.STRAY};
-                  case EPIC -> new EntityType[]{EntityType.SKELETON, EntityType.VINDICATOR, EntityType.BREEZE};
-                  case LEGENDARY -> new EntityType[]{EntityType.PILLAGER, EntityType.BLAZE, EntityType.WITCH};
-                  case MYTHIC -> new EntityType[]{EntityType.PIGLIN_BRUTE, EntityType.BLAZE, EntityType.EVOKER};
-                  case ABYSSAL -> new EntityType[]{EntityType.WITHER_SKELETON, EntityType.PIGLIN_BRUTE, EntityType.BLAZE};
-               };
-
-               for (int var7 = 0; var7 < var5 && var3 + var7 < var2; var7++) {
-                  double var8 = var7 * Math.PI * 2.0 / Math.max(1, var5) + this.attacks;
-                  Location var10 = this.boss.getLocation().clone().add(Math.cos(var8) * 3.0, 0.2, Math.sin(var8) * 3.0);
-
-                  try {
-                     Entity var11 = var10.getWorld().spawnEntity(var10, var6[NumberConversions.floor(Math.random() * var6.length)]);
-                     var11.getPersistentDataContainer().set(this.minionKey, PersistentDataType.BYTE, (byte)1);
-                     var11.getPersistentDataContainer().set(new NamespacedKey(plugin, "minion_parent"), PersistentDataType.STRING,
-                        boss.getPersistentDataContainer().get(new NamespacedKey(plugin, "encounter_id"), PersistentDataType.STRING));
-                     this.strengthenMinion(var11, "generic");if(!var11.isValid())continue;
-                     hordeWarning();CombatVisuals.summon(var10,this.definition);
-                     if (var11 instanceof Mob var12) {
-                        var12.setTarget(var1);
-                        var12.setPersistent(false);
-                        var12.setRemoveWhenFarAway(true);
-                     }
-
-                     var11.customName(Component.text("Custodio del Eclipse · " + this.definition.name(), this.definition.tier().color));
-                     var11.setCustomNameVisible(true);
-                     this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-                        if (var11.isValid()) {
-                           var11.remove();
-                        }
-                     }, 700L);
-                  } catch (IllegalArgumentException var13) {
-                  }
-               }
-
-               CosmeticFX.emit(Particle.REVERSE_PORTAL, this.boss.getLocation(), 30, 1.0, 0.8, 1.0, 0.1);
-               this.boss.getWorld().playSound(this.boss.getLocation(), Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1.0F, 0.8F);
-            }
-         } else {
-            this.summonCustom(EntityType.CAVE_SPIDER, var1, 3, "spider_guard");
-         }
+      private void hordeWarning(){long now=System.currentTimeMillis();if(now-lastHorde<2000)return;lastHorde=now;for(Player player:boss.getWorld().getPlayers())if(CombatGuard.eligible(player)&&player.getLocation().distanceSquared(boss.getLocation())<=1024)BossWarnings.send(player,Component.text("⚠ CUIDADO · 6 súbditos de "+definition.name(),net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}
+      private void summonMinions(Player player){
+         if(SpellVisuals.mage(definition.entityType())){horde(player,new EntityType[]{EntityType.EVOKER},"healer");return;}
+         if(AnimalMinions.animal(definition.entityType())){horde(player,new EntityType[]{definition.entityType()},"animal_guard");return;}
+         if(definition.entityType()==EntityType.SPIDER||definition.entityType()==EntityType.CAVE_SPIDER){horde(player,new EntityType[]{EntityType.CAVE_SPIDER},"spider_guard");return;}
+         EntityType[] types=switch(definition.tier()){case COMMON->new EntityType[]{EntityType.ZOMBIE,EntityType.HUSK,EntityType.SPIDER};case RARE->new EntityType[]{EntityType.SPIDER,EntityType.CAVE_SPIDER,EntityType.STRAY};case EPIC->new EntityType[]{EntityType.SKELETON,EntityType.VINDICATOR,EntityType.BREEZE};case LEGENDARY->new EntityType[]{EntityType.PILLAGER,EntityType.BLAZE,EntityType.WITCH};case MYTHIC->new EntityType[]{EntityType.PIGLIN_BRUTE,EntityType.BLAZE,EntityType.EVOKER};case ABYSSAL->new EntityType[]{EntityType.WITHER_SKELETON,EntityType.PIGLIN_BRUTE,EntityType.BLAZE};};horde(player,types,"generic");
       }
-
-      private void summonCustom(EntityType var1, Player var2, int var3, String var4) {
-         long var5 = this.boss
-            .getWorld().getEntities()
-            .stream()
-            .filter(var1x -> var1x.getPersistentDataContainer().has(this.minionKey, PersistentDataType.BYTE))
-            .filter(e -> java.util.Objects.equals(e.getPersistentDataContainer().get(new NamespacedKey(plugin,"minion_parent"), PersistentDataType.STRING), boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"), PersistentDataType.STRING)))
-            .count();
-         if (var5 < 5L) {
-            for (int var7 = 0; var7 < var3 && var5 + var7 < 5L; var7++) {
-               try {
-                  Location var8 = this.boss.getLocation().clone().add((var7 == 0 ? 1 : -1) * 2, 0.2, 1.5);
-                  final Entity var9 = var8.getWorld().spawnEntity(var8, var1);
-                  PersistentDataContainer var10 = var9.getPersistentDataContainer();
-                  var10.set(this.minionKey, PersistentDataType.BYTE, (byte)1);
-                  var10.set(
-                     new NamespacedKey(this.plugin, "minion_parent"),
-                     PersistentDataType.STRING,
-                     (String)this.boss.getPersistentDataContainer().get(new NamespacedKey(this.plugin, "encounter_id"), PersistentDataType.STRING)
-                  );
-                  var10.set(new NamespacedKey(this.plugin, "minion_kind"), PersistentDataType.STRING, var4);
-                  if (var9 instanceof Mob var11) {
-                     var11.setPersistent(false);
-                     var11.setRemoveWhenFarAway(true);
-                     if (var4.equals("hoglin_guard")) {
-                        var11.setTarget(null);
-                        if (var11 instanceof Piglin var12) {
-                           var12.setImmuneToZombification(true);
-                        }
-
-                        BossEffects.apply(var11,BossEffects.effect(PotionEffectType.SPEED, 1200, 1, true, false));
-                     } else if (var4.equals("spider_guard")) {
-                        var11.setTarget(var2);
-                        BossEffects.apply(var11,BossEffects.effect(PotionEffectType.SPEED, 1200, 4, true, false));
-                        BossEffects.apply(var11,BossEffects.effect(PotionEffectType.STRENGTH, 1200, 0, true, false));
-                     } else {
-                        var11.setTarget(var2);
-                        if (var11 instanceof Bee var16) {
-                           var16.setAnger(24000);
-                        }
-                     }
-                  }
-
-                  if(var9 instanceof LivingEntity minion){minion.removePotionEffect(PotionEffectType.STRENGTH);BossEffects.apply(minion,BossEffects.effect(PotionEffectType.STRENGTH,1200,0,true,false));}
-                  if(var9 instanceof LivingEntity unit)((CazaJefesPlugin)plugin).safety.minion(unit);if(!var9.isValid())continue;
-                  hordeWarning();CombatVisuals.summon(var8,this.definition);
-                  if (!var4.equals("fox_sheep")) {
-                     this.strengthenMinion(var9, var4);
-                  }
-
-                  if (var9 instanceof Bee var14) {
-                     BukkitTask[] var17 = new BukkitTask[1];
-                     var17[0] = this.plugin
-                        .getServer()
-                        .getScheduler()
-                        .runTaskTimer(
-                           this.plugin,
-                           () -> {
-                              if (var14.isValid() && !var14.isDead()) {
-                                 Player var2x = var14.getWorld()
-                                    .getPlayers()
-                                    .stream()
-                                    .filter(var1xx -> var1xx.getLocation().distanceSquared(var14.getLocation()) < 1296.0)
-                                    .min(
-                                       (var1xx, var2xx) -> Double.compare(
-                                          var1xx.getLocation().distanceSquared(var14.getLocation()), var2xx.getLocation().distanceSquared(var14.getLocation())
-                                       )
-                                    )
-                                    .orElse(null);
-                                 if (var2x != null) {
-                                    var14.setAnger(24000);
-                                    var14.setTarget(var2x);
-                                 }
-                              } else {
-                                 var17[0].cancel();
-                              }
-                           },
-                           1L,
-                           20L
-                        );
-                  }
-
-                  if (var9 instanceof Ageable var15 && var4.equals("sniffer_young")) {
-                     var15.setBaby();
-                     final BukkitTask[] var18 = new BukkitTask[1];
-                     var18[0] = this.plugin
-                        .getServer()
-                        .getScheduler()
-                        .runTaskTimer(
-                           this.plugin,
-                           new Runnable() {
-                              int ticks;
-
-                              @Override
-                              public void run() {
-                                 if (var9.isValid() && !var9.isDead() && this.ticks++ <= 900) {
-                                    Player var1x = var9.getWorld()
-                                       .getPlayers()
-                                       .stream()
-                                       .filter(var1xx -> var1xx.getLocation().distanceSquared(var9.getLocation()) < 324.0)
-                                       .min(
-                                          (var1xx, var2x) -> Double.compare(
-                                             var1xx.getLocation().distanceSquared(var9.getLocation()), var2x.getLocation().distanceSquared(var9.getLocation())
-                                          )
-                                       )
-                                       .orElse(null);
-                                    if (var1x != null) {
-                                       Vector var2x = var1x.getLocation().toVector().subtract(var9.getLocation().toVector()).setY(0);
-                                       if (var2x.lengthSquared() > 0.2) {
-                                          var9.setVelocity(var2x.normalize().multiply(0.32).setY(var9.getVelocity().getY()));
-                                       }
-
-                                       if (var1x.getLocation().distanceSquared(var9.getLocation()) < 7.839999999999999) {
-                                          var1x.damage(8.0, (LivingEntity)var9);
-                                          BossEffects.apply(var1x,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
-                                       }
-                                    }
-                                 } else {
-                                    var18[0].cancel();
-                                 }
-                              }
-                           },
-                           10L,
-                           10L
-                        );
-                  }
-
-                  var9.customName(
-                     Component.text(var4.equals("fox_sheep") ? "Presa del Zorro" : (var4.equals("animal_guard")?"Guardián Salvaje · ":"Custodio del Eclipse · ") + this.definition.name(), this.definition.tier().color)
-                  );
-                  var9.setCustomNameVisible(true);
-                  this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-                     if (var9.isValid()) {
-                        var9.remove();
-                     }
-                  }, 900L);
-               } catch (IllegalArgumentException var13) {
-               }
-            }
-         }
+      private void summonCustom(EntityType type,Player player,int ignored,String flavor){horde(player,SpellVisuals.mage(definition.entityType())?new EntityType[]{EntityType.EVOKER}:new EntityType[]{type},SpellVisuals.mage(definition.entityType())?"healer":flavor);}
+      private void horde(Player target,EntityType[] types,String flavor){
+         CazaJefesPlugin owner=(CazaJefesPlugin)plugin;String parent=boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"),PersistentDataType.STRING);
+         if(!HordeRules.room(owner.safety.minionCount(parent),owner.safety.minionCount(null)))return;
+         List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<HordeRules.SIZE;i++){double angle=i*Math.PI*2/HordeRules.SIZE+attacks,radius=Math.max(3,boss.getWidth()/2+1.5);Location point=boss.getLocation().clone().add(Math.cos(angle)*radius,.2,Math.sin(angle)*radius);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid())throw new IllegalArgumentException("No hay espacio libre para la horda");unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
+         }catch(IllegalArgumentException blocked){for(var unit:batch)unit.remove();return;}
+         for(var unit:batch){if(flavor.equals("healer"))owner.mages.healer(unit,boss);CombatVisuals.summon(unit.getLocation(),definition);}hordeWarning();boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1,.8f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
       }
 
       private void strengthenMinion(Entity var1, String var2) {
