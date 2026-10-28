@@ -76,7 +76,7 @@ final class PillagerCombat implements Listener {
             Player player = target(state);
             if(state.burst.active()){
                 if(player==null){state.burst.cancel();state.nextVolley=now+PillagerRules.COOLDOWN;continue;}
-                if(state.burst.take(now)){fire(state,player,true,now);if(!state.burst.active())state.nextVolley=now+PillagerRules.COOLDOWN;}
+                if(state.burst.take(now)){fire(state,player,true,now);if(!state.burst.active()){state.nextVolley=now+PillagerRules.COOLDOWN;plugin.abilities.rest(boss);}}
                 continue;
             }
             if (state.chargeUntil > 0) {

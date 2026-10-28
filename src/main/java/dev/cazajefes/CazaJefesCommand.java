@@ -943,7 +943,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             boolean var15 = var12.equals("SPELL");
             String var16 = var11.equals("material:primordial")
                ? "Esencia Primordial"
-               : (var11.equals("material:abyssal") ? "Esencia Abisal" : (var15 ? "Libro de la Grieta" : "Esencia: " + var11));
+               : (var11.equals("material:abyssal") ? "Esencia Abisal" : (var15 ? "Libro de la Grieta" : "Esencia: " + RareAppearance.title(var11)));
             String var17 = var11.equals("material:primordial")
                ? "Catalizador para recetas y forjas de alto rango."
                : (var11.equals("material:abyssal") ? "Material mítico de jefes legendarios y míticos." : this.catalogDescription(var11));
@@ -987,7 +987,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          this.fillPremiumFrame(var10);
          String var11 = var2.equals("material:primordial")
             ? "Esencia Primordial"
-            : (var2.equals("material:abyssal") ? "Esencia Abisal" : (var6 ? "Libro de la Grieta" : "Esencia: " + var2));
+            : (var2.equals("material:abyssal") ? "Esencia Abisal" : (var6 ? "Libro de la Grieta" : "Esencia: " + RareAppearance.title(var2)));
          String var12 = var2.equals("material:primordial")
             ? "Catalizador para recetas y forjas de alto rango."
             : (
@@ -1033,6 +1033,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private String catalogType(String var1) {
+      if(RareCompatibility.property(var1)==RareCompatibility.Group.ARMOR)return "ABILITY";
       if (List.of(
             "poison",
             "veneno",
@@ -1064,11 +1065,11 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
    private String catalogBase(String var1, String var2) {
       if (var2.equals("hardy")) {
-         return "pechera únicamente";
+         return "todas las piezas de armadura";
       } else if (var2.equals("flame")) {
          return "casco, combinar en mesa";
       } else if (var2.equals("spore")) {
-         return "picos, azadas, espadas y hachas";
+         return "solo armaduras";
       } else {
          return switch (var1) {
             case "SKILL" -> "espadas, arcos y hachas";
@@ -1081,6 +1082,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private String catalogDescription(String var1) {
+      if(ArmorRareRules.description(var1)!=null)return ArmorRareRules.description(var1);
       return switch (var1) {
          case "poison" -> "Envenena al objetivo al golpear.";
          case "backstab" -> "Más daño por la espalda.";

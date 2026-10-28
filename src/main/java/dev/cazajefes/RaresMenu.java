@@ -44,6 +44,7 @@ final class RaresMenu implements CommandExecutor,Listener {
    inv.setItem(48,PremiumStyle.tile(Material.EMERALD,"MERCADO DE LA GRIETA",NamedTextColor.GOLD,true,"Canjes, sellos y Amuleto del Fénix Astral"));
    inv.setItem(49,PremiumStyle.tile(Material.ANVIL,"INFUSIÓN DE EQUIPO",NamedTextColor.LIGHT_PURPLE,true,"En una mesa: equipo compatible + 1–3 esencias","Boss: primero Resonancia Primigenia; después rare compatible"));
   }else if(detail==null){
+   if(category==Category.ESSENCES&&group==RareCompatibility.Group.ARMOR)inv.setItem(4,PremiumStyle.tile(Material.NETHERITE_CHESTPLATE,"LEGADO DE LA ARMADURA",NamedTextColor.GOLD,true,"Vida, restauración, vuelo y contramedidas","Pulsa una esencia para ver su receta","Los efectos pasivos usan la pieza de mayor nivel"));
    if(category==Category.CRYSTALS&&rank==BossCatalog.Tier.COMMON){inv.setItem(22,items.crystal(BossCatalog.Tier.COMMON,1));inv.setItem(31,PremiumStyle.tile(Material.SPAWNER,"ORIGEN · MINIJEFES",NamedTextColor.GRAY,true,"Cada minijefe deja un cristal común","Los bosses mayores no dejan cristales","Se combinan para fabricar categorías superiores"));}
    for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){int slot=PremiumStyle.GRID[i-page*28];inv.setItem(slot,list.get(i).getResult());menu.recipes.put(slot,list.get(i));}
    if(page>0)inv.setItem(45,PremiumStyle.tile(Material.ARROW,"ANTERIOR",NamedTextColor.AQUA,false));if(page+1<pages)inv.setItem(53,PremiumStyle.tile(Material.ARROW,"SIGUIENTE",NamedTextColor.AQUA,false));

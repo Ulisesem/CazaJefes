@@ -1,13 +1,13 @@
 # CazaJefes
 
-Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.18.0**.
+Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.19.0**.
 
 El bestiario contiene **168 bosses**, repartidos en seis categorías de 28: minijefes, raros, épicos, legendarios, míticos y abismales. Los encuentros comparten tres etapas de combate, habilidades especiales, recompensas por categoría y seguimiento del daño de los jugadores.
 
 ## Instalación
 
 1. Detener el servidor y guardar una copia de plugins/CazaJefes.
-2. Retirar el JAR anterior y colocar CazaJefes-1.18.0.jar en plugins.
+2. Retirar el JAR anterior y colocar CazaJefes-1.19.0.jar en plugins.
 3. Arrancar el servidor conservando la configuración existente.
 4. Consultar /bestiario y probar un encuentro antes de abrirlo a todos los jugadores.
 
@@ -27,7 +27,7 @@ Los libros activables usan clic derecho en el aire o sobre un bloque permitido. 
 
 Los huevos registrados pueden despertarse sin OP en supervivencia o aventura con permiso de eclosión. La brújula deja de seguirlos en cuanto se activan; puede pasar a otro huevo disponible.
 
-## Combate 1.18.0
+## Combate 1.19.0
 
 - Armadillos: cobertura de 5 s cada 15 s, sin atacar hechos bola; cura pequeña al terminar.
 - Shulkers: Refugio del Umbral cierra la caja 3 s y cura hasta 5 %, con recarga de 25 s.
@@ -39,7 +39,7 @@ Los huevos registrados pueden despertarse sin OP en supervivencia o aventura con
 - Burst de estrellas blancas adaptado al cuerpo y cilindro final de 20 bloques.
 - Las tiradas de rares/libros preparados se convierten en Rare Essence sin poder asignado. El equipo sigue cayendo sellado y sin rares incluidas. Resonancia Primigenia solo se fabrica.
 
-Detalles, recargas, límites y pruebas pendientes en [cambios 1.18.0](docs/CAMBIOS-1.18.0.md). No se garantiza puntería infalible ni TPS con cualquier carga.
+Detalles, recargas, límites y pruebas pendientes en [cambios 1.19.0](docs/CAMBIOS-1.19.0.md). No se garantiza puntería infalible ni TPS con cualquier carga.
 
 ## Infusiones por equipo y desbloqueo
 
@@ -87,8 +87,8 @@ Los especiales y adornos de combate usan un presupuesto compartido de partícula
 ## Administración y desarrollo
 
 - [Comandos, permisos y apariciones programadas](docs/ADMINISTRACION.md)
-- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.18.0.md)
-- [Catálogo completo de IDs](docs/BOSSES-IDS-1.18.0.csv)
+- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.19.0.md)
+- [Catálogo completo de IDs](docs/BOSSES-IDS-1.19.0.csv)
 - [Ideas de materiales y recetas, todavía propuestas](docs/IDEAS-MATERIALES.md)
 - [Organización del código](docs/ARQUITECTURA.md)
 - [Notas de versiones anteriores y reconstrucción](docs/HISTORIAL-LEGADO.md)
@@ -100,3 +100,9 @@ mvn verify
 ```
 
 El JAR compilado queda en target. Las pruebas verifican catálogo, progresión, daño, recetas, permisos y reglas de animación. **No se ha ejecutado esta versión en un servidor Paper ni verificado visualmente con clientes reales.** Los 92 encuentros nuevos reutilizan las familias de combate existentes y tienen sus propios perfiles de ataque; deben ajustarse con pruebas de juego.
+
+## Cambios de 1.19.0
+
+Consulta [los cambios de combate y rares](docs/CAMBIOS-1.19.0.md). Ceguera y náuseas de bosses duran diez segundos y tienen recargas independientes de 25 segundos por jugador. Los efectos registrados de un encuentro se retiran al morir su jefe. Los avisos sobre la hotbar se mantienen tres segundos; la nueva advertencia puede sustituir la anterior.
+
+En `/rares` → Cámara de infusiones → Armaduras encontrarás Corazón Indómito, Alas del Firmamento, Jardín de la Ruina, Forja Viviente, Pulso de Aurora, Furia del Titán, Baluarte de Obsidiana y Sello del Alba. Son nombres visibles nuevos para Hardy, Fly, Spore, Durability, Regeneration, Strength, Turtle y Garlic. Los identificadores internos de rares existentes se conservan para reconocer el equipo; los IDs actuales de bosses siguen sin alias antiguos.

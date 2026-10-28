@@ -27,14 +27,14 @@ final class CombatPhases implements Listener {
   if(!(source(event.getDamager()) instanceof LivingEntity attacker)||!isBoss(attacker)||!(event.getEntity() instanceof Player target)||!CombatGuard.eligible(target)||event.getFinalDamage()<=0)return;
   long now=System.currentTimeMillis();int phase=phase(attacker);UUID id=target.getUniqueId();
   if(phase>=2&&(phase==3||now>=effects.getOrDefault(id,0L))){
-   if(phase==2)BossEffects.apply(target,BossEffects.effect(PotionEffectType.WEAKNESS,60,0));
-   BossEffects.apply(target,BossEffects.effect(PotionEffectType.SLOWNESS,phase==3?80:40,0));
-   if(phase==3)BossEffects.apply(target,BossEffects.effect(warden(attacker)?PotionEffectType.DARKNESS:PotionEffectType.WITHER,warden(attacker)?80:60,0));
+   if(phase==2)BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.WEAKNESS,60,0));
+   BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.SLOWNESS,phase==3?80:40,0));
+   if(phase==3)BossEffects.applyFrom(attacker,target,BossEffects.effect(warden(attacker)?PotionEffectType.DARKNESS:PotionEffectType.WITHER,warden(attacker)?80:60,0));
    if(phase==3){
-    BossEffects.apply(target,BossEffects.effect(PotionEffectType.BLINDNESS,600,0));
-    BossEffects.apply(target,BossEffects.effect(PotionEffectType.NAUSEA,600,0));
-    BossEffects.apply(target,BossEffects.effect(PotionEffectType.MINING_FATIGUE,80,1));
-    BossEffects.apply(target,BossEffects.effect(PotionEffectType.HUNGER,100,1));
+    BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.BLINDNESS,600,0));
+    BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.NAUSEA,600,0));
+    BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.MINING_FATIGUE,80,1));
+    BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.HUNGER,100,1));
     
    }
    effects.put(id,now+6000);
