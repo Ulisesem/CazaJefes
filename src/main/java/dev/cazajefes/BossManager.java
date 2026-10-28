@@ -189,7 +189,7 @@ public final class BossManager implements Listener {
             this.eggsByBlock.put(this.key(var4.getLocation()), var8);
             this.saveEggs();
             this.startEggEffects(var8);
-            CosmeticFX.emit(Particle.FIREWORK, var4.getLocation().add(0.5, 1.0, 0.5), 35, 0.7, 0.8, 0.7, 0.16);
+            CombatVisuals.egg(var4.getLocation().add(.5,.7,.5),var3.tier(),0);
             var4.getWorld().playSound(var4.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1.2F, 0.6F);
             return true;
          }
@@ -758,10 +758,7 @@ public final class BossManager implements Listener {
                               Location var1x = var1.location.clone().add(0.5, 0.7, 0.5);
                               this.angle += Math.PI / 12;
                               CombatVisuals.egg(var1x,var1.definition.tier(),this.angle);
-                              CosmeticFX.emit(Particle.PORTAL, var1x, 10, 0.45, 0.55, 0.45, 0.05);
-                              CosmeticFX.emit(
-                                    Particle.ENCHANT, var1x.clone().add(Math.cos(this.angle), 0.35, Math.sin(this.angle)), 3, 0.08, 0.08, 0.08, 0.01
-                                 );
+
                            } else {
                               BossManager.this.stopEggEffects(var1.id);
                            }
