@@ -53,6 +53,9 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (var4.length != 0 && !var4[0].equalsIgnoreCase("help")) {
          String var5 = AdminArguments.root(var4[0]);
          switch (var5) {
+            case "estadisticas":
+            case "ranking":
+               ((CazaJefesPlugin)plugin).statistics.command(var1,var4);break;
             case "particulas":
                ((CazaJefesPlugin)plugin).auras.command(var1,var4);break;
             case "diagnostico":
@@ -153,7 +156,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
    public List<String> onTabComplete(CommandSender sender,Command command,String label,String[] args){
       if(args.length==0)return List.of();List<String> out=new ArrayList<>();String root=AdminArguments.root(args[0]);
-      if(args.length==1){out.addAll(List.of("help","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
+      if(args.length==1){out.addAll(List.of("help","estadisticas","ranking","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
          for(String action:List.of("spawnpoint","egg","boss","reload"))if(isAdmin(sender,"rareitemhunter.admin."+action))out.add(action);
          if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.add("diagnostico");
       }else if(root.equals("particulas")){if(args.length==2)out.addAll(List.of("baja","media","alta","off"));}

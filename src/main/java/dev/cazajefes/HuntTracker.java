@@ -28,6 +28,7 @@ public final class HuntTracker implements Listener {
    private final Map<UUID, HuntTracker.Session> sessions = new HashMap<>();
    private final BukkitTask task;
    private final Map<UUID,Long> nextArrow=new HashMap<>();
+   private final Map<UUID,Long> nextClick=new HashMap<>();
    private final Map<UUID,String> signal=new HashMap<>();
    private final Map<UUID,Location> compassTargets=new HashMap<>();
 
@@ -52,7 +53,7 @@ public final class HuntTracker implements Listener {
                .orElse(null);
             if (var4 == null) {
                clearTracking(var3,false);
-               announceSignal(var3,"none:"+var3.getWorld().getUID(),"✦ Brújula · No hay huevos sin despertar en este mundo.");
+               announceSignal(var3,"none:"+var3.getWorld().getUID(),"✦ Brújula · No hay huevos de bosses activos por el momento en este mundo.");
 
             } else {
                announceSignal(var3,var4.id().toString(),"✦ Brújula · "+(var4.egg()?"Huevo detectado: ":"Boss detectado: ")+var4.name());
@@ -74,14 +75,23 @@ public final class HuntTracker implements Listener {
    private void drawTrail(Player player,Location target){
       long now=System.currentTimeMillis();if(now<nextArrow.getOrDefault(player.getUniqueId(),0L))return;
       nextArrow.put(player.getUniqueId(),now+10000);
-      Location start=player.getLocation().add(0,.35,0);org.bukkit.util.Vector direction=target.toVector().subtract(start.toVector());if(direction.lengthSquared()<.25)return;direction.normalize();org.bukkit.util.Vector side=new org.bukkit.util.Vector(-direction.getZ(),0,direction.getX());if(side.lengthSquared()<.01)side=new org.bukkit.util.Vector(1,0,0);else side.normalize();
-      for(double offset:new double[]{2.5,5,7.5}){Location tip=start.clone().add(direction.clone().multiply(Math.min(offset,Math.sqrt(player.getLocation().distanceSquared(target)))));for(double k=0;k<=1.5;k+=.12){arrowPoint(player,tip.clone().subtract(direction.clone().multiply(k)));if(k<=.9)for(int sign:new int[]{-1,1})arrowPoint(player,tip.clone().subtract(direction.clone().multiply(k)).add(side.clone().multiply(sign*k*.7)));}}
+      Location start=player.getLocation().add(0,.45,0);org.bukkit.util.Vector direction=target.toVector().subtract(start.toVector()).setY(0);if(direction.lengthSquared()<.25)return;
+      int index=0;for(var point:CompassArrow.points(direction,direction.length())){Location at=start.clone().add(point);arrowPoint(player,at);if(index++%5==0)for(var spark:CompassArrow.star())arrowPoint(player,at.clone().add(spark));}
    }
-   private void arrowPoint(Player player,Location point){player.spawnParticle(Particle.DUST,point,1,0,0,0,0,new Particle.DustOptions(org.bukkit.Color.LIME,1.5f));}
+   private void arrowPoint(Player player,Location point){CosmeticFX.to(player,Particle.DUST,point,1,0,0,0,0,new Particle.DustOptions(org.bukkit.Color.fromRGB(170,255,30),1.05f));}
+   @EventHandler(priority=org.bukkit.event.EventPriority.HIGHEST)
+   public void activate(org.bukkit.event.player.PlayerInteractEvent event){
+      if((event.getAction()!=org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK&&event.getAction()!=org.bukkit.event.block.Action.RIGHT_CLICK_AIR)||!items.isTracker(event.getItem()))return;
+      event.setCancelled(true);Player player=event.getPlayer();long now=System.currentTimeMillis();if(now<nextClick.getOrDefault(player.getUniqueId(),0L))return;nextClick.put(player.getUniqueId(),now+1000);
+      var nearest=eggTargets(bosses.trackedEncounters()).stream().filter(e->e.location().getWorld().equals(player.getWorld())).min(java.util.Comparator.comparingDouble(e->e.location().distanceSquared(player.getLocation()))).orElse(null);
+      if(nearest==null){clearTracking(player,false);signal.put(player.getUniqueId(),"none:"+player.getWorld().getUID());player.sendMessage(Component.text("✦ Brújula · No hay huevos de bosses activos por el momento en este mundo.",NamedTextColor.GREEN).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD));}
+      else{signal.remove(player.getUniqueId());update();}
+   }
 
    private void showTarget(Player var1, BossManager.TrackedEncounter var2, Location var3) {
       HuntTracker.Session var4 = this.session(var1);
       List var5 = List.of(
+         "§6Bosses derrotados: §f"+((CazaJefesPlugin)plugin).statistics.total(var1.getUniqueId()),
          "§7Objetivo",
          "§f" + var2.name(),
          "§6Rango: " + var2.tier() + (var2.mini() ? " • MINI" : ""),
@@ -95,7 +105,8 @@ public final class HuntTracker implements Listener {
 
    private void showNoSignal(Player var1) {
       HuntTracker.Session var2 = this.session(var1);
-      this.setLines(var2, List.of("§7Objetivo", "§fSin rastro cercano", "§7No hay huevos o jefes", "§7en este mundo.", "§8────────────"));
+      this.setLines(var2, List.of("§6Bosses derrotados: §f"+((CazaJefesPlugin)plugin).statistics.total(var1.getUniqueId()),
+         "§7Objetivo", "§fSin rastro cercano", "§7No hay huevos o jefes", "§7en este mundo.", "§8────────────"));
    }
 
    private HuntTracker.Session session(Player var1) {
@@ -141,7 +152,7 @@ public final class HuntTracker implements Listener {
 
    @EventHandler
    public void onQuit(PlayerQuitEvent var1) {
-      this.sessions.remove(var1.getPlayer().getUniqueId());compassTargets.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());signal.remove(var1.getPlayer().getUniqueId());
+      nextClick.remove(var1.getPlayer().getUniqueId());this.sessions.remove(var1.getPlayer().getUniqueId());compassTargets.remove(var1.getPlayer().getUniqueId());nextArrow.remove(var1.getPlayer().getUniqueId());signal.remove(var1.getPlayer().getUniqueId());
    }
 
    @EventHandler
@@ -156,7 +167,7 @@ public final class HuntTracker implements Listener {
          this.restore(var2);
       }
 
-      this.sessions.clear();nextArrow.clear();signal.clear();
+      this.sessions.clear();nextClick.clear();nextArrow.clear();signal.clear();
    }
 
    private record Session(Scoreboard previous, Scoreboard board, Objective objective) {

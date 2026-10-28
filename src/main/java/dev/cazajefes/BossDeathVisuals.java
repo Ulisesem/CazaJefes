@@ -28,26 +28,28 @@ final class BossDeathVisuals implements Listener {
     Location at=start.clone().add(0,DeathFlight.height(tick,rise),0);ghost.teleport(at);
     if(tick==DeathFlight.PEAK)start.getWorld().playSound(at,Sound.ENTITY_WITHER_SPAWN,.6f,1.6f);
     if(tick%10==0){CombatVisuals.signatureRing(start,definition,6,24);for(Player player:start.getWorld().getPlayers())if(player.getLocation().distanceSquared(start)<=144)player.sendActionBar(net.kyori.adventure.text.Component.text("⚠ IMPACTO FINAL · Sal del círculo",net.kyori.adventure.text.format.NamedTextColor.RED));}
-    if(tick%2==0){at.getWorld().spawnParticle(Particle.END_ROD,at.clone().add(0,1,0),5,.5,.6,.5,.015);at.getWorld().spawnParticle(Particle.SOUL,at,4,.4,.5,.4,.01);}
-    if(tick==DeathFlight.END){try{blast(start);CombatVisuals.signatureRing(start,definition,2,24);start.getWorld().spawnParticle(Particle.FIREWORK,start.clone().add(0,1,0),30,.8,.8,.8,.03);}finally{ghost.remove();}}
+    if(tick%2==0){CosmeticFX.emit(Particle.END_ROD,at.clone().add(0,1,0),5,.5,.6,.5,.015);CosmeticFX.emit(Particle.SOUL,at,4,.4,.5,.4,.01);}
+    if(tick==DeathFlight.END){try{blast(start);CombatVisuals.signatureRing(start,definition,2,24);CosmeticFX.emit(Particle.FIREWORK,start.clone().add(0,1,0),30,.8,.8,.8,.03);}finally{ghost.remove();}}
    }
   };
   tasks.put(id,task);rewards.put(id,completion);task.runTaskTimer(plugin,1,1);
  }catch(IllegalArgumentException error){plugin.getLogger().warning("No se pudo mostrar la animación de muerte de "+definition.id()+": "+error.getMessage());completion.finish();}}
+ private void deathCylinder(Location center){new BukkitRunnable(){int frame;public void run(){if(frame++>=8){cancel();return;}for(int i=0;i<32;i++){double a=i*Math.PI*2/32+frame*.2;CosmeticFX.emit(Particle.END_ROD,center.clone().add(Math.cos(a)*2.5,(i%4)*.8+.3,Math.sin(a)*2.5),1,0,0,0,0,null);}}}.runTaskTimer(plugin,1,3);}
  private final Map<UUID,Double> blastDamage=new HashMap<>();
  private final Map<UUID,EntityDamageEvent> blastEvents=new HashMap<>();
  private void blast(Location center){
-  center.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER,center.clone().add(0,1,0),1);
+  CosmeticFX.emit(Particle.EXPLOSION_EMITTER,center.clone().add(0,1,0),1);
   center.getWorld().playSound(center,Sound.ENTITY_GENERIC_EXPLODE,1.3f,.7f);
   center.getWorld().strikeLightningEffect(center);
-  for(int i=0;i<4;i++){double angle=i*Math.PI/2;center.getWorld().strikeLightningEffect(center.clone().add(Math.cos(angle)*3.5,0,Math.sin(angle)*3.5));}
+  for(int i=0;i<4;i++){double angle=i*Math.PI/2;center.getWorld().strikeLightningEffect(center.clone().add(Math.cos(angle)*9,0,Math.sin(angle)*9));}
+  deathCylinder(center);
   for(Player player:center.getWorld().getPlayers()){
    if(player.isDead()||!player.isOnline()||!plugin.guard.canAttackBoss(player)||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
    UUID id=player.getUniqueId();blastDamage.put(id,DeathFlight.damage(java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
    try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event==null||!event.isCancelled()){VectorBack.push(player,center);plugin.getServer().getScheduler().runTask(plugin,()->{if(player.isOnline()&&!player.isDead()&&player.getWorld().equals(center.getWorld())&&player.getLocation().distanceSquared(center)<=100)VectorBack.push(player,center);});}if(event!=null&&!event.isCancelled()&&event.getFinalDamage()>0){
-    player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS,120,1));
-    player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS,160,0));
-    player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.BLINDNESS,40,0));
+    BossEffects.apply(player,BossEffects.effect(org.bukkit.potion.PotionEffectType.SLOWNESS,120,1));
+    BossEffects.apply(player,BossEffects.effect(org.bukkit.potion.PotionEffectType.WEAKNESS,160,0));
+    BossEffects.apply(player,BossEffects.effect(org.bukkit.potion.PotionEffectType.BLINDNESS,40,0));
    }}finally{blastDamage.remove(id);blastEvents.remove(id);}
   }
  }

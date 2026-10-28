@@ -178,7 +178,7 @@ public final class RelicItems implements Listener {
                   ? "Combínala en la mesa de crafteo con un casco."
                   : (var1.equals("magneto") ? "Atrae al inventario todo lo que extraes con un pico." : "Combínala en la mesa de crafteo con equipo compatible.")
             );
-         String var7 = var5 ? "SpellBook de la Grieta" : "Esencia: " + var3 + " nivel " + var4;
+         String var7 = var5 ? "SpellBook de la Grieta" : "Rare Essence";
          ItemStack var8 = this.named(
             var5 ? Material.BOOK : Material.MAGMA_CREAM,
             (var5 ? "rare_spell_book_" : "esencia_rare_") + var1 + "_" + var4,
@@ -186,8 +186,8 @@ public final class RelicItems implements Listener {
             NamedTextColor.GREEN,
             1,
             var6,
-            "Rare: " + var3,
-            "Nivel: " + var4
+            "Tipo de Rare: " + RareAppearance.title(var1),
+            "Nivel: " + RareAppearance.roman(var4)
          );
          ItemMeta var9 = var8.getItemMeta();
          var9.displayName(
@@ -198,8 +198,8 @@ public final class RelicItems implements Listener {
          var9.lore(
             List.of(
                (TextComponent)Component.text(var6, NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false),
-               (TextComponent)Component.text("Rare: " + var3, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-               (TextComponent)Component.text("Nivel: " + var4, NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false),
+               (TextComponent)Component.text("Tipo de Rare: " + RareAppearance.title(var1), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+               (TextComponent)Component.text("Nivel: " + RareAppearance.roman(var4), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false),
                (TextComponent)((TextComponent)Component.text("Rare de la Grieta", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD))
                   .decoration(TextDecoration.ITALIC, false)
             )
@@ -207,7 +207,7 @@ public final class RelicItems implements Listener {
          var9.getPersistentDataContainer().set(this.rareBookKey, PersistentDataType.STRING, var1);
          var9.getPersistentDataContainer().set(this.rareEssenceLevelKey, PersistentDataType.INTEGER, var4);
          var8.setItemMeta(var9);
-         return var8;
+         return refreshAppearance(var8);
       }
    }
 
@@ -499,10 +499,10 @@ public final class RelicItems implements Listener {
                      ArrayList<Component> var21 = var15.lore() == null ? new ArrayList<>() : new ArrayList<>(var15.lore());
                      String var22 = var8.replace('_', ' ').toUpperCase();
                      var21.removeIf(var1x -> PlainTextComponentSerializer.plainText().serialize(var1x).startsWith("Rare: " + var22));
-                     var21.add(Component.text("Rare: " + var22 + " • Nivel " + var19 + "/" + var18, NamedTextColor.GRAY).decorate(TextDecoration.BOLD));
+                     var21.add(Component.text("✦ "+RareAppearance.title(var8)+" "+RareAppearance.roman(var19),RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));
                      var15.lore(var21);
                      var27.setItemMeta(var15);
-                     var1.getInventory().setResult(var27);
+                     var1.getInventory().setResult(refreshAppearance(var27));
                   }
                }
             } else {
@@ -992,7 +992,7 @@ public final class RelicItems implements Listener {
 
    public ItemStack essence() {
       return this.plainGreenItem(
-         Material.MAGMA_CREAM, "rare_essence", "Rare Essence", "Energía concentrada de la Grieta.", "Sirve para recetas y forjas de reliquias."
+         Material.MAGMA_CREAM, "rare_essence", "Rare Essence", "Tipo de Rare: Esencia de la Grieta", "Energía concentrada de la Grieta.", "Sirve para recetas y forjas de reliquias."
       );
    }
 
@@ -1000,7 +1000,8 @@ public final class RelicItems implements Listener {
       return this.plainGreenItem(
          Material.MAGMA_CREAM,
          "rare_essence_primordial",
-         "Esencia Primordial de la Grieta",
+         "Rare Essence",
+         "Tipo de Rare: Primordial",
          "Rare Essence refinada con Polvo de la Grieta y Núcleos de jefe.",
          "Catalizador para recetas y forjas de alto rango."
       );
@@ -1010,9 +1011,10 @@ public final class RelicItems implements Listener {
       return this.named(
          Material.DRAGON_BREATH,
          "rare_essence_abyssal",
-         "Esencia Abisal",
-         NamedTextColor.DARK_PURPLE,
+         "Rare Essence",
+         NamedTextColor.GREEN,
          1,
+         "Tipo de Rare: Abismal",
          "Energía condensada de los jefes más poderosos.",
          "Requisito de forja para reliquias míticas.",
          "Se obtiene de jefes legendarios y míticos."
@@ -1185,12 +1187,12 @@ public final class RelicItems implements Listener {
          };
          var11.getPersistentDataContainer().set(this.rareEnchantKey, PersistentDataType.STRING, var7);
          var11.getPersistentDataContainer().set(this.rareLevelsKey, PersistentDataType.STRING, var7 + ":" + var2);
-         var6.add(Component.text("Rare " + var7 + " • Nivel " + var2, NamedTextColor.GREEN));
+         var6.add(Component.text("✦ "+RareAppearance.title(var7)+" "+RareAppearance.roman(var2),RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));
          var11.lore(var6);
          var3.setItemMeta(var11);
       }
 
-      return var3;
+      return refreshAppearance(var3);
    }
 
    public List<String> rareIds() {
@@ -1419,13 +1421,22 @@ public final class RelicItems implements Listener {
       return var2;
    }
 
+   ItemStack refreshAppearance(ItemStack stack){
+      if(stack==null||!stack.hasItemMeta())return stack;String id=customId(stack);var meta=stack.getItemMeta();String property=meta.getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING);Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));
+      boolean essence=id!=null&&(id.startsWith("rare_essence")||id.startsWith("esencia_rare_"));boolean gear=RareAppearance.equipment(stack.getType());if(!essence&&levels.isEmpty())return stack;ItemStack out=stack.clone();
+      List<Component> lore=new ArrayList<>(meta.lore()==null?List.of():meta.lore());
+      if(essence){String type=property!=null?RareAppearance.title(property):id.equals("rare_essence_primordial")?"Primordial":id.equals("rare_essence_abyssal")?"Abismal":"Esencia de la Grieta";meta.displayName(Component.text("Rare Essence",NamedTextColor.GREEN).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Tipo de Rare:")||text.startsWith("Nivel:");});lore.add(0,Component.text("Tipo de Rare: "+type,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(property!=null)lore.add(1,Component.text("Nivel: "+RareAppearance.roman(meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}
+      if(!levels.isEmpty()){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Rare ")&&text.contains("Nivel")||levels.keySet().stream().anyMatch(key->text.startsWith("✦ "+RareAppearance.title(key)+" "));});for(var entry:levels.entrySet())lore.add(Component.text("✦ "+RareAppearance.title(entry.getKey())+" "+RareAppearance.roman(entry.getValue()),gear?RareAppearance.ORANGE:NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(gear&&meta.displayName()!=null)meta.displayName(Component.text(PlainTextComponentSerializer.plainText().serialize(meta.displayName()),RareAppearance.ORANGE).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));}
+      meta.lore(lore);out.setItemMeta(meta);return out;
+   }
+
    public ItemStack migrateCurrency(ItemStack stack) {
-      String id=customId(stack);if(id==null)return stack;
+      stack=refreshAppearance(stack);String id=customId(stack);if(id==null)return stack;
       ItemStack replacement=null;
       if(id.equals("fragmento_grieta"))replacement=fragment(stack.getAmount());
       else if(id.equals("tributo_grieta"))replacement=tribute("Cazador");
-      if(id.startsWith("armadura_"))return EquipmentSets.migrateArmor(stack,id,itemKey);
-      if(id.startsWith("arma_"))return EquipmentSets.migrateWeapon(stack,id,itemKey);
+      if(id.startsWith("armadura_"))return refreshAppearance(EquipmentSets.migrateArmor(stack,id,itemKey));
+      if(id.startsWith("arma_"))return refreshAppearance(EquipmentSets.migrateWeapon(stack,id,itemKey));
       if(id.equals("tracking_compass"))replacement=compass();
       if(id.equals("sello_coloso"))replacement=colossusSigil();
       if(id.equals("amuleto_coloso"))replacement=amulet();
@@ -1439,6 +1450,7 @@ public final class RelicItems implements Listener {
          if(old!=null&&!old.equals(updated)){storage[slot]=updated;changed=true;}
       }
       if(changed)player.getInventory().setStorageContents(storage);
+      ItemStack[] armor=player.getInventory().getArmorContents();for(int i=0;i<armor.length;i++)armor[i]=migrateCurrency(armor[i]);player.getInventory().setArmorContents(armor);var off=player.getInventory().getItemInOffHand();var updated=migrateCurrency(off);if(!off.equals(updated))player.getInventory().setItemInOffHand(updated);
    }
 
    public ItemStack bossHeart(BossCatalog.Definition boss) {

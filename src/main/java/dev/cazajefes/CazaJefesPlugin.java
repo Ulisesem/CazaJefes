@@ -19,7 +19,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
    DamageDiagnostics damageDiagnostics;
-   BossParticipation participation;
+   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;
+   public BossStatistics statistics(){return statistics;}
    private NamespacedKey itemKey;
    private BossManager bossManager;
    private RelicItems relicItems;
@@ -29,12 +30,14 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.saveDefaultConfig();
       ConfigMigration.run(this);
       this.recipeSettings = new RecipeSettings(this);
+      statistics=new BossStatistics(this);getServer().getServicesManager().register(BossStatistics.class,statistics,this,org.bukkit.plugin.ServicePriority.Normal);
       this.guard = new CombatGuard(this);
       getServer().getPluginManager().registerEvents(guard, this);
       this.participation=new BossParticipation(this);getServer().getPluginManager().registerEvents(participation,this);
       this.itemKey = new NamespacedKey(this, "relic_id");
       this.relicItems = new RelicItems(this, this.itemKey);
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
+      getServer().getPluginManager().registerEvents(new BossIntegrity(),this);
       burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);
       animalMinions=new AnimalMinions(this);getServer().getPluginManager().registerEvents(animalMinions,this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
@@ -43,6 +46,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.deathVisuals=new BossDeathVisuals(this);getServer().getPluginManager().registerEvents(deathVisuals,this);
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
       this.auras=new BossAuras(this);getServer().getPluginManager().registerEvents(auras,this);
+      safety=new EncounterSafety(this);getServer().getPluginManager().registerEvents(safety,this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);
       this.getServer().getPluginManager().registerEvents(this.relicItems, this);
@@ -81,13 +85,13 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
-      if(pillagers!=null)pillagers.stop();
+      if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();
       if(deathVisuals!=null)deathVisuals.stop();
       if(relicItems!=null)relicItems.stopLootAnimations();
-      if(auras!=null)auras.stop();
+      CosmeticFX.clear();if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if (shulkers!=null)shulkers.stop();
       if (guard != null) guard.cleanup();

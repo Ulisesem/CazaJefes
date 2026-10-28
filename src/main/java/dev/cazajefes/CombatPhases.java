@@ -21,19 +21,21 @@ final class CombatPhases implements Listener {
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
   if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*(warden(living)?0.85:1));
   if(event instanceof EntityDamageByEntityEvent hit&&source(hit.getDamager()) instanceof LivingEntity attacker&&isBoss(attacker)
-      &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(AbilityDamage.active()||PillagerCombat.specialShot(hit.getDamager())?200:80,event.getDamage()*PhaseRules.outgoing(phase(attacker))*(warden(attacker)?1.35:1)));
+      &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(AbilityDamage.active()||PillagerCombat.specialShot(hit.getDamager())?200:80,(event.getDamage()+(!(hit.getDamager() instanceof Projectile)&&!AbilityDamage.active()?BossEquipment.virtualSharpness(attacker):0))*PhaseRules.outgoing(phase(attacker))*(warden(attacker)?1.35:1)));
  }
  @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void effects(EntityDamageByEntityEvent event){
   if(!(source(event.getDamager()) instanceof LivingEntity attacker)||!isBoss(attacker)||!(event.getEntity() instanceof Player target)||!CombatGuard.eligible(target)||event.getFinalDamage()<=0)return;
   long now=System.currentTimeMillis();int phase=phase(attacker);UUID id=target.getUniqueId();
-  if(phase>=2&&now>=effects.getOrDefault(id,0L)){
-   if(phase==2)target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS,60,0));
-   target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS,phase==3?80:40,0));
-   if(phase==3)target.addPotionEffect(new PotionEffect(warden(attacker)?PotionEffectType.DARKNESS:PotionEffectType.WITHER,warden(attacker)?80:60,0));
+  if(phase>=2&&(phase==3||now>=effects.getOrDefault(id,0L))){
+   if(phase==2)BossEffects.apply(target,BossEffects.effect(PotionEffectType.WEAKNESS,60,0));
+   BossEffects.apply(target,BossEffects.effect(PotionEffectType.SLOWNESS,phase==3?80:40,0));
+   if(phase==3)BossEffects.apply(target,BossEffects.effect(warden(attacker)?PotionEffectType.DARKNESS:PotionEffectType.WITHER,warden(attacker)?80:60,0));
    if(phase==3){
-    target.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE,80,1));
-    target.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER,100,1));
-    target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA,60,0));
+    BossEffects.apply(target,BossEffects.effect(PotionEffectType.BLINDNESS,600,0));
+    BossEffects.apply(target,BossEffects.effect(PotionEffectType.NAUSEA,600,0));
+    BossEffects.apply(target,BossEffects.effect(PotionEffectType.MINING_FATIGUE,80,1));
+    BossEffects.apply(target,BossEffects.effect(PotionEffectType.HUNGER,100,1));
+    
    }
    effects.put(id,now+6000);
   }

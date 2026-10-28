@@ -1,0 +1,41 @@
+package dev.cazajefes;
+import java.util.*;
+import org.bukkit.*;
+import org.bukkit.entity.*;
+import org.bukkit.event.*;
+import org.bukkit.event.entity.*;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitTask;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.*;
+/** Bounded collision recovery and a telegraphed response to unreachable attackers. */
+final class EncounterSafety implements Listener {
+ private static final NamespacedKey BOSS=new NamespacedKey("cazajefes",BossKeys.BOSS),MINION=new NamespacedKey("cazajefes","boss_minion");
+ private static final class Unit {LivingEntity entity;long nextRepair,lastContact,nextClaim,release;UUID attacker;final PillagerRules.Hits pressure=new PillagerRules.Hits(3);Unit(LivingEntity e){entity=e;lastContact=System.currentTimeMillis();}}
+ private final CazaJefesPlugin plugin;private final LinkedHashMap<UUID,Unit> units=new LinkedHashMap<>();private final Set<UUID> urgent=new LinkedHashSet<>();private final BukkitTask timer;private int cursor;
+ EncounterSafety(CazaJefesPlugin plugin){this.plugin=plugin;timer=plugin.getServer().getScheduler().runTaskTimer(plugin,this::tick,10,10);}
+ private static boolean marked(Entity e){var p=e.getPersistentDataContainer();return p.has(BOSS,PersistentDataType.BYTE)||p.has(MINION,PersistentDataType.BYTE);}
+ static boolean challenge(boolean attacked,boolean unreachable,long sinceContact,long now,long ready){return attacked&&unreachable&&sinceContact>=6000&&now>=ready;}
+ static boolean clear(LivingEntity entity,Location at){var box=entity.getBoundingBox().clone().shift(at.toVector().subtract(entity.getLocation().toVector())).expand(-.035);World w=at.getWorld();if(box.getMinY()<w.getMinHeight()||box.getMaxY()>=w.getMaxHeight()||!w.getWorldBorder().isInside(at))return false;
+  int x0=(int)Math.floor(box.getMinX()),x1=(int)Math.floor(box.getMaxX()),y0=(int)Math.floor(box.getMinY()),y1=(int)Math.floor(box.getMaxY()),z0=(int)Math.floor(box.getMinZ()),z1=(int)Math.floor(box.getMaxZ());
+  if((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>4096)return false;
+  for(int x=x0;x<=x1;x++)for(int z=z0;z<=z1;z++){if(!w.isChunkLoaded(x>>4,z>>4))return false;for(int y=y0;y<=y1;y++){var block=w.getBlockAt(x,y,z);if(!block.isPassable()&&!block.isLiquid())return false;}}return true;
+ }
+ private static boolean embedded(LivingEntity e){var b=e.getBoundingBox();World w=e.getWorld();double[] xs={b.getMinX()+.05,b.getCenterX(),b.getMaxX()-.05},zs={b.getMinZ()+.05,b.getCenterZ(),b.getMaxZ()-.05};for(double x:xs)for(double z:zs)for(double y:new double[]{b.getMinY()+.15,b.getCenterY(),b.getMaxY()-.1}){if(!w.isChunkLoaded(((int)Math.floor(x))>>4,((int)Math.floor(z))>>4))return true;var block=w.getBlockAt((int)Math.floor(x),(int)Math.floor(y),(int)Math.floor(z));if(!block.isPassable()&&!block.isLiquid())return true;}return false;}
+ private static Location find(LivingEntity entity,Location center,int radius,boolean water){int checks=0;for(int ring=1;ring<=radius;ring+=2)for(int i=0;i<8;i++){double a=i*Math.PI/4;for(int dy:new int[]{0,1,-1,2,-2,3,-3}){Location at=center.clone().add(Math.cos(a)*ring,dy,Math.sin(a)*ring).getBlock().getLocation().add(.5,0,.5);if(at.getY()<at.getWorld().getMinHeight()+1||at.getY()+entity.getHeight()>=at.getWorld().getMaxHeight())continue;if(!at.getWorld().isChunkLoaded(at.getBlockX()>>4,at.getBlockZ()>>4)||!at.getWorld().getWorldBorder().isInside(at))continue;var feet=at.getBlock();if(water){if(!feet.isLiquid()||feet.getType()==Material.LAVA)continue;}else{if(feet.isLiquid()||!feet.getRelative(0,-1,0).getType().isSolid())continue;}if(feet.getRelative(0,-1,0).getType()==Material.MAGMA_BLOCK||feet.getRelative(0,-1,0).getType()==Material.CACTUS||feet.getType()==Material.FIRE)continue;if(++checks>24)return null;if(clear(entity,at))return at;}}return null;}
+ boolean place(LivingEntity entity){if(clear(entity,entity.getLocation()))return true;Location safe=find(entity,entity.getLocation(),7,AquaticCombat.swimming(entity));return safe!=null&&entity.teleport(safe);}
+ void track(LivingEntity entity){units.putIfAbsent(entity.getUniqueId(),new Unit(entity));}
+ void minion(LivingEntity entity){if(!place(entity)){entity.remove();return;}track(entity);}
+ private void tick(){long now=System.currentTimeMillis();int repaired=0;for(UUID id:new ArrayList<>(urgent)){if(repaired++>=4)break;urgent.remove(id);Unit u=units.get(id);if(u!=null)repair(u,now);}
+  List<Unit> list=new ArrayList<>(units.values());if(list.isEmpty())return;for(int i=0;i<Math.min(8,list.size());i++){Unit u=list.get(Math.floorMod(cursor++,list.size()));LivingEntity boss=u.entity;if(!boss.isValid()||boss.isDead()){units.remove(boss.getUniqueId());continue;}if(embedded(boss))repair(u,now);if(boss.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE))claim(u,now);}
+ }
+ private void repair(Unit u,long now){if(now<u.nextRepair||!u.entity.isValid()||u.entity.isDead())return;u.nextRepair=now+2000;Location safe=find(u.entity,u.entity.getLocation(),7,AquaticCombat.swimming(u.entity));if(safe!=null){if(u.entity.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE))plugin.abilities.relocating(u.entity);u.entity.teleport(safe);}}
+ private void claim(Unit u,long now){Player p=u.attacker==null?null:plugin.getServer().getPlayer(u.attacker);LivingEntity boss=u.entity;if(p==null||!CombatGuard.eligible(p)||!p.getWorld().equals(boss.getWorld())||p.getLocation().distanceSquared(boss.getLocation())>576){u.release=0;return;}boolean unreachable=!boss.hasLineOfSight(p)||p.getY()-boss.getY()>1.5;
+  if(u.release>0){if(now<u.release)return;u.release=0;u.nextClaim=now+25000;if(!unreachable||plugin.abilities.occupied(boss))return;var outward=p.getLocation().toVector().subtract(boss.getLocation().toVector()).setY(0);if(outward.lengthSquared()<.01)outward=new org.bukkit.util.Vector(1,0,0);Location arena=boss.getLocation().clone().add(outward.normalize().multiply(boss.getWidth()/2+4));Location safe=find(p,arena,5,AquaticCombat.swimming(p));if(safe!=null){CosmeticFX.emit(Particle.REVERSE_PORTAL,p.getLocation(),16,.3,.7,.3,.02);if(p.teleport(safe,PlayerTeleportEvent.TeleportCause.PLUGIN)){p.getWorld().playSound(safe,Sound.ENTITY_ENDERMAN_TELEPORT,.7f,1.2f);BossWarnings.send(p,Component.text("✦ RECLAMO DE LA GRIETA · ¡Combate al descubierto!",NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}}return;}
+  if(!plugin.abilities.occupied(boss)&&challenge(u.pressure.charged(now),unreachable,now-u.lastContact,now,u.nextClaim)){u.release=now+2000;BossWarnings.send(p,Component.text("⚠ RECLAMO DE LA GRIETA · Sal de tu refugio · 2 s",NamedTextColor.RED).decorate(TextDecoration.BOLD));}
+ }
+ @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void suffocate(EntityDamageEvent e){if(e.getCause()==EntityDamageEvent.DamageCause.SUFFOCATION&&marked(e.getEntity())&&e.getEntity() instanceof LivingEntity living){e.setCancelled(true);track(living);urgent.add(living.getUniqueId());}}
+ @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)public void hit(EntityDamageByEntityEvent e){if(e.getFinalDamage()<=0)return;long now=System.currentTimeMillis();Entity source=e.getDamager();if(source instanceof Projectile projectile&&projectile.getShooter() instanceof Entity shooter)source=shooter;if(source instanceof Player player&&CombatGuard.eligible(player)&&e.getEntity() instanceof LivingEntity boss&&boss.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE)){track(boss);Unit u=units.get(boss.getUniqueId());u.attacker=player.getUniqueId();u.pressure.add(now);}else if(e.getEntity() instanceof Player&&source instanceof LivingEntity boss){Unit u=units.get(boss.getUniqueId());if(u!=null)u.lastContact=now;}}
+ void stop(){timer.cancel();units.clear();urgent.clear();}
+}
