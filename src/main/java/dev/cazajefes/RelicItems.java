@@ -356,7 +356,7 @@ public final class RelicItems implements Listener {
 
                      switch (var3) {
                         case "haste":
-                           var20.addPotionEffect(new PotionEffect(PotionEffectType.HASTE,600*var23,Math.min(2,var23-1)));
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,600*var23,Math.min(2,var23-1)));
                            break;
                         case "fireresistance":
                            var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 900 * var23, 0));
