@@ -19,11 +19,11 @@ final class BossTactics {
   if(move==TacticsRules.Move.RETREAT)direction.multiply(-1);else if(move==TacticsRules.Move.FLANK){int side=((definition.id().hashCode()+(beat/3))&1)==0?1:-1;direction=new Vector(-forward.getZ()*side,0,forward.getX()*side).add(forward.clone().multiply(distance>4?.45:-.15)).normalize();}
   Location waypoint=origin.clone().add(direction.clone().multiply(2));
   long now=System.currentTimeMillis();if(boss instanceof Mob mob&&now>=nextPath){mob.setTarget(target);mob.getPathfinder().moveTo(move==TacticsRules.Move.APPROACH?target.getLocation():waypoint,fox?1.05:1.2);nextPath=now+500;}
-  if(!boss.hasLineOfSight(target))return;
+  if(!CombatHitbox.visible(target,boss))return;
   Block ahead=origin.clone().add(direction.clone().multiply(.9)).getBlock();boolean water=origin.getBlock().isLiquid();boolean obstacle=!ahead.isPassable();
   if(!water&&!obstacle&&origin.clone().add(direction.clone().multiply(1.3)).getBlock().getRelative(0,-1,0).isPassable()&&boss.isOnGround())return;
   double y=boss.getVelocity().getY();if(water)y=Math.max(y,.20);else if(obstacle&&ahead.getRelative(0,1,0).isPassable()&&boss.isOnGround())y=.38;
-  double speed=TacticsRules.speed(fox,move,phase);Vector motion=direction.multiply(speed);boss.setVelocity(new Vector(motion.getX(),y,motion.getZ()));
+  double speed=TacticsRules.speed(fox,move,phase);if(definition.mini()&&!fox)speed=Math.max(speed,.34+phase*.02);Vector motion=direction.multiply(speed);boss.setVelocity(new Vector(motion.getX(),y,motion.getZ()));
   if(move==TacticsRules.Move.RUSH&&ticks%5==0)CombatVisuals.special(boss,definition);
  }
 }

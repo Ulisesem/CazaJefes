@@ -30,7 +30,7 @@ final class RaresMenu implements CommandExecutor,Listener {
   menu.inventory.setItem(4,PremiumStyle.tile(category.icon,category.title.toUpperCase(Locale.ROOT),NamedTextColor.GOLD,true,"Selecciona el nivel de poder"));
   List<BossCatalog.Tier> tiers=category==Category.CRYSTALS?List.of(BossCatalog.Tier.values()):EquipmentSets.RANKS;int[] slots=tiers.size()==6?new int[]{19,20,21,23,24,25}:new int[]{20,22,24,31};
   for(int i=0;i<tiers.size();i++){var tier=tiers.get(i);int slot=slots[i];menu.rankSlots.put(slot,tier);menu.inventory.setItem(slot,PremiumStyle.tile(category==Category.CRYSTALS?Material.AMETHYST_CLUSTER:category.icon,tier.display.toUpperCase(Locale.ROOT),tier.color,true,category==Category.CRYSTALS?(tier==BossCatalog.Tier.COMMON?"Se obtiene de los minijefes":"Se forja con cristales de la categoría anterior"):(category==Category.ARMOR?"Protección ":"Filo ")+(category==Category.ARMOR?EquipmentSets.protection(tier):EquipmentSets.sharpness(tier)),"Clic para explorar"));}
-  menu.inventory.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A LA FORJA",NamedTextColor.AQUA,false));player.openInventory(menu.inventory);
+  if(category==Category.ARMOR)menu.inventory.setItem(50,PremiumStyle.tile(Material.NETHER_STAR,"RESONANCIA PRIMIGENIA",NamedTextColor.GOLD,true,"Desbloquea las infusiones de una pieza de boss"));menu.inventory.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A LA FORJA",NamedTextColor.AQUA,false));player.openInventory(menu.inventory);
  }
  private void open(Player player,Category category,int page,ShapedRecipe detail,BossCatalog.Tier rank){open(player,category,page,detail,rank,null);}
  private void open(Player player,Category category,int page,ShapedRecipe detail,BossCatalog.Tier rank,RareCompatibility.Group group){
@@ -58,11 +58,12 @@ final class RaresMenu implements CommandExecutor,Listener {
    inv.setItem(23,PremiumStyle.tile(Material.SPECTRAL_ARROW,"FORJAR",NamedTextColor.GOLD,true));inv.setItem(25,detail.getResult());
    inv.setItem(40,PremiumStyle.tile(Material.ANVIL,"✦ FABRICAR UNA UNIDAD ✦",NamedTextColor.GREEN,true,"Consume los ingredientes de tu inventario","Solo se confirma si hay materiales y espacio"));
    inv.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A "+category.title,NamedTextColor.AQUA,false));
-  }player.openInventory(inv);
+  }if(category==null||category==Category.ARMOR)inv.setItem(50,PremiumStyle.tile(Material.NETHER_STAR,"RESONANCIA PRIMIGENIA",NamedTextColor.GOLD,true,"Desbloquea rares en una pieza de boss","Clic para consultar y fabricar el sello"));player.openInventory(inv);
  }
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)public void click(InventoryClickEvent event){
   if(!(event.getView().getTopInventory().getHolder() instanceof Menu menu))return;event.setCancelled(true);int slot=event.getRawSlot();if(!(event.getWhoClicked() instanceof Player player)||!MenuActions.isActivation(event.getClick(),slot,54))return;
   MenuActions.dispatch(plugin,player,menu,menu.gate,()->{
+   if(slot==50&&(menu.category==null||menu.category==Category.ARMOR)){recipes().stream().filter(r->r.getKey().getKey().equals("sello_resonancia_primigenia")).findFirst().ifPresent(r->open(player,Category.ESSENCES,0,r,null,RareCompatibility.Group.UNLOCK));return;}
    if(menu.category==null){if(slot==48){plugin.market.open(player);return;}if(slot==39){plugin.trophies.open(player,true,0);return;}if(slot==41){plugin.trophies.open(player,false,0);return;}int[] slots={10,12,14,16,28,30,32,34,40};for(int i=0;i<slots.length;i++)if(slot==slots[i]){Category selected=Category.values()[i];if(selected==Category.ESSENCES||selected==Category.PVP)groupMenu(player,selected);else if(selected==Category.ARMOR||selected==Category.WEAPONS||selected==Category.CRYSTALS)rankMenu(player,selected);else open(player,selected,0,null);}}
    else if(menu.groups){if(slot==49)open(player,null,0,null);else if(menu.groupSlots.containsKey(slot))open(player,menu.category,0,null,null,menu.groupSlots.get(slot));}
    else if(menu.ranks){if(slot==49)open(player,null,0,null);else if(menu.rankSlots.containsKey(slot))open(player,menu.category,0,null,menu.rankSlots.get(slot));}

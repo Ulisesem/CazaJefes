@@ -44,7 +44,7 @@ final class CombatGuard implements Listener {
         }
         if (combatant(attacker) && victim instanceof Player player && (!eligible(player)
             || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>(event.getDamager() instanceof Projectile?PillagerCombat.arrowRangeSquared(event.getDamager()):576)
-            || attacker instanceof LivingEntity living && !living.hasLineOfSight(victim))) event.setCancelled(true);
+            || attacker instanceof LivingEntity living && !(event.getDamager() instanceof Projectile?living.hasLineOfSight(victim):CombatHitbox.visible(player,living)))) event.setCancelled(true);
     }
     @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
     public void credit(EntityDamageByEntityEvent event) { record(event); }
