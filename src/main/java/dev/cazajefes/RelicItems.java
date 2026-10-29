@@ -101,7 +101,7 @@ public final class RelicItems implements Listener {
          var1.saveResource("rares.yml", false);
       }
 
-      this.rareConfig = YamlConfiguration.loadConfiguration(var3);
+      this.rareConfig = RareConfigUpgrade.load(var1,var3);
       var1.getServer().getScheduler().runTaskTimer(var1, this::restoreArmorSaturation, 100L, 100L);
       var1.getServer().getScheduler().runTaskTimer(var1, this::tickArmorProperties, 20L, 20L);
    }
@@ -115,7 +115,7 @@ public final class RelicItems implements Listener {
    }
 
    public int maxLevel(String var1) {
-      return var1.equals("despertar")?1:ArmorRareRules.title(var1)!=null?ArmorRareRules.maximum(var1):Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
+      var definition=RareDefinitions.get(var1);if(definition!=null)return definition.maximum();return var1.equals("despertar")?1:ArmorRareRules.title(var1)!=null?ArmorRareRules.maximum(var1):Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
    }
 
    public List<String> catalogIds() {
@@ -157,7 +157,7 @@ public final class RelicItems implements Listener {
             "flame"
          )
       );
-      var1.addAll(this.enchantIds());var1.add("despertar");
+      var1.addAll(this.enchantIds());var1.add("despertar");for(String id:RareDefinitions.ALL.keySet())if(!var1.contains(id))var1.add(id);var1.add("aura_esporas");
       return var1;
    }
 
@@ -172,14 +172,14 @@ public final class RelicItems implements Listener {
          String var3 = this.titleForRare(var1);
          int var4 = Math.max(1, Math.min(this.maxLevel(var1), var2));
          boolean var5 = this.spellIds().contains(var1);
-         String var6 = var5
+         String var6 = RareDefinitions.get(var1)!=null?RareDefinitions.get(var1).description():var5
             ? this.spellDescription(var1)
             : (
                var1.equals("flame")
                   ? "Combínala en la mesa de crafteo con un casco."
                   : (var1.equals("magneto") ? "Atrae al inventario todo lo que extraes con un pico." : "Combínala en la mesa de crafteo con equipo compatible.")
             );
-         String var7 = var1.equals("despertar")?"Resonancia Primigenia":var5 ? "SpellBook de la Grieta" : "Rare Essence";
+         String var7 = var1.equals("despertar")?"Resonancia Primigenia":var5 ? "Grimorio · "+var3 : "Rare Essence";
          ItemStack var8 = this.named(
             var5 ? Material.BOOK : Material.MAGMA_CREAM,
             (var5 ? "rare_spell_book_" : "esencia_rare_") + var1 + "_" + var4,
@@ -207,6 +207,7 @@ public final class RelicItems implements Listener {
          );
          var9.getPersistentDataContainer().set(this.rareBookKey, PersistentDataType.STRING, var1);
          var9.getPersistentDataContainer().set(this.rareEssenceLevelKey, PersistentDataType.INTEGER, var4);
+         if(var5&&RareDefinitions.get(var1)!=null){var definition=RareDefinitions.get(var1);List<Component> lines=new ArrayList<>();lines.add(Component.text("Nivel "+RareAppearance.roman(var4)+" · Máximo "+RareAppearance.roman(definition.maximum()),NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false));lines.add(Component.text("Costo de uso: "+definition.cost()+" de saturación",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lines.add(Component.text("Recarga: "+definition.cooldown()+" s",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));for(String line:wrapRareText(definition.description(),46))lines.add(Component.text(line,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lines.add(Component.text("Clic derecho en el aire para activar",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false));if(definition.maximum()>1)lines.add(Component.text("Une dos grimorios iguales para subir nivel",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));var9.lore(lines);}
          var8.setItemMeta(var9);
          return var1.equals("despertar")?awakeningSeal():refreshAppearance(var8);
       }
@@ -227,6 +228,7 @@ public final class RelicItems implements Listener {
    }
 
    private String titleForRare(String var1) {
+      var definition=RareDefinitions.get(var1);if(definition!=null)return definition.title();
       return switch (var1) {
          case "vampirismo" -> "Sello Vampírico";
          case "veneno" -> "Veneno Antiguo";
@@ -239,18 +241,26 @@ public final class RelicItems implements Listener {
    }
 
    int activePropertyLevel(ItemStack item,String property){
+      if(rareConfig!=null&&rareConfig.getDouble(property+".useCost",0)<0)return 0;
       if(item==null||!item.hasItemMeta())return 0;
       String properties=item.getItemMeta().getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);
-      return properties!=null&&Arrays.asList(properties.split(",")).contains(property)?propertyLevel(item,property):0;
+      return properties!=null&&Arrays.asList(properties.split(",")).contains(property)&&RareCompatibility.accepts(property,item.getType())?Math.min(maxLevel(property),Math.max(0,propertyLevel(item,property))):0;
    }
    public ItemStack armorSet(BossCatalog.Tier tier,int slot){return EquipmentSets.armor(tier,slot,itemKey);}
    public ItemStack weaponSet(BossCatalog.Tier tier,int slot){return EquipmentSets.weapon(tier,slot,itemKey);}
+   int armorLevel(Player player,String id){return armorRares.level(player,id);}
+   boolean armorCounter(Player player,String id){return armorRares.counter(player,id);}
    void stopArmorRares(){armorRares.stop();}
    boolean armorFuel(Player p,ItemStack item,String id){return consumePassiveSaturation(p,item,id);}
+   private void registerSpellUpgrades(){for(int count=2;count<=8;count++){var key=new NamespacedKey(plugin,"rare_spell_upgrade_"+count);plugin.getServer().removeRecipe(key);var recipe=new ShapelessRecipe(key,new ItemStack(Material.BOOK));recipe.addIngredient(count,Material.BOOK);plugin.getServer().addRecipe(recipe);}}
+   private boolean prepareSpellUpgrade(PrepareItemCraftEvent event){if(!(event.getRecipe() instanceof Keyed key)||!key.getKey().getNamespace().equals("cazajefes")||!key.getKey().getKey().startsWith("rare_spell_upgrade_"))return false;String id=null;List<Integer> levels=new ArrayList<>();for(ItemStack piece:event.getInventory().getMatrix()){if(piece==null||piece.getType().isAir())continue;if(!piece.hasItemMeta()){event.getInventory().setResult(null);return true;}String power=piece.getItemMeta().getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING);if(power==null||!spellIds().contains(power)||(id!=null&&!id.equals(power))){event.getInventory().setResult(null);return true;}id=power;levels.add(piece.getItemMeta().getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1));}int total=id==null?0:RareDefinitions.upgradedLevel(id,levels);event.getInventory().setResult(total>0?rareBook(id,total):null);return true;}
+   @EventHandler(priority=EventPriority.HIGHEST)public void validateSuppliedIngredients(PrepareItemCraftEvent event){if(!(event.getRecipe() instanceof ShapedRecipe recipe)||!recipe.getKey().getNamespace().equals("cazajefes"))return;String id=recipe.getKey().getKey();if(!id.startsWith("crear_esencia_rare_")&&!id.startsWith("crear_libro_rare_"))return;for(ItemStack piece:event.getInventory().getMatrix())if(customId(piece)!=null&&recipe.getChoiceMap().values().stream().noneMatch(choice->choice instanceof ExactChoice&&choice.test(piece))){event.getInventory().setResult(null);return;}}
    private void tickArmorProperties(){
       long now=System.currentTimeMillis();
       for(Player player:plugin.getServer().getOnlinePlayers()){
          armorRares.tick(player);
+         if(CombatGuard.eligible(player)&&!((CazaJefesPlugin)plugin).burstLaunch.lifting(player)){ItemStack wings=armorRares.strongest(player,"fly");if(wings!=null){player.setAllowFlight(true);flyUsers.add(player.getUniqueId());}else if(flyUsers.remove(player.getUniqueId())){player.setFlying(false);player.setAllowFlight(player.isOnGround()&&activePropertyLevel(player.getInventory().getBoots(),"doublejump")>0);}}
+
          if(player.isFlying()&&(player.getGameMode()==GameMode.SURVIVAL||player.getGameMode()==GameMode.ADVENTURE)&&flyUsers.contains(player.getUniqueId())&&now-flyDrain.getOrDefault(player.getUniqueId(),0L)>=10000){ItemStack wings=armorRares.strongest(player,"fly");if(wings==null||!consumeSaturation(player,wings,"fly")){player.setFlying(false);player.setAllowFlight(false);}flyDrain.put(player.getUniqueId(),now);}
 
          if(now-passiveRepair.getOrDefault(player.getUniqueId(),0L)<5000)continue;
@@ -330,43 +340,33 @@ public final class RelicItems implements Listener {
                   var20 = var9;
                }
 
-               double var22 = this.rareConfig.getDouble(var3 + ".useCost", 6.0);
+               double var22 = saturationCost(var2,var3);
                if (var22 < 0.0) {
                   var4.sendMessage(Component.text("Esta rare está desactivada.", NamedTextColor.RED));
                } else {
                   int var23 = Math.max(1, Math.min(maxLevel(var3), (Integer)var2.getItemMeta().getPersistentDataContainer().getOrDefault(this.rareEssenceLevelKey, PersistentDataType.INTEGER, 1)));
+                  if(var3.equals("repairitem")){ItemStack repair=var4.getInventory().getItem(0);if(repair==null||!(repair.getItemMeta() instanceof Damageable damage)||damage.getDamage()<=0){var4.sendMessage(Component.text("El primer espacio necesita un objeto dañado reparable.",NamedTextColor.GRAY));return;}}
                   if (!this.consumeSaturation(var4, var2, var3)) {
                      var4.sendMessage(Component.text("No tienes suficiente saturación para activar esta rare.", NamedTextColor.RED));
                   } else {
-                     this.burstCooldowns.put(var4.getUniqueId() + ":" + var3,
-                        var5 + Math.max(0, Math.min(3600, rareConfig.getLong(var3 + ".cooldownSeconds", 10))) * 1000L);
+                     this.burstCooldowns.put(var4.getUniqueId()+":"+var3,var5+(RareDefinitions.get(var3)==null?10000:RareDefinitions.get(var3).cooldown()*1000L));
 
                      switch (var3) {
                         case "haste":
-                           var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600 * var23, Math.min(5, var23 - 1)));
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600 * var23, Math.min(2, var23 - 1)));
                            break;
                         case "fireresistance":
                            var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 900 * var23, 0));
                            break;
                         case "invisibility":
-                           var20.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 500 * var23, 0));
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 1200, 0));
                            break;
                         case "burst":
                         case "greaterburst":
                            double var25 = (var3.equals("burst") ? 3 : 5) + var23 * 2;
 
-                           for (Entity var16 : var4.getNearbyEntities(var25, var25, var25)) {
-                              if (var16 instanceof LivingEntity var17 && !(var17 instanceof Player operator&&!BurstVisuals.movable(operator.isOp())) && !var17.getUniqueId().equals(var4.getUniqueId())) {
-                                 Vector var18 = var17.getLocation().toVector().subtract(var4.getLocation().toVector());
-                                 if (var18.lengthSquared() < 0.01) {
-                                    var18 = var4.getLocation().getDirection().multiply(-1);
-                                 }
-
-                                 var18.normalize();
-                                 Vector var19 = var18.multiply((var3.equals("burst") ? 1.0 : 1.25) + var23 * 0.35).setY(0.65 + var23 * 0.18);
-                                 var17.setVelocity(var19);
-                              }
-                           }
+                           var targets=var4.getNearbyEntities(var25,var25,var25).stream().filter(entity->entity instanceof LivingEntity living&&!living.isDead()&&!entity.equals(var4)&&var4.hasLineOfSight(entity)&&entity.getLocation().distanceSquared(var4.getLocation())<=var25*var25&&(!(entity instanceof Player player)||BurstVisuals.movable(player.isOp())&&RareCombat.enemy(var4,player))).sorted(java.util.Comparator.comparingDouble(entity->entity.getLocation().distanceSquared(var4.getLocation()))).limit(var3.equals("burst")?1:16).toList();
+                           for(Entity entity:targets){Vector away=entity.getLocation().toVector().subtract(var4.getLocation().toVector()).setY(0);if(away.lengthSquared()<.01)away=var4.getLocation().getDirection().setY(0);if(away.lengthSquared()<.01)away=new Vector(1,0,0);entity.setVelocity(away.normalize().multiply((var3.equals("burst")?1:1.25)+var23*.35).setY(.65+var23*.18));}
 
                            BurstVisuals.showBoss(plugin,var4);
                            break;
@@ -379,7 +379,7 @@ public final class RelicItems implements Listener {
                         case "repairitem":
                            ItemStack var13 = var4.getInventory().getItem(0);
                            if (var13 != null && var13.getItemMeta() instanceof Damageable var14 && var14.getDamage() > 0) {
-                              int var26 = Math.max(1, (int)Math.ceil(var14.getDamage() * (var23 / 5.0)));
+                              int var26 = RareDefinitions.repairAmount(var13.getType().getMaxDurability(),var23);
                               var14.setDamage(Math.max(0, var14.getDamage() - var26));
                               var13.setItemMeta(var14);
                               var4.sendMessage(Component.text("El objeto del primer espacio de tu hotbar fue reparado.", NamedTextColor.GREEN));
@@ -405,6 +405,7 @@ public final class RelicItems implements Listener {
 
    @EventHandler
    public void onPrepareRareCraft(PrepareItemCraftEvent var1) {
+      if(prepareSpellUpgrade(var1))return;
       if(!(var1.getRecipe() instanceof Keyed key)||!key.getKey().getKey().startsWith("rare_essence_attach"))var1.getInventory().setResult(carryBossSeal(var1.getInventory().getResult(),var1.getInventory().getMatrix()));
       if (var1.getRecipe() instanceof Keyed var2 && var2.getKey().getKey().startsWith("rare_essence_attach")) {
          if (var1.getInventory().getResult() != null) {
@@ -454,7 +455,7 @@ public final class RelicItems implements Listener {
                   Map<String, Integer> var17 = this.parseLevels((String)var15.getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
                   int var18 = this.maxLevel(var8);
                   int var19 = Math.min(var18, var17.getOrDefault(var8, 0) + var9);
-                  if (var17.getOrDefault(var8, 0) >= var18) {
+                  if (!RareDefinitions.canInfuse(var17.getOrDefault(var8,0),var9,var18)) {
                      var1.getInventory().setResult(null);
                   } else {
                      var17.put(var8, var19);
@@ -505,7 +506,7 @@ public final class RelicItems implements Listener {
       return String.join(",", var2);
    }
 
-   private int propertyLevel(ItemStack var1, String var2) {
+   int propertyLevel(ItemStack var1, String var2) {
       if (var1 != null && var1.hasItemMeta()) {
          String var3 = (String)var1.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING);
          return this.parseLevels(var3).getOrDefault(var2, 1);
@@ -514,8 +515,8 @@ public final class RelicItems implements Listener {
       }
    }
 
-   private float saturationCost(ItemStack var1, String var2) {
-      double var3 = this.rareConfig.getDouble(var2 + ".useCost", 2.0);
+   float saturationCost(ItemStack var1, String var2) {
+      double var3 = this.rareConfig.getDouble(var2 + ".useCost", 2.0);var definition=RareDefinitions.get(var2);if(definition!=null&&var3>=0)return definition.cost();
       if (var3 < 0.0) {
          return -1.0F;
       } else {
@@ -529,7 +530,7 @@ public final class RelicItems implements Listener {
       }
    }
 
-   private boolean consumeSaturation(Player var1, ItemStack var2, String var3) {
+   boolean consumeSaturation(Player var1, ItemStack var2, String var3) {
       float var4 = this.saturationCost(var2, var3);
       if (!(var4 < 0.0F) && !(var1.getSaturation() < var4)) {
          var1.setSaturation(Math.max(0.0F, var1.getSaturation() - var4));
@@ -549,195 +550,6 @@ public final class RelicItems implements Listener {
       } else {
          this.passiveSaturation.put(var4, var5);
          return true;
-      }
-   }
-
-   @EventHandler(ignoreCancelled = true)
-   public void onRareHit(EntityDamageByEntityEvent var1) {
-      Player var2 = var1.getDamager() instanceof Player var5
-         ? var5
-         : (var1.getDamager() instanceof Projectile var4 && var4.getShooter() instanceof Player var3 ? var3 : null);
-      if (var2 != null) {
-         ItemStack var14 = var2.getInventory().getItemInMainHand();
-         if(var1.getDamager() instanceof Projectile&&RareCompatibility.material(var14.getType())!=RareCompatibility.Group.RANGED)return;
-         if(!(var1.getDamager() instanceof Projectile)&&RareCompatibility.material(var14.getType())==RareCompatibility.Group.RANGED)return;
-         if (var14.hasItemMeta()) {
-            String var15 = (String)var14.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
-            if (var15 != null) {
-               Map<String, Integer> var16 = this.parseLevels((String)var14.getItemMeta().getPersistentDataContainer().get(this.rareLevelsKey, PersistentDataType.STRING));
-               if ((var15.contains("vampirismo") || var15.contains("vampiricregeneration")) && !(var1.getEntity() instanceof Player defended && armorRares.counter(defended,"garlic"))) {
-                  int var19 = Math.max(var16.getOrDefault("vampirismo", 1), var16.getOrDefault("vampiricregeneration", 1));
-                  if (Math.random() < 0.1 + var19 * 0.03
-                     && this.consumeSaturation(var2, var14, var15.contains("vampirismo") ? "vampirismo" : "vampiricregeneration")) {
-                     plugin.getServer().getScheduler().runTask(plugin,()->{if(!var1.isCancelled()&&var1.getFinalDamage()>0&&var2.isOnline()&&!var2.isDead())var2.setHealth(Math.min(var2.getMaxHealth(),var2.getHealth()+Math.min(var1.getFinalDamage(),1.0+var19)));});
-                  }
-               }
-
-               if (var1.getEntity() instanceof LivingEntity var20) {
-                  int var21 = Math.max(var16.getOrDefault("veneno", 1), var16.getOrDefault("poison", 1));
-                  int var8 = var16.getOrDefault("slow", 1);
-                  int var9 = var16.getOrDefault("weaken", 1);
-                  if ((var15.contains("veneno") || var15.contains("poison"))
-                     && Math.random() < 0.1 + var21 * 0.05
-                     && this.consumeSaturation(var2, var14, var15.contains("veneno") ? "veneno" : "poison")) {
-                     var20.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40 + var21 * 24, Math.min(2, (var21 - 1) / 2)));
-                  }
-
-                  if (var15.contains("brasas")) {
-                     int var10 = var16.getOrDefault("brasas", 1);
-                     if (this.consumeSaturation(var2, var14, "brasas")) {
-                        var20.setFireTicks(Math.max(var20.getFireTicks(), 40 + var10 * 24));
-                     }
-                  }
-
-                  if (var15.contains("slow") && Math.random() < 0.1 + var8 * 0.05 && this.consumeSaturation(var2, var14, "slow")) {
-                     var20.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40 + var8 * 20, Math.min(2, (var8 - 1) / 2)));
-                  }
-
-                  if (var15.contains("weaken") && Math.random() < 0.1 + var9 * 0.05 && this.consumeSaturation(var2, var14, "weaken")) {
-                     var20.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 40 + var9 * 20, Math.min(2, (var9 - 1) / 2)));
-                  }
-
-                  if (var15.contains("blinding")) {
-                     int var22 = var16.getOrDefault("blinding", 1);
-                     if (Math.random() < 0.05 + var22 * 0.03 && this.consumeSaturation(var2, var14, "blinding")) {
-                        var20.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 25 + var22 * 12, 0));
-                     }
-                  }
-
-                  if (var15.contains("confuse")) {
-                     int var23 = var16.getOrDefault("confuse", 1);
-                     if (Math.random() < 0.08 + var23 * 0.04 && this.consumeSaturation(var2, var14, "confuse")) {
-                        var20.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 35 + var23 * 18, 0));
-                     }
-                  }
-
-                  if (var15.contains("calllighting")) {
-                     int var24 = var16.getOrDefault("calllighting", 1);
-                     if (Math.random() < 0.04 + var24 * 0.025 && this.consumeSaturation(var2, var14, "calllighting")) {
-                        var20.getWorld().strikeLightningEffect(var20.getLocation());
-                     }
-                  }
-
-                  if (var15.contains("bleed")) {
-                     int var25 = var16.getOrDefault("bleed", 1);
-                     if (Math.random() < 0.1 + var25 * 0.04 && this.consumeSaturation(var2, var14, "bleed")) {
-                        var20.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 35 + var25 * 18, Math.min(1, (var25 - 1) / 3)));
-                     }
-                  }
-
-                  if (var15.contains("execute") && var20.getHealth() / var20.getMaxHealth() < 0.25 && this.consumeSaturation(var2, var14, "execute")) {
-                     SafeDamage.setBase(var1,var1.getDamage() * (1.2 + var16.getOrDefault("execute", 1).intValue() * 0.1));
-                  }
-
-                  if (var15.contains("backstab") && !(var20 instanceof Player defended && armorRares.counter(defended,"turtle"))) {
-                     Vector var26 = var2.getLocation().toVector().subtract(var20.getLocation().toVector()).setY(0);
-                     Vector var11 = var20.getLocation().getDirection().setY(0);
-                     if (var26.lengthSquared() > 0.001
-                        && var11.lengthSquared() > 0.001
-                        && var11.normalize().dot(var26.normalize()) < -0.05
-                        && this.consumeSaturation(var2, var14, "backstab")) {
-                        int var12 = var16.getOrDefault("backstab", 1);
-                        SafeDamage.setBase(var1,var1.getDamage() * (1.2 + var12 * 0.12));
-                        var20.getWorld().spawnParticle(Particle.CRIT, var20.getLocation().add(0.0, 1.0, 0.0), 12, 0.35, 0.4, 0.35, 0.1);
-                        var2.playSound(var20.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8F, 1.3F);
-                        var2.sendActionBar(Component.text("Backstab activado • daño aumentado", NamedTextColor.RED));
-                     }
-                  }
-
-                  if (var15.contains("disarm")) {
-                     int var27 = var16.getOrDefault("disarm", 1);
-                     if (Math.random() < 0.08 + var27 * 0.06 && this.consumeSaturation(var2, var14, "disarm")) {
-                        if (var20 instanceof Player var28) {
-                           this.scrambleInventory(var28, var27);
-                           var28.sendMessage(Component.text("Disarm revuelve parte de tu inventario.", NamedTextColor.RED));
-                           var2.sendMessage(Component.text("Disarm activado contra " + var28.getName() + ".", NamedTextColor.GOLD));
-                        } else if (var20 instanceof Mob var29 && var29.getEquipment() != null) {
-                           ItemStack var13 = var29.getEquipment().getItemInMainHand();
-                           if (var13 != null && !var13.getType().isAir()) {
-                              if(!BossEquipment.isDisplay(var13))var20.getWorld().dropItemNaturally(var20.getLocation(),var13.clone());
-                              else {ItemStack restore=var13.clone();plugin.getServer().getScheduler().runTaskLater(plugin,()->{if(var29.isValid()&&!var29.isDead()&&var29.getEquipment()!=null&&var29.getEquipment().getItemInMainHand().getType().isAir())var29.getEquipment().setItemInMainHand(restore);},60L);}
-                              var29.getEquipment().setItemInMainHand(new ItemStack(Material.AIR));
-                           }
-                        }
-                     }
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   private void scrambleInventory(Player var1, int var2) {
-      PlayerInventory var3 = var1.getInventory();
-      ArrayList<Integer> var4 = new ArrayList<>();
-
-      for (int var5 = 0; var5 < 36; var5++) {
-         var4.add(var5);
-      }
-
-      Collections.shuffle(var4, (Random)ThreadLocalRandom.current());
-      int var9 = Math.min(var4.size(), 6 * Math.max(1, Math.min(5, var2)));
-      ArrayList var6 = new ArrayList();
-
-      for (int var7 = 0; var7 < var9; var7++) {
-         ItemStack var8 = var3.getItem((Integer)var4.get(var7));
-         var6.add(var8 == null ? null : var8.clone());
-      }
-
-      Collections.shuffle(var6, (Random)ThreadLocalRandom.current());
-
-      for (int var10 = 0; var10 < var9; var10++) {
-         var3.setItem((Integer)var4.get(var10), (ItemStack)var6.get(var10));
-      }
-
-      var1.getWorld().spawnParticle(Particle.WITCH, var1.getLocation().add(0.0, 1.0, 0.0), 24, 0.5, 0.7, 0.5, 0.08);
-      var1.playSound(var1.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 0.8F, 0.8F);
-   }
-
-   @EventHandler(ignoreCancelled = true)
-   public void onToolRare(BlockBreakEvent var1) {
-      if (breakingConnected) return;
-      ItemStack var2 = var1.getPlayer().getInventory().getItemInMainHand();
-      if (var2.hasItemMeta()) {
-         String var3 = (String)var2.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
-         if (var3 != null) {
-            Player var4 = var1.getPlayer();
-            Material var5 = var1.getBlock().getType();
-            if (var3.contains("meltobsidian") && var5 == Material.LAVA && this.consumeSaturation(var4, var2, "meltobsidian")) {
-               var1.getBlock().setType(Material.OBSIDIAN);
-               var1.setDropItems(false);
-            } else {
-               if (var3.contains("fertilize") && var5 == Material.DIRT && this.consumeSaturation(var4, var2, "fertilize")) {
-                  var1.getBlock().setType(Material.GRASS_BLOCK);
-               }
-
-               if (false && var3.contains("spore") && var5 == Material.COBBLESTONE && this.consumeSaturation(var4, var2, "spore")) {
-                  var1.getBlock().setType(Material.MOSSY_COBBLESTONE);
-               }
-
-               if (var3.contains("smelt")) {
-                  Material var6 = switch (var1.getBlock().getType()) {
-                     case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.IRON_INGOT;
-                     case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE -> Material.GOLD_INGOT;
-                     case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.COPPER_INGOT;
-                     default -> null;
-                  };
-                  if (var6 != null && this.consumeSaturation(var4, var2, "smelt")) {
-                     var1.setDropItems(false);
-                     var1.getBlock().getWorld().dropItemNaturally(var1.getBlock().getLocation(), new ItemStack(var6));
-                  }
-               }
-
-               if (var3.contains("treefeller") && Tag.LOGS.isTagged(var5) && this.consumeSaturation(var4, var2, "treefeller")) {
-                  this.breakConnected(var1, var2, true);
-               }
-
-               if (var3.contains("veinminer") && this.isOre(var5) && this.consumeSaturation(var4, var2, "veinminer")) {
-                  this.breakConnected(var1, var2, false);
-               }
-            }
-         }
       }
    }
 
@@ -765,43 +577,8 @@ public final class RelicItems implements Listener {
       }
    }
 
-   @EventHandler(ignoreCancelled = true)
-   public void onToolRightClick(PlayerInteractEvent var1) {
-      if (var1.getAction() == Action.RIGHT_CLICK_BLOCK && var1.getClickedBlock() != null && var1.getItem() != null && var1.getItem().hasItemMeta()) {
-         String var2 = (String)var1.getItem().getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
-         if (var2 != null) {
-            Material var3 = var1.getClickedBlock().getType();
-            Material var4 = null;
-            if (var2.contains("fertilize")
-               && (var3 == Material.DIRT || var3 == Material.COARSE_DIRT || var3 == Material.ROOTED_DIRT)
-               && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "fertilize")) {
-               var4 = Material.GRASS_BLOCK;
-            }
-
-            if (false && var2.contains("spore")
-               && (var3 == Material.COBBLESTONE || var3 == Material.STONE)
-               && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "spore")) {
-               var4 = var3 == Material.COBBLESTONE ? Material.MOSSY_COBBLESTONE : Material.MOSSY_STONE_BRICKS;
-            }
-
-            if (var2.contains("meltobsidian") && var3 == Material.LAVA && this.consumeSaturation(var1.getPlayer(), var1.getItem(), "meltobsidian")) {
-               var4 = Material.OBSIDIAN;
-            }
-
-            if (var4 != null) {
-               var1.setCancelled(true);
-               var1.getClickedBlock().setType(var4);
-               var1.getPlayer().getWorld().spawnParticle(Particle.WITCH, var1.getClickedBlock().getLocation().add(0.5, 0.8, 0.5), 12, 0.3, 0.3, 0.3, 0.03);
-            }
-         }
-      }
-   }
-
-   private boolean isOre(Material var1) {
-      return var1.name().endsWith("_ORE") || var1 == Material.ANCIENT_DEBRIS;
-   }
-
-   private void breakConnected(BlockBreakEvent var1, ItemStack var2, boolean var3) {
+   boolean connectedBreak(){return breakingConnected;}
+   void breakConnected(BlockBreakEvent var1, ItemStack var2, boolean var3) {
       if (breakingConnected) return;
       ArrayDeque var4 = new ArrayDeque();
       HashSet var5 = new HashSet();
@@ -809,7 +586,9 @@ public final class RelicItems implements Listener {
       var5.add(var1.getBlock().getX() + ":" + var1.getBlock().getY() + ":" + var1.getBlock().getZ());
       int var6 = 0;
 
-      while (!var4.isEmpty() && var6 < 64) {
+      int cap=16*Math.max(1,Math.min(3,activePropertyLevel(var2,var3?"treefeller":"veinminer")))-1;
+      Material original=var1.getBlock().getType();
+      while (!var4.isEmpty() && var6 < cap) {
          Block var7 = (Block)var4.removeFirst();
 
          for (int var8 = -1; var8 <= 1; var8++) {
@@ -819,8 +598,9 @@ public final class RelicItems implements Listener {
                      Block var11 = var7.getRelative(var8, var9, var10);
                      String var12 = var11.getX() + ":" + var11.getY() + ":" + var11.getZ();
                      if (var5.add(var12)) {
-                        boolean var13 = var3 ? Tag.LOGS.isTagged(var11.getType()) : this.isOre(var11.getType());
-                        if (var13 && var6 < 64) {
+                        if(!var11.getWorld().isChunkLoaded(var11.getX()>>4,var11.getZ()>>4))continue;
+                        boolean var13 = var3 ? Tag.LOGS.isTagged(var11.getType())&&RareTools.treeFamily(var11.getType()).equals(RareTools.treeFamily(original)) : var11.getType()==original;
+                        if (var13 && var6 < cap) {
                            breakingConnected = true;
                            try {
                               if (var1.getPlayer().breakBlock(var11)) { var4.add(var11); var6++; }
@@ -834,54 +614,16 @@ public final class RelicItems implements Listener {
       }
    }
 
-   @EventHandler(ignoreCancelled = true)
-   public void onRareDefense(EntityDamageEvent var1) {
-      if (var1.getEntity() instanceof Player var2) {
-         for (ItemStack var6 : var2.getInventory().getArmorContents()) {
-            if (var6 != null && var6.hasItemMeta()) {
-               String var7 = (String)var6.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
-               if (var7 != null && var7.contains("guardian") && this.consumeSaturation(var2, var6, "guardian")) {
-                  SafeDamage.setBase(var1,var1.getDamage() * 0.82);
-                  return;
-               }
+   @EventHandler(ignoreCancelled=true,priority=EventPriority.HIGH)
+   public void onRareDefense(EntityDamageEvent event){if(!(event.getEntity() instanceof Player p))return;int fall=armorRares.level(p,"nofalldamage");if(event.getCause()==DamageCause.FALL&&fall>0){SafeDamage.scale(event,RareDefinitions.fallMultiplier(fall));return;}for(ItemStack piece:p.getInventory().getArmorContents())if(activePropertyLevel(piece,"guardian")>0&&consumeSaturation(p,piece,"guardian")){SafeDamage.scale(event,.82);break;}}
 
-               if (var7 != null && var7.contains("nofalldamage") && var1.getCause() == DamageCause.FALL && this.consumeSaturation(var2, var6, "nofalldamage")) {
-                  SafeDamage.setBase(var1,var1.getDamage() * 0.35);
-               }
-            }
-         }
-      }
-   }
-
-   @EventHandler(ignoreCancelled = true)
-   public void onRareDoubleJump(PlayerToggleFlightEvent var1) {
-      Player var2 = var1.getPlayer();
-      if(((CazaJefesPlugin)plugin).burstLaunch.lifting(var2)){var1.setCancelled(true);return;}
-      if (var2.getGameMode() != GameMode.CREATIVE && var2.getGameMode() != GameMode.SPECTATOR) {
-         ItemStack var3 = var2.getInventory().getBoots();
-         if (var3 != null && var3.hasItemMeta()) {
-            String var4 = (String)var3.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
-            if (var4 != null && var4.contains("doublejump")) {
-               var1.setCancelled(true);
-               var2.setFlying(false);
-               var2.setAllowFlight(false);
-               if (!this.consumeSaturation(var2, var3, "doublejump")) {
-                  var2.sendMessage(Component.text("El salto rare está desactivado o te falta saturación.", NamedTextColor.RED));
-               } else {
-                  var2.setVelocity(var2.getLocation().getDirection().multiply(0.75).setY(0.75));
-                  this.plugin.getServer().getScheduler().runTaskLater(this.plugin, () -> {
-                     if (var2.isOnline() && var2.isOnGround()) {
-                        var2.setAllowFlight(true);
-                     }
-                  }, 10L);
-               }
-            }
-         }
-      }
-   }
+   private final Map<UUID,Integer> jumpsUsed=new HashMap<>();
+   @EventHandler(ignoreCancelled=true)
+   public void onRareDoubleJump(PlayerToggleFlightEvent e){Player p=e.getPlayer();if(p.getGameMode()==GameMode.CREATIVE||p.getGameMode()==GameMode.SPECTATOR)return;if(((CazaJefesPlugin)plugin).burstLaunch.lifting(p)){e.setCancelled(true);return;}if(armorRares.level(p,"fly")>0)return;int maximum=activePropertyLevel(p.getInventory().getBoots(),"doublejump");if(maximum==0)return;e.setCancelled(true);p.setFlying(false);p.setAllowFlight(false);int used=jumpsUsed.getOrDefault(p.getUniqueId(),0);if(used>=maximum)return;jumpsUsed.put(p.getUniqueId(),used+1);p.setVelocity(p.getLocation().getDirection().multiply(.75).setY(.75));plugin.getServer().getScheduler().runTask(plugin,()->{if(p.isOnline()&&!p.isDead()&&jumpsUsed.getOrDefault(p.getUniqueId(),0)<maximum&&!((CazaJefesPlugin)plugin).burstLaunch.lifting(p))p.setAllowFlight(true);});}
 
    @EventHandler(ignoreCancelled = true)
    public void onWindStep(PlayerMoveEvent var1) {
+      if(var1.getPlayer().isOnGround())jumpsUsed.remove(var1.getPlayer().getUniqueId());
       if(((CazaJefesPlugin)plugin).burstLaunch.lifting(var1.getPlayer())){var1.getPlayer().setFlying(false);var1.getPlayer().setAllowFlight(false);return;}
       if (var1.getTo() != null
          && (
@@ -895,20 +637,21 @@ public final class RelicItems implements Listener {
             ? (String)var3.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING)
             : null;
          if (var4 != null
-            && var4.contains("doublejump")
+            && activePropertyLevel(var3,"doublejump")>0
             && var2.isOnGround()
             && var2.getGameMode() != GameMode.CREATIVE
             && var2.getGameMode() != GameMode.SPECTATOR) {
             var2.setAllowFlight(true);
          }
 
+         if((var4==null||!var4.contains("doublejump"))&&!flyUsers.contains(var2.getUniqueId())&&var2.getGameMode()!=GameMode.CREATIVE&&var2.getGameMode()!=GameMode.SPECTATOR&&jumpsUsed.remove(var2.getUniqueId())!=null)var2.setAllowFlight(false);
          boolean var5 = false;
          int var6 = 1;
 
          for (ItemStack var10 : var2.getInventory().getArmorContents()) {
             if (var10 != null && var10.hasItemMeta()) {
                String var11 = (String)var10.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
-               if (var11 != null && var11.contains("fly")) {
+               if (var11 != null && activePropertyLevel(var10,"fly")>0) {
                   var5 = true;
                   var6 = Math.max(var6,this.propertyLevel(var10, "fly"));
                }
@@ -1393,10 +1136,12 @@ public final class RelicItems implements Listener {
 
    ItemStack refreshAppearance(ItemStack stack){
       if(stack==null||!stack.hasItemMeta())return stack;String id=customId(stack);var meta=stack.getItemMeta();String property=meta.getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING);Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));
+      if(RareCompatibility.material(stack.getType())==RareCompatibility.Group.ARMOR&&levels.containsKey("spore")){levels.put("aura_esporas",levels.remove("spore"));meta.getPersistentDataContainer().set(rareLevelsKey,PersistentDataType.STRING,serializeLevels(levels));String stored=meta.getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);if(stored!=null)meta.getPersistentDataContainer().set(rareEnchantKey,PersistentDataType.STRING,Arrays.stream(stored.split(",")).map(key->key.equals("spore")?"aura_esporas":key).collect(java.util.stream.Collectors.joining(",")));}
+
       boolean essence=id!=null&&(id.startsWith("rare_essence")||id.startsWith("esencia_rare_"));boolean gear=RareAppearance.equipment(stack.getType());if(!essence&&levels.isEmpty()&&!bossInfusionGear(stack))return stack;ItemStack out=stack.clone();
       List<Component> lore=new ArrayList<>(meta.lore()==null?List.of():meta.lore());
-      if(essence){String type=property!=null?RareAppearance.title(property):id.equals("rare_essence_primordial")?"Primordial":id.equals("rare_essence_abyssal")?"Abismal":"Esencia de la Grieta";meta.displayName(Component.text("Rare Essence",NamedTextColor.GREEN).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Tipo de Rare:")||text.startsWith("Nivel:")||text.startsWith("Compatible:");});lore.add(0,Component.text("Tipo de Rare: "+type,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(property!=null){String detail=ArmorRareRules.description(property);if(detail!=null){lore.removeIf(line->{String value=PlainTextComponentSerializer.plainText().serialize(line);return value.startsWith("Poder: ")||value.startsWith("Dominio máximo: ");});lore.add(Component.text("Dominio máximo: "+RareAppearance.roman(ArmorRareRules.maximum(property)),RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));for(String line:wrapRareText(detail,46))lore.add(Component.text("Poder: "+line,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}lore.add(1,Component.text("Nivel: "+RareAppearance.roman(meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lore.add(2,Component.text("Compatible: "+RareCompatibility.label(property),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}}
-      if(!levels.isEmpty()){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Rare ")&&text.contains("Nivel")||levels.keySet().stream().anyMatch(key->text.startsWith("✦ "+RareAppearance.title(key)+" "));});for(var entry:levels.entrySet())lore.add(Component.text("✦ "+RareAppearance.title(entry.getKey())+" "+RareAppearance.roman(entry.getValue()),gear?RareAppearance.ORANGE:NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(gear&&meta.displayName()!=null)meta.displayName(Component.text(PlainTextComponentSerializer.plainText().serialize(meta.displayName()),RareAppearance.ORANGE).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));}
+      if(essence){String type=property!=null?RareAppearance.title(property):id.equals("rare_essence_primordial")?"Primordial":id.equals("rare_essence_abyssal")?"Abismal":"Esencia de la Grieta";meta.displayName(Component.text(property==null?"Rare Essence":"Rare Essence · "+type,NamedTextColor.GREEN).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Tipo de Rare:")||text.startsWith("Nivel:")||text.startsWith("Compatible:");});lore.add(0,Component.text("Tipo de Rare: "+type,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(property!=null){String detail=RareDefinitions.get(property)!=null?RareDefinitions.get(property).description():ArmorRareRules.description(property);if(detail!=null){lore.removeIf(line->{String value=PlainTextComponentSerializer.plainText().serialize(line);return value.startsWith("Poder: ")||value.startsWith("Dominio máximo: ")||value.startsWith("Costo de uso: ")||value.startsWith("Recarga: ")||value.equals(detail);});lore.add(Component.text("Dominio máximo: "+RareAppearance.roman(maxLevel(property)),RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));if(RareDefinitions.get(property)!=null){var rule=RareDefinitions.get(property);lore.add(Component.text("Costo de uso: "+(rule.cost()==0?"gratuito":rule.cost()+" de saturación"),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(rule.cooldown()>0)lore.add(Component.text("Recarga: "+rule.cooldown()+" s",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}for(String line:wrapRareText(detail,46))lore.add(Component.text("Poder: "+line,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}lore.add(1,Component.text("Nivel: "+RareAppearance.roman(meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lore.add(2,Component.text("Compatible: "+RareCompatibility.label(property),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}}
+      if(!levels.isEmpty()){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Rare ")&&text.contains("Nivel")||levels.keySet().stream().anyMatch(key->text.startsWith("✦ "+RareAppearance.title(key)+" "));});for(var entry:levels.entrySet())lore.add(Component.text("✦ "+RareAppearance.title(entry.getKey())+" "+RareAppearance.roman(Math.min(maxLevel(entry.getKey()),Math.max(1,entry.getValue()))),gear?RareAppearance.ORANGE:NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(gear&&meta.displayName()!=null)meta.displayName(Component.text(PlainTextComponentSerializer.plainText().serialize(meta.displayName()),RareAppearance.ORANGE).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));}
       if(bossInfusionGear(stack)){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("✧ Infusiones:")||text.startsWith("Desbloquea con:");});lore.add(Component.text(infusionBlocked(stack)?"✧ Infusiones: SELLADAS":"✧ Infusiones: DESPERTADAS",infusionBlocked(stack)?NamedTextColor.DARK_PURPLE:RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));if(infusionBlocked(stack))lore.add(Component.text("Desbloquea con: Resonancia Primigenia",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}
       meta.lore(lore);out.setItemMeta(meta);return out;
    }
@@ -1452,7 +1197,7 @@ public final class RelicItems implements Listener {
    }
 
    public void reloadRares() {
-      this.rareConfig = YamlConfiguration.loadConfiguration(new File(this.plugin.getDataFolder(), "rares.yml"));
+      this.rareConfig = RareConfigUpgrade.load(plugin,new File(this.plugin.getDataFolder(), "rares.yml"));
       registerRecipes();
    }
 
@@ -1593,7 +1338,7 @@ public final class RelicItems implements Listener {
          }
       }
       addRecipe("sello_resonancia_primigenia",awakeningSeal(),new String[]{"KPK","NSN","FTF"},Map.of('K',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)),'P',new ExactChoice(primordialEssence()),'N',bossCoreChoice(),'S',new MaterialChoice(Material.NETHER_STAR),'F',new ExactChoice(fragment(1)),'T',new ExactChoice(tribute("Cazador"))));
-      registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
+      registerSpellUpgrades();registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
    }
 
    private int rareCatalystVariant(String var1) {
@@ -1629,6 +1374,9 @@ public final class RelicItems implements Listener {
          var4=Map.of('P',RecipeAlchemy.potionChoice(profile.potion()),'C',bossCoreChoice(),'K',new ExactChoice(crystal(profile.rank(),1)),
             'R',new MaterialChoice(profile.reagent()),'F',new ExactChoice(fragment(1)),'B',rareIds().contains(var1)?new MaterialChoice(var2.getType()):new ExactChoice(essence()));
       }
+      String supplied=var1.startsWith("crear_esencia_rare_")?var1.substring(19):var1.startsWith("crear_libro_rare_")?var1.substring(17):null;
+      var definition=supplied==null?null:RareDefinitions.get(supplied);
+      if(definition!=null){var3=new String[]{"ABC","DEF","GHI"};var4=new HashMap<>();for(int index=0;index<9;index++){Material material=definition.ingredients().get(index);var4.put((char)('A'+index),material==Material.AIR?new ExactChoice(essence()):new MaterialChoice(material));}}
       var3 = var3.clone();
       var4 = new HashMap<>(var4);
       try {

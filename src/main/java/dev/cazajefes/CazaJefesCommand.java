@@ -1064,6 +1064,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private String catalogBase(String var1, String var2) {
+      if(RareDefinitions.get(var2)!=null)return items.spellIds().contains(var2)?"Grimorio: clic derecho en el aire":RareCompatibility.label(var2);
       if (var2.equals("hardy")) {
          return "todas las piezas de armadura";
       } else if (var2.equals("flame")) {
@@ -1082,6 +1083,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private String catalogDescription(String var1) {
+      if(RareDefinitions.get(var1)!=null)return RareDefinitions.get(var1).description();
       if(ArmorRareRules.description(var1)!=null)return ArmorRareRules.description(var1);
       return switch (var1) {
          case "poison" -> "Envenena al objetivo al golpear.";

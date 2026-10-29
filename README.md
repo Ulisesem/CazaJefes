@@ -1,13 +1,13 @@
 # CazaJefes
 
-Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.19.0**.
+Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.20.0**.
 
 El bestiario contiene **168 bosses**, repartidos en seis categorías de 28: minijefes, raros, épicos, legendarios, míticos y abismales. Los encuentros comparten tres etapas de combate, habilidades especiales, recompensas por categoría y seguimiento del daño de los jugadores.
 
 ## Instalación
 
 1. Detener el servidor y guardar una copia de plugins/CazaJefes.
-2. Retirar el JAR anterior y colocar CazaJefes-1.19.0.jar en plugins.
+2. Retirar el JAR anterior y colocar CazaJefes-1.20.0.jar en plugins.
 3. Arrancar el servidor conservando la configuración existente.
 4. Consultar /bestiario y probar un encuentro antes de abrirlo a todos los jugadores.
 
@@ -35,7 +35,7 @@ Los huevos registrados pueden despertarse sin OP en supervivencia o aventura con
 - Hordas de seis, con colocación comprobada y límites globales. Los magos invocan sanadores que curan 3 % con recarga compartida de 15 s y aviso en el chat.
 - Evocadores en III: Juicio de las Seis Tormentas; además, nuevos especiales de control para magos.
 - Esqueletos arqueros: armadura de diamante/netherita con Protección X, arco reforzado, puntería predictiva y Tríada del Eclipse.
-- Etapa III: +5 % de daño salvo renacidos. Ceguera 5 s; náuseas 10 s. Avisos dorado/aqua sin estrellas.
+- Etapa III: +5 % de daño salvo renacidos. Ceguera y náuseas 10 s, con recarga individual de 25 s. Avisos dorado/aqua sin estrellas.
 - Burst de estrellas blancas adaptado al cuerpo y cilindro final de 20 bloques.
 - Las tiradas de rares/libros preparados se convierten en Rare Essence sin poder asignado. El equipo sigue cayendo sellado y sin rares incluidas. Resonancia Primigenia solo se fabrica.
 
@@ -60,15 +60,15 @@ Ver [poderes, materiales y recetas](docs/DUELO-PVP.md). Son habilidades contra j
 ## Novedades de combate
 
 - Burst compartido cada 25 segundos; no se acumulan Ascensión y Ruptura.
-- Combos por familia de mob, hechizos anunciados y Cenit del Abismo en etapa III: carga de 2 segundos, mirada hacia arriba durante 5 segundos y recarga de 25 segundos.
+- Combos por familia de mob, hechizos anunciados y Cenit del Abismo en etapa III: carga de 3 segundos, mirada hacia arriba durante 5 segundos y recarga de 25 segundos.
 - Minijefes 30 % mayores respecto a su tamaño anterior, daño asistido reforzado y vida base mínima de 360 para nuevas apariciones, salvo configuración explícita.
 - Agilidad Acuática X para todos los bosses; inmunidad al fuego, lava, ceguera, náuseas y fatiga. Las entidades sin botas usan movimiento acuático controlado.
-- Efectos negativos de los ataques de bosses: ceguera 5 s, náuseas 10 s y los demás 30 s. La levitación breve que sostiene el burst conserva su temporizador independiente.
+- Efectos negativos de los ataques de bosses: ceguera y náuseas 10 s, con recarga de 25 s, y los demás 30 s. La levitación breve que sostiene el burst conserva su temporizador independiente.
 - Ballestas con Poder X; armas NPC con Filo X e Irrompibilidad X; Filo X equivalente en golpes sin arma, sin duplicar el bonus de armas encantadas.
 - Shulkers: 20 bolitas, 4 corazones por impacto aceptado, veneno, wither y levitación. Se respetan bloqueos, inmunidad entre golpes y cancelaciones.
-- Recuperación de bosses y súbditos atrapados sin recargar vida. Reclamo de la Grieta advierte antes de sacar de su refugio a atacantes inalcanzables.
+- Recuperación de bosses y súbditos atrapados sin recargar vida. Cadenas del Abismo advierte antes de sacar de su refugio a atacantes inalcanzables.
 - Brújula con clic derecho en el suelo, flechas de estrellas lima y avisos de ausencia de huevos dormidos. No rastrea bosses ya despiertos.
-- Esencias tituladas Rare Essence; tipo de rare en gris y propiedades del equipo en naranja con números romanos, por ejemplo Durability V.
+- Esencias tituladas Rare Essence; tipo de rare en gris y propiedades del equipo en naranja con números romanos, por ejemplo Forja Viviente V.
 
 ## Registro de victorias
 
@@ -87,8 +87,8 @@ Los especiales y adornos de combate usan un presupuesto compartido de partícula
 ## Administración y desarrollo
 
 - [Comandos, permisos y apariciones programadas](docs/ADMINISTRACION.md)
-- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.19.0.md)
-- [Catálogo completo de IDs](docs/BOSSES-IDS-1.19.0.csv)
+- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.20.0.md)
+- [Catálogo completo de IDs](docs/BOSSES-IDS-1.20.0.csv)
 - [Ideas de materiales y recetas, todavía propuestas](docs/IDEAS-MATERIALES.md)
 - [Organización del código](docs/ARQUITECTURA.md)
 - [Notas de versiones anteriores y reconstrucción](docs/HISTORIAL-LEGADO.md)
@@ -101,8 +101,8 @@ mvn verify
 
 El JAR compilado queda en target. Las pruebas verifican catálogo, progresión, daño, recetas, permisos y reglas de animación. **No se ha ejecutado esta versión en un servidor Paper ni verificado visualmente con clientes reales.** Los 92 encuentros nuevos reutilizan las familias de combate existentes y tienen sus propios perfiles de ataque; deben ajustarse con pruebas de juego.
 
-## Cambios de 1.19.0
+## Colección de rares 1.20.0
 
-Consulta [los cambios de combate y rares](docs/CAMBIOS-1.19.0.md). Ceguera y náuseas de bosses duran diez segundos y tienen recargas independientes de 25 segundos por jugador. Los efectos registrados de un encuentro se retiran al morir su jefe. Los avisos sobre la hotbar se mantienen tres segundos; la nueva advertencia puede sustituir la anterior.
+Se incorporan las 33 recetas detalladas de la lista suministrada, con nuevos nombres, máximos, costos y recargas. Consultar [la colección completa y sus matrices](docs/RARES-1.20.0.md) y [los cambios técnicos](docs/CAMBIOS-1.20.0.md).
 
-En `/rares` → Cámara de infusiones → Armaduras encontrarás Corazón Indómito, Alas del Firmamento, Jardín de la Ruina, Forja Viviente, Pulso de Aurora, Furia del Titán, Baluarte de Obsidiana y Sello del Alba. Son nombres visibles nuevos para Hardy, Fly, Spore, Durability, Regeneration, Strength, Turtle y Garlic. Los identificadores internos de rares existentes se conservan para reconocer el equipo; los IDs actuales de bosses siguen sin alias antiguos.
+En `/rares` se separan Armaduras, Espadas y hachas, Arcos, Picos/herramientas y Biblioteca de grimorios. Esporas de herramientas ahora se llama Musgo Primigenio; el aura de armadura sigue como Jardín de la Ruina. Claridad es Lucidez del Alba y HungerSteal es Hambre del Depredador. La actualización respalda y ajusta el catálogo de configuración; no borrar los datos existentes.
