@@ -356,7 +356,7 @@ public final class RelicItems implements Listener {
 
                      switch (var3) {
                         case "haste":
-                           var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,600*var23,Math.min(2,var23-1)));
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,600*var23,Math.min(6,var23-1)));
                            break;
                         case "fireresistance":
                            var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 900 * var23, 0));
@@ -1474,7 +1474,8 @@ public final class RelicItems implements Listener {
       if(!plugin.isEnabled()){releaseLoot(reward,false);return;}
       final org.bukkit.entity.ItemDisplay display;
       double phase=ThreadLocalRandom.current().nextDouble(Math.PI*2);
-      var first=LootSpiral.at(0,phase);
+      double dropHeight=Math.max(.3,Math.min(16,origin.getWorld().getMaxHeight()-origin.getY()-1));
+      var first=LootSpiral.at(0,phase,dropHeight);
       try{
          display=origin.getWorld().spawn(origin.clone().add(first.x(),first.y(),first.z()),org.bukkit.entity.ItemDisplay.class,entity->{
             entity.setPersistent(false);entity.setInvulnerable(true);entity.setGravity(false);
@@ -1496,7 +1497,7 @@ public final class RelicItems implements Listener {
             ticks+=2;
             if(!display.isValid()||ticks>=LootSpiral.DURATION+2){completion.finish();return;}
             try{
-               var point=LootSpiral.at(ticks,phase);Location at=origin.clone().add(point.x(),point.y(),point.z());at.setYaw(ticks*4.5f);display.teleport(at);
+               var point=LootSpiral.at(ticks,phase,dropHeight);Location at=origin.clone().add(point.x(),point.y(),point.z());at.setYaw(ticks*4.5f);display.teleport(at);
                if(ticks%8==0)for(Player viewer:origin.getWorld().getPlayers())if(viewer.getLocation().distanceSquared(at)<=1024){
                   viewer.spawnParticle(Particle.END_ROD,at,2,.13,.18,.13,.015,null,true);
                   viewer.spawnParticle(Particle.DUST,at.clone().add(0,.2,0),1,.12,.12,.12,0,new Particle.DustOptions(org.bukkit.Color.fromRGB(110,255,210),1.1f),true);
