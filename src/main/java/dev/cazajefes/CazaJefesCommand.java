@@ -943,7 +943,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             boolean var15 = var12.equals("SPELL");
             String var16 = var11.equals("material:primordial")
                ? "Esencia Primordial"
-               : (var11.equals("material:abyssal") ? "Esencia Abisal" : (var15 ? "Libro de la Grieta" : "Esencia: " + RareAppearance.title(var11)));
+               : (var11.equals("material:abyssal") ? "Esencia Abisal" : (var15 ? RareAppearance.title(var11) : "Esencia: " + RareAppearance.title(var11)));
             String var17 = var11.equals("material:primordial")
                ? "Catalizador para recetas y forjas de alto rango."
                : (var11.equals("material:abyssal") ? "Material mítico de jefes legendarios y míticos." : this.catalogDescription(var11));
@@ -987,7 +987,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          this.fillPremiumFrame(var10);
          String var11 = var2.equals("material:primordial")
             ? "Esencia Primordial"
-            : (var2.equals("material:abyssal") ? "Esencia Abisal" : (var6 ? "Libro de la Grieta" : "Esencia: " + RareAppearance.title(var2)));
+            : (var2.equals("material:abyssal") ? "Esencia Abisal" : (var6 ? RareAppearance.title(var2) : "Esencia: " + RareAppearance.title(var2)));
          String var12 = var2.equals("material:primordial")
             ? "Catalizador para recetas y forjas de alto rango."
             : (
@@ -1064,7 +1064,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    private String catalogBase(String var1, String var2) {
-      if(RareDefinitions.get(var2)!=null)return items.spellIds().contains(var2)?"Grimorio: clic derecho en el aire":RareCompatibility.label(var2);
+      if(RareDefinitions.get(var2)!=null)return items.spellIds().contains(var2)?"Libro: clic derecho en el aire":RareCompatibility.label(var2);
       if (var2.equals("hardy")) {
          return "todas las piezas de armadura";
       } else if (var2.equals("flame")) {

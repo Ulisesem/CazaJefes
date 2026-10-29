@@ -1,13 +1,13 @@
 # CazaJefes
 
-Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.21.2**.
+Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.22.0**.
 
 El bestiario contiene **168 bosses**, repartidos en seis categorías de 28: minijefes, raros, épicos, legendarios, míticos y abismales. Los encuentros comparten tres etapas de combate, habilidades especiales, recompensas por categoría y seguimiento del daño de los jugadores.
 
 ## Instalación
 
 1. Detener el servidor y guardar una copia de plugins/CazaJefes.
-2. Retirar el JAR anterior y colocar CazaJefes-1.21.2.jar en plugins.
+2. Retirar el JAR anterior y colocar CazaJefes-1.22.0.jar en plugins.
 3. Arrancar el servidor conservando la configuración existente.
 4. Consultar /bestiario y probar un encuentro antes de abrirlo a todos los jugadores.
 
@@ -87,7 +87,7 @@ Los especiales y adornos de combate usan un presupuesto compartido de partícula
 ## Administración y desarrollo
 
 - [Comandos, permisos y apariciones programadas](docs/ADMINISTRACION.md)
-- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.21.2.md)
+- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.22.0.md)
 - [Catálogo completo de IDs](docs/BOSSES-IDS-1.21.0.csv)
 - [Ideas de materiales y recetas, todavía propuestas](docs/IDEAS-MATERIALES.md)
 - [Organización del código](docs/ARQUITECTURA.md)
@@ -116,3 +116,9 @@ Las recetas duplicadas Veneno/Poison y Vampirismo/Regeneración vampírica se un
 ## Ajustes 1.21.2
 
 Ímpetu del Relámpago (Haste) alcanza Velocidad VII. El botín desciende desde dieciséis bloques sobre cada punto de entrega, limitado por la altura del mundo, conservando ocho segundos de espiral y unidades individuales.
+
+## Combate y presentación 1.22.0
+
+Armadillo: se deja terminar la apertura nativa en lugar de reiniciarla repetidamente. Los minijefes priorizan la persecución; todos los súbditos usan un controlador compartido de acercamiento, retirada y flanqueo según su función. El libro Burst muestra una esfera de microestrellas blancas alrededor del jugador y los bosses usan un elipsoide ajustado a su cuerpo.
+
+Los nombres combinan personalizado y original, por ejemplo Ímpetu del Relámpago (Haste) y Corazón Indómito (Hardy), con descripciones en español y sin el prefijo Grimorio en los libros. Ver [cambios y límites](docs/CAMBIOS-1.22.0.md).
