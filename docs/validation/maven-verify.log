@@ -2,7 +2,7 @@ Acceso denegado.
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] ----------------------< dev.cazajefes:cazajefes >-----------------------
-[INFO] Building CazaJefes 1.21.1
+[INFO] Building CazaJefes 1.21.2
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
@@ -54,43 +54,43 @@ Acceso denegado.
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running dev.cazajefes.ArmorAndCadenceTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.481 s -- in dev.cazajefes.ArmorAndCadenceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.479 s -- in dev.cazajefes.ArmorAndCadenceTest
 [INFO] Running dev.cazajefes.AuraAndEquipmentTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.357 s -- in dev.cazajefes.AuraAndEquipmentTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.355 s -- in dev.cazajefes.AuraAndEquipmentTest
 [INFO] Running dev.cazajefes.AuraPerformanceTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in dev.cazajefes.AuraPerformanceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in dev.cazajefes.AuraPerformanceTest
 [INFO] Running dev.cazajefes.BossAnchorTest
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.091 s -- in dev.cazajefes.BossAnchorTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.087 s -- in dev.cazajefes.BossAnchorTest
 [INFO] Running dev.cazajefes.BossCatalogTest
 [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in dev.cazajefes.BossCatalogTest
 [INFO] Running dev.cazajefes.BossStatisticsTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.236 s -- in dev.cazajefes.BossStatisticsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.230 s -- in dev.cazajefes.BossStatisticsTest
 [INFO] Running dev.cazajefes.BurstAndSpellTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.BurstAndSpellTest
 [INFO] Running dev.cazajefes.BurstLaunchTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.BurstLaunchTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.BurstLaunchTest
 [INFO] Running dev.cazajefes.CombatAccessTest
 [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.CombatAccessTest
 [INFO] Running dev.cazajefes.CombatExpansionTest
-[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.071 s -- in dev.cazajefes.CombatExpansionTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.067 s -- in dev.cazajefes.CombatExpansionTest
 [INFO] Running dev.cazajefes.CombatPowerTest
 [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.CombatPowerTest
 [INFO] Running dev.cazajefes.CraftPlanTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in dev.cazajefes.CraftPlanTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.CraftPlanTest
 [INFO] Running dev.cazajefes.DamageLedgerTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in dev.cazajefes.DamageLedgerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.DamageLedgerTest
 [INFO] Running dev.cazajefes.DamageProgressTest
-[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.DamageProgressTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.DamageProgressTest
 [INFO] Running dev.cazajefes.DuelRulesTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in dev.cazajefes.DuelRulesTest
 [INFO] Running dev.cazajefes.EncounterUpgradeTest
-[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in dev.cazajefes.EncounterUpgradeTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in dev.cazajefes.EncounterUpgradeTest
 [INFO] Running dev.cazajefes.ExpansionTest
-[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in dev.cazajefes.ExpansionTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in dev.cazajefes.ExpansionTest
 [INFO] Running dev.cazajefes.FullBestiaryTest
-[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in dev.cazajefes.FullBestiaryTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in dev.cazajefes.FullBestiaryTest
 [INFO] Running dev.cazajefes.HitboxDamageEventTest
-[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in dev.cazajefes.HitboxDamageEventTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in dev.cazajefes.HitboxDamageEventTest
 [INFO] Running dev.cazajefes.InfusionSealTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.InfusionSealTest
 [INFO] Running dev.cazajefes.InteractionRegressionTest
@@ -102,7 +102,7 @@ Acceso denegado.
 [INFO] Running dev.cazajefes.MenuActionsTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.MenuActionsTest
 [INFO] Running dev.cazajefes.ParticipationTest
-[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.ParticipationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.ParticipationTest
 [INFO] Running dev.cazajefes.ParticleDataTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.ParticleDataTest
 [INFO] Running dev.cazajefes.PhaseImpulseTest
@@ -112,11 +112,11 @@ Acceso denegado.
 [INFO] Running dev.cazajefes.PillagerRulesTest
 [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.PillagerRulesTest
 [INFO] Running dev.cazajefes.ProgressionTest
-[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in dev.cazajefes.ProgressionTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in dev.cazajefes.ProgressionTest
 [INFO] Running dev.cazajefes.ProtectionAndPresentationTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.ProtectionAndPresentationTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.ProtectionAndPresentationTest
 [INFO] Running dev.cazajefes.RareCollectionTest
-[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in dev.cazajefes.RareCollectionTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in dev.cazajefes.RareCollectionTest
 [INFO] Running dev.cazajefes.RebirthTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.RebirthTest
 [INFO] Running dev.cazajefes.RepairReleaseTest
@@ -124,19 +124,19 @@ Acceso denegado.
 [INFO] Running dev.cazajefes.ResourcesTest
 [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.112 s -- in dev.cazajefes.ResourcesTest
 [INFO] Running dev.cazajefes.SafeDamageTest
-[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s -- in dev.cazajefes.SafeDamageTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in dev.cazajefes.SafeDamageTest
 [INFO] Running dev.cazajefes.SlimeIntegrityTest
 [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.SlimeIntegrityTest
 [INFO] Running dev.cazajefes.SpawnpointAndScatterTest
-[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in dev.cazajefes.SpawnpointAndScatterTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in dev.cazajefes.SpawnpointAndScatterTest
 [INFO] Running dev.cazajefes.StageAttackRulesTest
 [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.StageAttackRulesTest
 [INFO] Running dev.cazajefes.StormAndMarketTest
-[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in dev.cazajefes.StormAndMarketTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in dev.cazajefes.StormAndMarketTest
 [INFO] Running dev.cazajefes.TacticsTest
 [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in dev.cazajefes.TacticsTest
 [INFO] Running dev.cazajefes.UltimateTest
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in dev.cazajefes.UltimateTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in dev.cazajefes.UltimateTest
 [INFO] 
 [INFO] Results:
 [INFO] 
@@ -144,10 +144,10 @@ Acceso denegado.
 [INFO] 
 [INFO] 
 [INFO] --- jar:3.4.2:jar (default-jar) @ cazajefes ---
-[INFO] Building jar: /workspace/CazaJefes\target\CazaJefes-1.21.1.jar
+[INFO] Building jar: /workspace/CazaJefes\target\CazaJefes-1.21.2.jar
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  13.889 s
-[INFO] Finished at: 2026-10-29T00:43:51-06:00
+[INFO] Total time:  13.365 s
+[INFO] Finished at: 2026-10-29T00:51:44-06:00
 [INFO] ------------------------------------------------------------------------
