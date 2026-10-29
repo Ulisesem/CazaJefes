@@ -1,13 +1,13 @@
 # CazaJefes
 
-Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.20.0**.
+Plugin de encuentros y progresión para **Paper 1.21.11**, con **Java 21**. Versión actual: **1.21.0**.
 
 El bestiario contiene **168 bosses**, repartidos en seis categorías de 28: minijefes, raros, épicos, legendarios, míticos y abismales. Los encuentros comparten tres etapas de combate, habilidades especiales, recompensas por categoría y seguimiento del daño de los jugadores.
 
 ## Instalación
 
 1. Detener el servidor y guardar una copia de plugins/CazaJefes.
-2. Retirar el JAR anterior y colocar CazaJefes-1.20.0.jar en plugins.
+2. Retirar el JAR anterior y colocar CazaJefes-1.21.0.jar en plugins.
 3. Arrancar el servidor conservando la configuración existente.
 4. Consultar /bestiario y probar un encuentro antes de abrirlo a todos los jugadores.
 
@@ -87,8 +87,8 @@ Los especiales y adornos de combate usan un presupuesto compartido de partícula
 ## Administración y desarrollo
 
 - [Comandos, permisos y apariciones programadas](docs/ADMINISTRACION.md)
-- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.20.0.md)
-- [Catálogo completo de IDs](docs/BOSSES-IDS-1.20.0.csv)
+- [Cambios y compatibilidad de esta versión](docs/CAMBIOS-1.21.0.md)
+- [Catálogo completo de IDs](docs/BOSSES-IDS-1.21.0.csv)
 - [Ideas de materiales y recetas, todavía propuestas](docs/IDEAS-MATERIALES.md)
 - [Organización del código](docs/ARQUITECTURA.md)
 - [Notas de versiones anteriores y reconstrucción](docs/HISTORIAL-LEGADO.md)
@@ -106,3 +106,9 @@ El JAR compilado queda en target. Las pruebas verifican catálogo, progresión, 
 Se incorporan las 33 recetas detalladas de la lista suministrada, con nuevos nombres, máximos, costos y recargas. Consultar [la colección completa y sus matrices](docs/RARES-1.20.0.md) y [los cambios técnicos](docs/CAMBIOS-1.20.0.md).
 
 En `/rares` se separan Armaduras, Espadas y hachas, Arcos, Picos/herramientas y Biblioteca de grimorios. Esporas de herramientas ahora se llama Musgo Primigenio; el aura de armadura sigue como Jardín de la Ruina. Claridad es Lucidez del Alba y HungerSteal es Hambre del Depredador. La actualización respalda y ajusta el catálogo de configuración; no borrar los datos existentes.
+
+## Reparaciones 1.21.0
+
+Haste aplica Prisa minera y se llama Fervor del Artífice. Burst usa estrellas blancas nativas y aplicación de velocidad coordinada. Los minijefes tienen contacto independiente de sus especiales y detección del cuerpo visible. Al despertar huevos se libera su bloque antes de validar la aparición y se conserva si falla.
+
+Las recetas duplicadas Veneno/Poison y Vampirismo/Regeneración vampírica se unifican sin borrar mejoras antiguas. Resonancia Primigenia se puede consultar desde el menú principal y el apartado de armaduras. Ver [cambios y límites de esta versión](docs/CAMBIOS-1.21.0.md).

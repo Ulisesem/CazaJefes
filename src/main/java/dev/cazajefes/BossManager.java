@@ -203,7 +203,7 @@ public final class BossManager implements Listener {
       if (var4 != null && var2.getWorld() != null) {
          LivingEntity var5;
          try {
-            Entity var6 = var2.getWorld().spawnEntity(var2, var4.entityType());
+            Entity var6 = var2.getWorld().spawnEntity(var2,var4.entityType(),org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CUSTOM,entity->{entity.getPersistentDataContainer().set(this.bossKey,PersistentDataType.BYTE,(byte)1);entity.getPersistentDataContainer().set(this.typeKey,PersistentDataType.STRING,var4.id());});
             if (!(var6 instanceof LivingEntity var7)) {
                var6.remove();
                return null;
@@ -212,11 +212,11 @@ public final class BossManager implements Listener {
             var5 = var7;
             if(var5 instanceof org.bukkit.entity.Slime slime)slime.setSize(4); // Set native size BEFORE custom attributes.
          } catch (IllegalArgumentException var18) {
-            this.plugin.getLogger().warning("No se pudo crear el jefe " + var4.id() + " en este servidor.");
+            this.plugin.getLogger().warning("No se pudo crear el jefe " + var4.id() + " en este servidor: "+var18.getMessage());
             return null;
          }
 
-         if(!var5.isValid())return null;
+         if(!var5.isValid()){plugin.getLogger().warning("Aparición cancelada por el servidor u otro plugin: "+var4.id());var5.remove();return null;}
          UUID var19 = UUID.randomUUID();
          var5.customName(this.bossDisplay(var4));
          var5.setCustomNameVisible(true);
@@ -312,7 +312,7 @@ public final class BossManager implements Listener {
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          AnimalBossSizing.apply(var5,var4);MiniBossSizing.apply(var5,var4);
-         if(!((CazaJefesPlugin)plugin).safety.place(var5)){var5.remove();return null;}
+         if(!((CazaJefesPlugin)plugin).safety.place(var5)){plugin.getLogger().warning("Sin espacio seguro para "+var4.id()+" en "+var2.getWorld().getName()+" "+var2.getBlockX()+","+var2.getBlockY()+","+var2.getBlockZ());var5.remove();return null;}
          this.encounters.put(var19, new BossManager.Encounter(var19, var4, var5.getLocation(), var5, var3));
          long var22 = this.plugin.getConfig().getLong("bosses.attack-interval-ticks", 50L);
          this.startBossSystems(var19, var5, var4, var22);
@@ -339,7 +339,7 @@ public final class BossManager implements Listener {
             var6.setAware(true);
          }
 
-         long var9 = Math.max(5L, Math.min(10L, var4));
+         long var9 = var3.mini()?5:Math.max(5L,Math.min(10L,var4));
          BossBuffs.apply(var2);
          this.attacks
             .put(
@@ -455,7 +455,9 @@ public final class BossManager implements Listener {
             boolean hatch=EggActivation.permission(var3.isPermissionSet("cazajefes.hunter.hatch"),var3.hasPermission("cazajefes.hunter.hatch"),var3.hasPermission("rareitemhunter.hunter.hatch"));
             if(!hatch){var3.sendMessage("No tienes permiso para despertar huevos: cazajefes.hunter.hatch.");return;}
             if(!((CazaJefesPlugin)plugin).guard.canAttackBoss(var3)){var3.sendMessage("Despierta el huevo en supervivencia o aventura.");return;}
-            if(this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName())==null){var3.sendMessage("No se pudo despertar al boss; el huevo se conserva.");return;}
+            var shell=var2.location.getBlock().getState();var2.location.getBlock().setType(Material.AIR,false);
+            LivingEntity awakened;try{awakened=this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName());}catch(RuntimeException failure){shell.update(true,false);plugin.getLogger().log(java.util.logging.Level.SEVERE,"Error al despertar "+var2.definition.id(),failure);var3.sendMessage("No se pudo despertar; el huevo se ha conservado. Revisa la consola.");return;}
+            if(awakened==null){shell.update(true,false);var3.sendMessage("No se pudo despertar al boss; el huevo se conserva. Revisa espacio y protecciones.");return;}
             for(Player online:plugin.getServer().getOnlinePlayers())online.sendMessage(Component.text("✦ "+var3.getName()+" ha abierto el huevo de ",net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD).append(Component.text(var2.definition.name(),var2.definition.tier().color)));
             this.eggsByBlock.remove(this.key(var2.location));
             this.encounters.remove(var2.id);
@@ -852,6 +854,7 @@ public final class BossManager implements Listener {
 
                }
                if(CombatHitbox.distanceSquared(var2.getEyeLocation(),boss)>576){tactics.tick(var2,phase);return;}
+               if(definition.mini()){if(!((CazaJefesPlugin)plugin).abilities.casting(boss))pursue(var2);if(((CazaJefesPlugin)plugin).abilities.contactAllowed(boss))attackNearby(var2);}
                if(((CazaJefesPlugin)plugin).abilities.tick(boss,definition,var2,phase))return;
                if(boss instanceof org.bukkit.entity.Shulker){
 
@@ -884,7 +887,7 @@ public final class BossManager implements Listener {
 
       private void attackNearby(Player var1) {
          long var2 = System.currentTimeMillis();
-         if (boss.hasLineOfSight(var1) && !(var1.getLocation().distanceSquared(this.boss.getLocation()) > 14.44) && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
+         if (CombatHitbox.visible(var1,boss) && CombatHitbox.distanceSquared(var1.getEyeLocation(),boss)<=7.84 && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
             String var6 = this.definition.id();
 
             double var4 = switch (var6) {
@@ -894,9 +897,9 @@ public final class BossManager implements Listener {
                case "volkar_corazon_del_cataclismo" -> 18.0;
                default -> 10.0;
             };
-            var1.damage(definition.mini()?Math.max(18,var4):var4, this.boss);
+            var1.damage(definition.mini()?MiniAggression.damage(phase):var4,this.boss);
             BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
-            this.meleeCooldowns.put(var1.getUniqueId(), var2 + BattleRules.MELEE_COOLDOWN_MS);
+            this.meleeCooldowns.put(var1.getUniqueId(), var2 + (definition.mini()?MiniAggression.INTERVAL:BattleRules.MELEE_COOLDOWN_MS));
             CosmeticFX.emit(Particle.DAMAGE_INDICATOR, var1.getLocation().add(0.0, 1.0, 0.0), 6, 0.3, 0.35, 0.3, 0.04);
          }
       }
