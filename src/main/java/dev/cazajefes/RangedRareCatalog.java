@@ -7,7 +7,7 @@ final class RangedRareCatalog {
  static final List<Spec> ALL=List.of(
  new Spec("cerrojo_vacio","Cerrojo del Vacío",Material.CROSSBOW,3,10,"engranaje_umbrio","Tres impactos al mismo rival cargan el siguiente disparo: lo atrae suavemente. Combo expira en 8 s. Fuerza de atracción por nivel.",Material.ENDER_PEARL),
  new Spec("carga_inestable","Carga Inestable",Material.CROSSBOW,3,12,"polvora_resonante","Una flecha clavada en un bloque deja una trampa visible. Explota a los 2 s en radio 3: 2 HP por nivel, sin romper bloques.",Material.TNT),
- new Spec("quebranto","Quebranto",Material.CROSSBOW,3,12,"engranaje_umbrio","Un disparo bloqueado o aceptado contra un escudo en uso lo pone en recarga durante 1 s por nivel. No añade daño al bloqueo.",Material.IRON_AXE),
+ new Spec("quebranto","Quebranto",Material.CROSSBOW,3,12,"engranaje_umbrio","Un disparo con daño marca al rival 4 s. Tu siguiente golpe cuerpo a cuerpo añade 10% de daño por nivel y consume la marca. No requiere escudo.",Material.IRON_AXE),
  new Spec("relevo_fantasma","Relevo Fantasma",Material.CROSSBOW,2,10,"pluma_vendaval","Tras acertar tienes 4 s para agacharte y desplazarte 1 o 2 bloques a la derecha. Requiere camino libre y suelo seguro.",Material.PHANTOM_MEMBRANE),
  new Spec("marca_cazador","Marca del Cazador",Material.BOW,4,8,"pluma_vendaval","Un disparo totalmente cargado marca al rival 6 s. Otro totalmente cargado añade 15% de daño por nivel y consume la marca.",Material.SPECTRAL_ARROW),
  new Spec("estela_boreal","Estela Boreal",Material.BOW,3,10,"cristal_escarcha","Tres impactos al mismo rival en 8 s aplican Lentitud I–III durante 3 s y una estela helada.",Material.BLUE_ICE),

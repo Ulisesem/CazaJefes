@@ -1,3 +1,7 @@
+# CazaJefes 1.23.2 · PvP sin escudos
+
+Quebranto ahora prepara daño adicional cuerpo a cuerpo tras un disparo. [Detalles](docs/CAMBIOS-1.23.2.md).
+
 # Corrección 1.23.1
 
 Soluciona el fallo de arranque al registrar las nuevas rares. [Detalles](docs/CAMBIOS-1.23.1.md).

@@ -9,7 +9,7 @@ final class RangedComboRules {
  case "estela_boreal","conductor_tempestades"->ranged&&count>=2;
  case "pulso_retorno"->ranged&&distanceSquared>=144&&count>0;
  case "relevo_fantasma"->ranged;
- case "quebranto"->ranged&&shield;
+ case "quebranto"->ranged;
  default->false;};}
  static boolean stores(String id,boolean ranged,boolean charged,double distanceSquared){return switch(id){case "marca_cazador"->ranged&&charged;case "ancla_abisal"->ranged;case "marea_ascendente"->true;case "cerrojo_vacio","estela_boreal","conductor_tempestades"->ranged;case "pulso_retorno"->ranged&&distanceSquared>=144;default->false;};}
 }
