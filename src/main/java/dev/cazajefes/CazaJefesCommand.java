@@ -169,7 +169,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          if(args.length==2)out.addAll(BossCatalog.ids());else if(args.length==3){out.add("here");var section=plugin.getConfig().getConfigurationSection("spawnpoints");if(section!=null)out.addAll(section.getKeys(false));}
       }else if(isAdmin(sender,"rareitemhunter.admin.essence")){
          if(root.equals("give")){if(args.length==2)out.add("rare");else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else if(args.length==4){out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}else if(args.length==5)out.addAll(onlinePlayerNames());}}
-         else if(root.equals("rare")||root.equals("book")||root.equals("essence")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():items.catalogIds());else if(args.length==3){out.addAll(List.of("1","2","3","4","5"));if(!root.equals("rare"))out.add("6");out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
+         else if(root.equals("rare")||root.equals("book")||root.equals("essence")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():items.catalogIds());else if(args.length==3){for(int level=1;level<=items.maxLevel(args[1].toLowerCase(java.util.Locale.ROOT));level++)out.add(Integer.toString(level));out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
          else if(root.equals("get")){if(args.length==2)out.addAll(List.of("compass","essence","fragment","tribute","rare","hacha","espada","arco"));else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else{out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}}else if(args.length==3)out.addAll(onlinePlayerNames());}
          else if(root.equals("armor")||root.equals("weapon")){if(args.length==2)out.addAll(List.of("comun","raro","epico","legendario","mitico","abismal"));else if(args.length==3)out.addAll(onlinePlayerNames());}
          else if((root.equals("fragment")||root.equals("tribute")||root.equals("compass"))&&args.length==2)out.addAll(onlinePlayerNames());
@@ -258,7 +258,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          try {
             var3 = Integer.parseInt(var2[2]);
          } catch (NumberFormatException var7) {
-            var1.sendMessage("El nivel debe ser un número del 1 al 5; Haste llega a 6.");
+            var1.sendMessage("El nivel debe ser un número entero; el máximo depende de la rare.");
             return;
          }
 
@@ -266,13 +266,13 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          if (var3 >= 1 && var3 <= var4) {
             Player var5 = var2.length > 3 ? this.plugin.getServer().getPlayerExact(var2[3]) : (var1 instanceof Player var6 ? var6 : null);
             if (var5 == null) {
-               var1.sendMessage("Jugador no encontrado. Uso: /ri book <id-rare> <nivel 1-5> [jugador].");
+               var1.sendMessage("Jugador no encontrado. Uso: /ri book <id-rare> <nivel> [jugador].");
             } else {
-               ItemStack var8 = this.items.rareBook(var2[1].toLowerCase(), var3);
+               ItemStack var8 = this.items.commandBook(var2[1].toLowerCase(), var3);
                var5.getInventory().addItem(new ItemStack[]{var8}).values().forEach(var1x -> var5.getWorld().dropItemNaturally(var5.getLocation(), var1x));
                var1.sendMessage(
                   Component.text(
-                     (this.items.spellIds().contains(var2[1].toLowerCase()) ? "Libro de " : "Esencia de ")
+                     "Libro de "
                         + var2[1]
                         + " nivel "
                         + var3
@@ -288,7 +288,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          }
       } else {
          var1.sendMessage(
-            "Uso: /ri book <id-rare> <nivel 1-5; Haste 1-6> [jugador]. Entrega un libro normal para efectos activables o una esencia para fusionar."
+            "Uso: /ri book <id-rare> <nivel> [jugador]. Entrega únicamente libros de rares. Haste I–VII; Invisibility I–VIII."
          );
       }
    }
