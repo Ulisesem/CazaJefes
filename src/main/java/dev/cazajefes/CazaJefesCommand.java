@@ -272,7 +272,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                var5.getInventory().addItem(new ItemStack[]{var8}).values().forEach(var1x -> var5.getWorld().dropItemNaturally(var5.getLocation(), var1x));
                var1.sendMessage(
                   Component.text(
-                     (RareAppearance.magmaRare(var2[1].toLowerCase(java.util.Locale.ROOT))?"Rare de ":"Libro de ")
+                     "Libro de "
                         + var2[1]
                         + " nivel "
                         + var3
@@ -288,7 +288,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          }
       } else {
          var1.sendMessage(
-            "Uso: /ri book <id-rare> <nivel> [jugador]. Entrega libros; las rares nuevas de proyectiles usan bolas de magma. Haste I–VII; Invisibility I–VIII."
+            "Uso: /ri book <id-rare> <nivel> [jugador]. Entrega únicamente libros con la rare y su nivel. Haste I–VII; Invisibility I–VIII."
          );
       }
    }

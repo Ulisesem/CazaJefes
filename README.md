@@ -1,3 +1,7 @@
+# CazaJefes 1.23.4
+
+Entrega administrativa de libros corregida y categorías de recetas diferenciadas. [Detalles](docs/CAMBIOS-1.23.4.md).
+
 # CazaJefes 1.23.3
 
 Rares nuevas con apariencia de bola de magma y mensajes de recarga corregidos. [Detalles](docs/CAMBIOS-1.23.3.md).
