@@ -15,5 +15,7 @@ final class RareAppearance {
  default->"Consulta la compatibilidad y combina esta esencia con el equipo indicado.";};}
  static java.util.List<String> powerLines(String id){return powerText(description(id));}
  static java.util.List<String> powerText(String text){java.util.List<String> out=new java.util.ArrayList<>();String row="Poder:";for(String word:text.split(" ")){if(row.length()+word.length()+1>44){out.add(row);row="";}row+=(row.isEmpty()?"":" ")+word;}if(!row.isEmpty())out.add(row);return out;}
+ static String cooldownMessage(String id,long milliseconds){return title(id)+" estará lista en "+Math.max(1,(milliseconds+999)/1000)+" segundos.";}
+ static boolean magmaRare(String id){return RangedRareCatalog.get(id)!=null;}
  static boolean equipment(org.bukkit.Material material){String n=material.name();return n.endsWith("_SWORD")||n.endsWith("_AXE")||n.endsWith("_HELMET")||n.endsWith("_CHESTPLATE")||n.endsWith("_LEGGINGS")||n.endsWith("_BOOTS")||n.endsWith("_PICKAXE")||n.endsWith("_SHOVEL")||n.endsWith("_HOE")||n.equals("BOW")||n.equals("CROSSBOW")||n.equals("TRIDENT")||n.equals("MACE")||n.equals("ELYTRA")||n.equals("SHIELD");}
 }
