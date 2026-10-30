@@ -19,7 +19,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
    DamageDiagnostics damageDiagnostics;
-   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;RareCombat rareCombat;BossSpecies species;SkeletonCombat archers;MageCombat mages;
+   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;RareCombat rareCombat;RangedRares rangedRares;BossSpecies species;SkeletonCombat archers;MageCombat mages;
    public BossStatistics statistics(){return statistics;}
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -66,7 +66,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getCommand("ri").setTabCompleter(var1);
       this.getServer().getPluginManager().registerEvents(var1, this);
       duel=new DuelRelics(this,relicItems);getServer().getPluginManager().registerEvents(duel,this);
-      getServer().getPluginManager().registerEvents(new RareTools(this,relicItems),this);rareCombat=new RareCombat(this,relicItems);getServer().getPluginManager().registerEvents(rareCombat,this);
+      getServer().getPluginManager().registerEvents(new RareTools(this,relicItems),this);rareCombat=new RareCombat(this,relicItems);getServer().getPluginManager().registerEvents(rareCombat,this);rangedRares=new RangedRares(this,relicItems);getServer().getPluginManager().registerEvents(rangedRares,this);
       this.relicItems.registerRecipes();
       this.bestiary=new BestiaryMenu(this,bossManager,relicItems);
       this.getCommand("bestiario").setExecutor(bestiary);
@@ -90,7 +90,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
-      if(rareCombat!=null)rareCombat.stop();BossEffects.clear();BossWarnings.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
+      if(rangedRares!=null)rangedRares.stop();if(rareCombat!=null)rareCombat.stop();BossEffects.clear();BossWarnings.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();

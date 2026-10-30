@@ -50,3 +50,17 @@ clarity: { useCost: 0, maxLvl: 3, cooldownSeconds: 0 }
 hungersteal: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
 
 aura_esporas: { useCost: 2, maxLvl: 3, cooldownSeconds: 5 }
+
+# Rares de proyectiles 1.23.0: costo 0; exclusivas por arma.
+cerrojo_vacio: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+carga_inestable: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+quebranto: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+relevo_fantasma: { useCost: 0, maxLvl: 2, cooldownSeconds: 10 }
+marca_cazador: { useCost: 0, maxLvl: 4, cooldownSeconds: 8 }
+estela_boreal: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+pulso_retorno: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+ojo_tormenta: { useCost: 0, maxLvl: 3, cooldownSeconds: 8 }
+ancla_abisal: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+marea_ascendente: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+resaca: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+conductor_tempestades: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }

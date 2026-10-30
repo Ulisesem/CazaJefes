@@ -1000,6 +1000,7 @@ public final class RelicItems implements Listener {
          };
          if (stack!=null) { stack.setAmount(reward.amount()); var4.add(prepareBossDrop(stack)); }
       }
+      String rangedMaterial=RangedRareCatalog.drop(var2.entityType());if(rangedMaterial!=null&&Math.random()<(var2.mini()?.12:.25))var4.add(rangedMaterial(rangedMaterial));
       if(LootRules.heartEligible(var2.mini(),Math.random(),plugin.getConfig().getDouble("loot.boss-heart-chance",0.01)))var4.add(bossHeart(var2));
       List<ItemStack> merged=new ArrayList<>();for(ItemStack stack:var4){ItemStack same=merged.stream().filter(existing->existing.isSimilar(stack)).findFirst().orElse(null);if(same==null)merged.add(stack);else same.setAmount(same.getAmount()+stack.getAmount());}var4.clear();var4.addAll(merged);
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
@@ -1345,6 +1346,7 @@ public final class RelicItems implements Listener {
          }
       }
       addRecipe("sello_resonancia_primigenia",awakeningSeal(),new String[]{"KPK","NSN","FTF"},Map.of('K',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)),'P',new ExactChoice(primordialEssence()),'N',bossCoreChoice(),'S',new MaterialChoice(Material.NETHER_STAR),'F',new ExactChoice(fragment(1)),'T',new ExactChoice(tribute("Cazador"))));
+      for(String material:RangedRareCatalog.MATERIALS)addRecipe("ranged_material_"+material,rangedMaterial(material),new String[]{" R ","CEC"," F "},Map.of('R',new MaterialChoice(RangedRareCatalog.materialIcon(material)),'C',bossCoreChoice(),'E',new ExactChoice(essence()),'F',new ExactChoice(fragment(1))));
       registerSpellUpgrades();registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
    }
 
@@ -1384,6 +1386,7 @@ public final class RelicItems implements Listener {
       String supplied=var1.startsWith("crear_esencia_rare_")?var1.substring(19):var1.startsWith("crear_libro_rare_")?var1.substring(17):null;
       var definition=supplied==null?null:RareDefinitions.get(supplied);
       if(definition!=null){var3=new String[]{"ABC","DEF","GHI"};var4=new HashMap<>();for(int index=0;index<9;index++){Material material=definition.ingredients().get(index);var4.put((char)('A'+index),material==Material.AIR?new ExactChoice(essence()):new MaterialChoice(material));}}
+      if(supplied!=null&&RangedRareCatalog.get(supplied)!=null){var spec=RangedRareCatalog.get(supplied);var4.put('B',new ExactChoice(rangedMaterial(spec.material())));var4.put('H',new ExactChoice(rangedMaterial(spec.material())));var4.put('D',bossCoreChoice());var4.put('F',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)));}
       var3 = var3.clone();
       var4 = new HashMap<>(var4);
       try {
@@ -1400,6 +1403,7 @@ public final class RelicItems implements Listener {
       }
    }
 
+   ItemStack rangedMaterial(String id){ItemStack stack=named(RangedRareCatalog.materialIcon(id),"ranged_material_"+id,RangedRareCatalog.materialName(id),NamedTextColor.AQUA,1,"Material de forja para rares de proyectiles.","Origen: "+RangedRareCatalog.origin(id),"Probabilidad: minijefes 12%; bosses 25%.","También se fabrica con núcleo, esencia y fragmento.");var meta=stack.getItemMeta();meta.setEnchantmentGlintOverride(true);stack.setItemMeta(meta);return stack;}
    private ExactChoice exactRiftMaterial(int var1) {
       ItemStack var2 = this.riftMaterial(var1);
       this.addRiftDropClassification(var2, BossCatalog.Tier.EPIC);
