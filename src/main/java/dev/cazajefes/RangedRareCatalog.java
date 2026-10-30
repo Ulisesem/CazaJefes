@@ -1,0 +1,27 @@
+package dev.cazajefes;
+import java.util.*;
+import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
+final class RangedRareCatalog {
+ record Spec(String id,String title,Material weapon,int max,int cooldown,String material,String description,Material reagent){}
+ static final List<Spec> ALL=List.of(
+ new Spec("cerrojo_vacio","Cerrojo del Vacío",Material.CROSSBOW,3,10,"engranaje_umbrio","Tres impactos al mismo rival cargan el siguiente disparo: lo atrae suavemente. Combo expira en 8 s. Fuerza de atracción por nivel.",Material.ENDER_PEARL),
+ new Spec("carga_inestable","Carga Inestable",Material.CROSSBOW,3,12,"polvora_resonante","Una flecha clavada en un bloque deja una trampa visible. Explota a los 2 s en radio 3: 2 HP por nivel, sin romper bloques.",Material.TNT),
+ new Spec("quebranto","Quebranto",Material.CROSSBOW,3,12,"engranaje_umbrio","Un disparo bloqueado o aceptado contra un escudo en uso lo pone en recarga durante 1 s por nivel. No añade daño al bloqueo.",Material.IRON_AXE),
+ new Spec("relevo_fantasma","Relevo Fantasma",Material.CROSSBOW,2,10,"pluma_vendaval","Tras acertar tienes 4 s para agacharte y desplazarte 1 o 2 bloques a la derecha. Requiere camino libre y suelo seguro.",Material.PHANTOM_MEMBRANE),
+ new Spec("marca_cazador","Marca del Cazador",Material.BOW,4,8,"pluma_vendaval","Un disparo totalmente cargado marca al rival 6 s. Otro totalmente cargado añade 15% de daño por nivel y consume la marca.",Material.SPECTRAL_ARROW),
+ new Spec("estela_boreal","Estela Boreal",Material.BOW,3,10,"cristal_escarcha","Tres impactos al mismo rival en 8 s aplican Lentitud I–III durante 3 s y una estela helada.",Material.BLUE_ICE),
+ new Spec("pulso_retorno","Pulso de Retorno",Material.BOW,3,12,"perla_profundidades","Dos aciertos al mismo objetivo a 12 bloques o más en 6 s recuperan 1 HP por nivel. La cura respeta eventos de regeneración.",Material.GHAST_TEAR),
+ new Spec("ojo_tormenta","Ojo de Tormenta",Material.BOW,3,8,"filamento_tormenta","Quedarte quieto 1,5 s prepara un disparo cargado con 10% más velocidad por nivel y sin caída durante 10 ticks. No persigue objetivos.",Material.LIGHTNING_ROD),
+ new Spec("ancla_abisal","Ancla Abisal",Material.TRIDENT,3,10,"perla_profundidades","Un lanzamiento marca al rival 6 s. Un golpe cuerpo a cuerpo con este tridente consume la marca: +15% de daño por nivel y atracción.",Material.IRON_CHAIN),
+ new Spec("marea_ascendente","Marea Ascendente",Material.TRIDENT,3,12,"perla_profundidades","Alternar lanzamiento y golpe cuerpo a cuerpo al mismo rival en 6 s libera una onda que empuja hasta 8 enemigos visibles a 4 bloques.",Material.PRISMARINE_CRYSTALS),
+ new Spec("resaca","Resaca",Material.TRIDENT,3,12,"cristal_escarcha","Un tridente que golpea un bloque deja un remolino 3 s: Lentitud I–III durante 2 s a enemigos visibles a 3 bloques.",Material.NAUTILUS_SHELL),
+ new Spec("conductor_tempestades","Conductor de Tempestades",Material.TRIDENT,3,12,"filamento_tormenta","Tres lanzamientos acertados al mismo rival en 8 s descargan 2 HP por nivel a un segundo enemigo visible a 4 bloques. Sin fuego.",Material.COPPER_BLOCK));
+ static Spec get(String id){return ALL.stream().filter(s->s.id().equals(id)).findFirst().orElse(null);}
+ static final List<String> MATERIALS=List.of("engranaje_umbrio","polvora_resonante","pluma_vendaval","cristal_escarcha","perla_profundidades","filamento_tormenta");
+ static String materialName(String id){return switch(id){case "engranaje_umbrio"->"Engranaje Umbrío";case "polvora_resonante"->"Pólvora Resonante";case "pluma_vendaval"->"Pluma del Vendaval";case "cristal_escarcha"->"Cristal de Escarcha";case "perla_profundidades"->"Perla de las Profundidades";default->"Filamento de Tormenta";};}
+ static Material materialIcon(String id){return switch(id){case "engranaje_umbrio"->Material.TRIPWIRE_HOOK;case "polvora_resonante"->Material.GUNPOWDER;case "pluma_vendaval"->Material.FEATHER;case "cristal_escarcha"->Material.PRISMARINE_CRYSTALS;case "perla_profundidades"->Material.ENDER_PEARL;default->Material.ECHO_SHARD;};}
+ static String origin(String id){return switch(id){case "engranaje_umbrio"->"Saqueadores y vindicadores";case "polvora_resonante"->"Creepers, blazes y cubos de magma";case "pluma_vendaval"->"Bosses voladores y arqueros";case "cristal_escarcha"->"Strays, osos polares y gólems de nieve";case "perla_profundidades"->"Bosses acuáticos y ahogados";default->"Magos y criaturas del umbral";};}
+ static String drop(EntityType type){return switch(type){case PILLAGER,VINDICATOR->"engranaje_umbrio";case CREEPER,BLAZE,MAGMA_CUBE->"polvora_resonante";case BEE,PHANTOM,GHAST,PARROT,ALLAY,BAT,SKELETON,BOGGED->"pluma_vendaval";case STRAY,POLAR_BEAR,SNOW_GOLEM->"cristal_escarcha";case GUARDIAN,ELDER_GUARDIAN,DROWNED,DOLPHIN,SQUID,GLOW_SQUID,AXOLOTL,TURTLE,COD,SALMON,PUFFERFISH,TROPICAL_FISH->"perla_profundidades";case EVOKER,WITCH,ILLUSIONER,SHULKER,WARDEN,ENDERMAN->"filamento_tormenta";default->null;};}
+ static void addDefinitions(Map<String,RareDefinitions.Definition> map){for(var s:ALL)map.put(s.id(),new RareDefinitions.Definition(s.id(),s.title(),s.max(),0,s.cooldown(),switch(s.weapon()){case CROSSBOW->RareCompatibility.Group.CROSSBOW;case TRIDENT->RareCompatibility.Group.TRIDENT;default->RareCompatibility.Group.BOW;},s.description(),List.of(s.reagent(),Material.AMETHYST_SHARD,s.reagent(),Material.ECHO_SHARD,Material.AIR,Material.AMETHYST_CLUSTER,s.reagent(),Material.AMETHYST_SHARD,s.reagent())));}
+}

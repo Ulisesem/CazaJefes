@@ -39,6 +39,7 @@ final class RareDefinitions {
   definitions.put("hardy",new Definition("hardy","Corazón Indómito (Hardy)",3,0,0,RareCompatibility.Group.ARMOR,"+1 corazón máximo por nivel, hasta +3. Solo cuenta la pieza de mayor nivel.",List.of(Material.GOLDEN_APPLE,Material.TURTLE_HELMET,Material.GOLDEN_APPLE,Material.IRON_BLOCK,Material.AIR,Material.IRON_BLOCK,Material.GOLDEN_CARROT,Material.TOTEM_OF_UNDYING,Material.GOLDEN_CARROT)));
   definitions.put("clarity",new Definition("clarity","Lucidez del Alba (Clarity)",3,0,0,RareCompatibility.Group.ARMOR,"Reduce 25/50/75% la duración de ceguera y náuseas aplicadas por las rares de CazaJefes.",List.of(Material.IRON_INGOT,Material.AMETHYST_SHARD,Material.IRON_INGOT,Material.AMETHYST_SHARD,Material.AIR,Material.AMETHYST_SHARD,Material.IRON_INGOT,Material.AMETHYST_SHARD,Material.IRON_INGOT)));
   definitions.put("hungersteal",new Definition("hungersteal","Hambre del Depredador (HungerSteal)",3,0,10,RareCompatibility.Group.ARMOR,"Al golpear a un jugador, roba hasta 1 punto de comida por nivel. Solo transfiere lo que te falta. Recarga 10 s.",List.of(Material.ROTTEN_FLESH,Material.GOLDEN_CARROT,Material.ROTTEN_FLESH,Material.FERMENTED_SPIDER_EYE,Material.AIR,Material.FERMENTED_SPIDER_EYE,Material.ROTTEN_FLESH,Material.COOKED_BEEF,Material.ROTTEN_FLESH)));
+ RangedRareCatalog.addDefinitions(definitions);
  ALL=Collections.unmodifiableMap(definitions);}
  static Definition get(String id){return ALL.get(id);}
  static int limited(String id,int level){var d=get(id);return Math.max(0,Math.min(d==null?5:d.maximum(),level));}
