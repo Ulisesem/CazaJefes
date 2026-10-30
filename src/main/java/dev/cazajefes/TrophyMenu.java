@@ -17,7 +17,7 @@ final class TrophyMenu implements Listener {
  void open(Player player,boolean guide,int page){
   List<BossCatalog.Definition> bosses=BossCatalog.all().stream().filter(b->!b.mini()).sorted(Comparator.comparingInt((BossCatalog.Definition b)->b.tier().ordinal()).thenComparing(BossCatalog.Definition::name)).toList();
   int pages=Math.max(1,(bosses.size()+27)/28);page=Math.max(0,Math.min(page,pages-1));View view=new View(guide,page);
-  view.inventory=Bukkit.createInventory(view,54,Component.text(guide?"✦ GUÍA DE MATERIALES":"✦ CORAZONES · "+(page+1)+"/"+pages,NamedTextColor.GOLD));Inventory inv=view.inventory;PremiumStyle.frame(inv,Material.ORANGE_STAINED_GLASS_PANE);
+  view.inventory=Bukkit.createInventory(view,54,PremiumStyle.heading(guide?"✦ GUÍA DE MATERIALES":"✦ CORAZONES · "+(page+1)+"/"+pages,NamedTextColor.GOLD));Inventory inv=view.inventory;PremiumStyle.frame(inv,Material.ORANGE_STAINED_GLASS_PANE);
   inv.setItem(4,PremiumStyle.tile(Material.HEART_OF_THE_SEA,guide?"EL CAMINO DEL CAZADOR":"CORAZONES ENCANTADOS",NamedTextColor.GOLD,true,guide?"Materiales reales del sistema de progresión":"RARES de boss • no se fabrican",guide?"Cada material conserva su identificación propia":"Probabilidad: "+String.format(java.util.Locale.ROOT,"%.2f",100*LootRules.probability(plugin.getConfig().getDouble("loot.boss-heart-chance",0.01)))+" % por boss principal"));
   if(guide){
    inv.setItem(20,items.fragment(1));inv.setItem(22,items.tribute("Cazador"));inv.setItem(24,items.compass());

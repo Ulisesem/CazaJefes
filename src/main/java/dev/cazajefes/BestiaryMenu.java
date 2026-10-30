@@ -21,7 +21,7 @@ final class BestiaryMenu implements CommandExecutor,Listener {
   List<BossCatalog.Definition> list=BossCatalog.all().stream().filter(b->category==null||category.matches(b)).sorted(Comparator.comparing(BossCatalog.Definition::name)).toList();
   int pages=Math.max(1,(list.size()+27)/28);page=Math.max(0,Math.min(page,pages-1));
   View view=new View(category,page,detail);NamedTextColor color=category==null?NamedTextColor.GOLD:category.color;
-  view.inventory=Bukkit.createInventory(view,54,Component.text(detail!=null?"✦ Archivo de cacería":category==null?"✦ BESTIARIO · LA GRIETA":"✦ "+category.title+" · "+(page+1)+"/"+pages,color));
+  view.inventory=Bukkit.createInventory(view,54,PremiumStyle.heading(detail!=null?"✦ Archivo de cacería":category==null?"✦ BESTIARIO · LA GRIETA":"✦ "+category.title+" · "+(page+1)+"/"+pages,color));
   Inventory inv=view.inventory;PremiumStyle.frame(inv,category==null?Material.YELLOW_STAINED_GLASS_PANE:switch(category){case MINI->Material.CYAN_STAINED_GLASS_PANE;case RARE->Material.LIME_STAINED_GLASS_PANE;case EPIC->Material.MAGENTA_STAINED_GLASS_PANE;case LEGENDARY->Material.ORANGE_STAINED_GLASS_PANE;case MYTHIC->Material.PURPLE_STAINED_GLASS_PANE;case ABYSSAL->Material.RED_STAINED_GLASS_PANE;});
   inv.setItem(4,PremiumStyle.tile(Material.ENCHANTED_BOOK,detail!=null?detail.name():category==null?"✦ EL ARCHIVO DE LOS CAZADORES ✦":category.title,color,true,"76 encuentros • categorías exclusivas","Selecciona un sello para explorar."));
   if(category==null){
