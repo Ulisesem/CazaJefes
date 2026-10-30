@@ -57,6 +57,8 @@ final class RecipeAlchemy {
   Map.entry("arco_ceniciento",new Profile(PotionType.FIRE_RESISTANCE,Material.CHARCOAL,BossCatalog.Tier.LEGENDARY)),
   Map.entry("lanza_magma",new Profile(PotionType.FIRE_RESISTANCE,Material.MAGMA_BLOCK,BossCatalog.Tier.MYTHIC)),
   Map.entry("mandoble_vacio",new Profile(PotionType.INVISIBILITY,Material.ENDER_EYE,BossCatalog.Tier.ABYSSAL)));
+ static String propertyForRecipe(String key){if(key.startsWith("crear_esencia_rare_"))return key.substring("crear_esencia_rare_".length());if(key.startsWith("crear_libro_rare_"))return key.substring("crear_libro_rare_".length());return null;}
+ static boolean usesLegacyProfile(String key,boolean legacyGear){String property=propertyForRecipe(key);return property!=null?RareDefinitions.get(property)==null:legacyGear;}
  static Profile profile(String id){Profile p=PROFILES.get(id);if(p==null)throw new IllegalArgumentException("Rare desconocida: "+id);return p;}
  static RecipeChoice potionChoice(PotionType type){ItemStack potion=new ItemStack(Material.POTION);PotionMeta meta=(PotionMeta)potion.getItemMeta();meta.setBasePotionType(type);potion.setItemMeta(meta);return new RecipeChoice.ExactChoice(potion);}
 }

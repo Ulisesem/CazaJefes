@@ -1376,14 +1376,14 @@ public final class RelicItems implements Listener {
          var3=new String[]{" K ","CBC"," F "};
          var4=Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(var2.getType()),'F',new ExactChoice(fragment(1)));
       }
-      if(var1.startsWith("crear_esencia_rare_")||var1.startsWith("crear_libro_rare_")||rareIds().contains(var1)){
+      if(RecipeAlchemy.usesLegacyProfile(var1,rareIds().contains(var1))){
          String property=var1.startsWith("crear_esencia_rare_")?var1.substring("crear_esencia_rare_".length()):var1.startsWith("crear_libro_rare_")?var1.substring("crear_libro_rare_".length()):var1;
          RecipeAlchemy.Profile profile=RecipeAlchemy.profile(property);
          var3=new String[]{" P ","CKR"," FB"};
          var4=Map.of('P',RecipeAlchemy.potionChoice(profile.potion()),'C',bossCoreChoice(),'K',new ExactChoice(crystal(profile.rank(),1)),
             'R',new MaterialChoice(profile.reagent()),'F',new ExactChoice(fragment(1)),'B',rareIds().contains(var1)?new MaterialChoice(var2.getType()):new ExactChoice(essence()));
       }
-      String supplied=var1.startsWith("crear_esencia_rare_")?var1.substring(19):var1.startsWith("crear_libro_rare_")?var1.substring(17):null;
+      String supplied=RecipeAlchemy.propertyForRecipe(var1);
       var definition=supplied==null?null:RareDefinitions.get(supplied);
       if(definition!=null){var3=new String[]{"ABC","DEF","GHI"};var4=new HashMap<>();for(int index=0;index<9;index++){Material material=definition.ingredients().get(index);var4.put((char)('A'+index),material==Material.AIR?new ExactChoice(essence()):new MaterialChoice(material));}}
       if(supplied!=null&&RangedRareCatalog.get(supplied)!=null){var spec=RangedRareCatalog.get(supplied);var4.put('B',new ExactChoice(rangedMaterial(spec.material())));var4.put('H',new ExactChoice(rangedMaterial(spec.material())));var4.put('D',bossCoreChoice());var4.put('F',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)));}

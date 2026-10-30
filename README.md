@@ -1,3 +1,7 @@
+# Corrección 1.23.1
+
+Soluciona el fallo de arranque al registrar las nuevas rares. [Detalles](docs/CAMBIOS-1.23.1.md).
+
 # CazaJefes 1.23.0
 
 Doce nuevas rares exclusivas para ballestas, arcos y tridentes; seis materiales de forja y apartados por arma. Ver [cambios 1.23.0](docs/CAMBIOS-1.23.0.md).
