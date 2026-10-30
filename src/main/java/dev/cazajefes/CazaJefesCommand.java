@@ -756,7 +756,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                var6 = var6.substring(0, 32);
             }
 
-            Inventory var7 = Bukkit.createInventory(var5, 54, Component.text(var6, NamedTextColor.LIGHT_PURPLE));
+            Inventory var7 = Bukkit.createInventory(var5, 54, PremiumStyle.heading(var6, NamedTextColor.LIGHT_PURPLE));
             var5.inventory = var7;
             this.fillPremiumFrame(var7);
             String var8 = var4.id().startsWith("rarecraft:")
@@ -833,7 +833,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             ItemStack var9 = var8 ? this.items.craftedArmor(var6.id(), var7) : this.items.craftedWeapon(var6.id(), var7);
             if (var9 != null) {
                CazaJefesCommand.MenuHolder var10 = new CazaJefesCommand.MenuHolder("recipe_detail", var3, var2);
-               Inventory var11 = Bukkit.createInventory(var10, 54, Component.text("CANJE: " + var5.display().toUpperCase(), NamedTextColor.DARK_PURPLE));
+               Inventory var11 = Bukkit.createInventory(var10, 54, PremiumStyle.heading("CANJE: " + var5.display().toUpperCase(), NamedTextColor.DARK_PURPLE));
                var10.inventory = var11;
                this.fillPremiumFrame(var11);
                var11.setItem(
@@ -908,7 +908,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       int var5 = Math.max(1, (var3.size() + var4 - 1) / var4);
       int var6 = Math.max(0, Math.min(var5 - 1, var2));
       CazaJefesCommand.MenuHolder var7 = new CazaJefesCommand.MenuHolder("catalog", var6);
-      Inventory var8 = Bukkit.createInventory(var7, 54, Component.text("CATÁLOGO DE ESENCIAS · " + (var6 + 1) + "/" + var5, NamedTextColor.DARK_PURPLE));
+      Inventory var8 = Bukkit.createInventory(var7, 54, PremiumStyle.heading("CATÁLOGO DE ESENCIAS · " + (var6 + 1) + "/" + var5, NamedTextColor.DARK_PURPLE));
       var7.inventory = var8;
       this.fillPremiumFrame(var8);
       var8.setItem(
@@ -982,7 +982,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (var7 != null) {
          CazaJefesCommand.MenuHolder var8 = new CazaJefesCommand.MenuHolder("catalog_detail", var3, var2);
          String var9 = "FICHA · " + (var6 ? "LIBRO" : "ESENCIA");
-         Inventory var10 = Bukkit.createInventory(var8, 54, Component.text(var9, NamedTextColor.DARK_PURPLE));
+         Inventory var10 = Bukkit.createInventory(var8, 54, PremiumStyle.heading(var9, NamedTextColor.DARK_PURPLE));
          var8.inventory = var10;
          this.fillPremiumFrame(var10);
          String var11 = var2.equals("material:primordial")
@@ -1084,7 +1084,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
    private String catalogDescription(String var1) {
       if(RareDefinitions.get(var1)!=null)return RareDefinitions.get(var1).description();
-      if(ArmorRareRules.description(var1)!=null)return ArmorRareRules.description(var1);
+      if(RareAppearance.description(var1)!=null)return RareAppearance.description(var1);
       return switch (var1) {
          case "poison" -> "Envenena al objetivo al golpear.";
          case "backstab" -> "Más daño por la espalda.";
@@ -1424,7 +1424,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       BossCatalog.Definition var4 = BossCatalog.get(var2);
       if (var4 != null) {
          CazaJefesCommand.MenuHolder var5 = new CazaJefesCommand.MenuHolder("boss_detail", var3, var2);
-         Inventory var6 = Bukkit.createInventory(var5, 54, Component.text("FICHA DE JEFE · " + var4.tier().display.toUpperCase(), NamedTextColor.DARK_PURPLE));
+         Inventory var6 = Bukkit.createInventory(var5, 54, PremiumStyle.heading("FICHA DE JEFE · " + var4.tier().display.toUpperCase(), NamedTextColor.DARK_PURPLE));
          var5.inventory = var6;
          this.fillPremiumFrame(var6);
          var6.setItem(4, this.menuItem(Material.NETHER_STAR, "§d§lREGISTRO DE CACERÍA", "§7Consulta la clasificación y los datos base."));

@@ -51,7 +51,7 @@ final class MarketMenu implements CommandExecutor,Listener {
  private int count(Player p,String id){int count=0;for(ItemStack stack:p.getInventory().getStorageContents())if(id.equals(items.customId(stack)))count+=stack.getAmount();return count;}
  private void show(Player player,Section section,int page,Offer offer){
   items.migrateCurrencies(player);List<Offer> list=offers().stream().filter(o->section==null||o.section==section).toList();int pages=Math.max(1,(list.size()+27)/28);page=Math.max(0,Math.min(page,pages-1));
-  View view=new View(section,page,offer);view.inventory=Bukkit.createInventory(view,54,Component.text(offer!=null?"✦ CONFIRMAR CANJE":section==null?"✦ MERCADO DE LA GRIETA":"✦ "+section.title+" · "+(page+1)+"/"+pages,NamedTextColor.GOLD));Inventory inv=view.inventory;
+  View view=new View(section,page,offer);view.inventory=Bukkit.createInventory(view,54,PremiumStyle.heading(offer!=null?"✦ CONFIRMAR CANJE":section==null?"✦ MERCADO DE LA GRIETA":"✦ "+section.title+" · "+(page+1)+"/"+pages,NamedTextColor.GOLD));Inventory inv=view.inventory;
   PremiumStyle.frame(inv,section==Section.REBIRTH?Material.ORANGE_STAINED_GLASS_PANE:Material.PURPLE_STAINED_GLASS_PANE);
   inv.setItem(4,PremiumStyle.tile(section==null?Material.END_CRYSTAL:section.icon,section==null?"✦ EL EMPORIO DE LOS CAZADORES ✦":section.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.GOLD,true,"Elige tu recompensa • revisa su precio","Los canjes requieren espacio y monedas originales"));
   if(section==null){

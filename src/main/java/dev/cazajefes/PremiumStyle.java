@@ -6,6 +6,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 final class PremiumStyle {
+ static String compactTitle(String title){int width=0;StringBuilder out=new StringBuilder();for(char c:title.toCharArray()){int advance=c==' '?4:"il.,:;!|'".indexOf(c)>=0?3:6;if(width+advance>138)return out.toString().stripTrailing()+"…";width+=advance;out.append(c);}return out.toString();}
+ static Component heading(String title,NamedTextColor color){return Component.text(compactTitle(title),color);}
  static final int[] GRID={10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43};
  static ItemStack tile(Material material,String title,NamedTextColor color,boolean glow,String... lines){
   ItemStack item=new ItemStack(material);ItemMeta meta=item.getItemMeta();meta.displayName(Component.text(title,color).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));
