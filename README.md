@@ -1,3 +1,7 @@
+# CazaJefes 1.23.3
+
+Rares nuevas con apariencia de bola de magma y mensajes de recarga corregidos. [Detalles](docs/CAMBIOS-1.23.3.md).
+
 # CazaJefes 1.23.2 · PvP sin escudos
 
 Quebranto ahora prepara daño adicional cuerpo a cuerpo tras un disparo. [Detalles](docs/CAMBIOS-1.23.2.md).
