@@ -1,3 +1,7 @@
+# CazaJefes 1.26.0
+
+Diez rares de arco, diez de ballesta y recetario reorganizado. [Cambios completos](docs/CAMBIOS-1.26.0.md).
+
 # CazaJefes 1.25.2
 
 Relevo Fantasma salta obstáculos y busca destinos alternativos. [Detalles](docs/CAMBIOS-1.25.2.md).

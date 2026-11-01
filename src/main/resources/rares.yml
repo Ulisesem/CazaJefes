@@ -73,3 +73,9 @@ destello_umbral: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
 grillete_hierro: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
 
 detonacion_grieta: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+
+# Colección 1.26.0
+fulgor_alba: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+ceniza_solar: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+sello_ruina: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+impacto_sismico: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
