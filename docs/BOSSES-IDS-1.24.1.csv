@@ -1,0 +1,169 @@
+id,nombre,categoria,entidad,minijefe
+gorath_quebrantador_de_mundos,"Gorath, Quebrantador de Mundos",Legendarios,ZOMBIE,false
+nyxara_tejedora_del_ocaso,"Nyxara, Tejedora del Ocaso",Épicos,SPIDER,false
+varkhos_vigia_de_las_cenizas,"Varkhos, Vigía de las Cenizas",Raros,SKELETON,false
+melisara_emperatriz_del_enjambre,"Melisara, Emperatriz del Enjambre",Minijefes,BEE,true
+kitsar_acechador_carmesi,"Kitsar, Acechador Carmesí",Minijefes,FOX,true
+brakk_colmillo_del_averno,"Brakk, Colmillo del Averno",Minijefes,HOGLIN,true
+volkar_corazon_del_cataclismo,"Volkar, Corazón del Cataclismo",Minijefes,SNIFFER,true
+boreon_garra_de_la_ventisca,"Boreon, Garra de la Ventisca",Minijefes,POLAR_BEAR,true
+fenrak_aullido_de_ceniza,"Fenrak, Aullido de Ceniza",Minijefes,WOLF,true
+kragnar_rompecumbres,"Kragnar, Rompecumbres",Minijefes,GOAT,true
+aegora_bastion_viviente,"Aegora, Bastión Viviente",Minijefes,TURTLE,true
+zalira_saqueadora_del_yermo,"Zalira, Saqueadora del Yermo",Minijefes,LLAMA,true
+corredor_sepulcral,Corredor Sepulcral,Raros,ZOMBIE,false
+hueso_viejo,Hueso Viejo,Raros,SKELETON,false
+aranuelo_de_cueva,Arañuelo de Cueva,Épicos,CAVE_SPIDER,false
+brasa_vagabunda,Brasa Vagabunda,Épicos,BLAZE,false
+saqueador_gris,Saqueador Gris,Raros,PILLAGER,false
+moho_muerto,Moho Muerto,Raros,HUSK,false
+cubo_turbio,Cubo Turbio,Épicos,SLIME,false
+murcielago_de_la_fosa,Murciélago de la Fosa,Raros,PHANTOM,false
+ferrun_colmillo_de_hierro,"Ferrun, Colmillo de Hierro",Minijefes,WOLF,true
+tejedora_de_la_cripta,Tejedora de la Cripta,Raros,SPIDER,false
+arquero_invernal,Arquero Invernal,Raros,STRAY,false
+bruto_piglin,Bruto Piglin,Raros,PIGLIN_BRUTE,false
+sapo_de_fuego,Sapo de Fuego,Raros,MAGMA_CUBE,false
+bruja_del_musgo,Bruja del Musgo,Raros,WITCH,false
+ahogado_abisal,Ahogado Abisal,Raros,DROWNED,false
+vex_cobrizo,Vex Cobrizo,Raros,VINDICATOR,false
+caballero_wither,Caballero Wither,Épicos,WITHER_SKELETON,false
+vigia_prismarina,Vigía Prismarina,Épicos,GUARDIAN,false
+cuervo_carmesi,Cuervo Carmesí,Épicos,PHANTOM,false
+devastador_hambriento,Devastador Hambriento,Épicos,RAVAGER,false
+bestia_del_lodazal,Bestia del Lodazal,Épicos,HOGLIN,false
+brisa_cortante,Brisa Cortante,Épicos,BREEZE,false
+evocador_del_umbral,Evocador del Umbral,Épicos,EVOKER,false
+golem_de_la_grieta,Gólem de la Grieta,Épicos,IRON_GOLEM,false
+ghast_azabache,Ghast Azabache,Épicos,GHAST,false
+aracnido_de_cristal,Arácnido de Cristal,Épicos,CAVE_SPIDER,false
+hongo_infernal,Hongo Infernal,Épicos,MOOSHROOM,false
+desollador_bogged,Desollador Bogged,Épicos,BOGGED,false
+anciano_coral,Anciano Coral,Legendarios,ELDER_GUARDIAN,false
+espectro_del_fin,Espectro del Fin,Legendarios,ENDERMAN,false
+dragon_de_ceniza,Dragón de Ceniza,Legendarios,BLAZE,false
+reina_del_brezal,Reina del Brezal,Legendarios,CAVE_SPIDER,false
+carcelero_carmesi,Carcelero Carmesí,Legendarios,PIGLIN_BRUTE,false
+creaking_ancestral,Creaking Ancestral,Legendarios,CREAKING,false
+tormenta_breeze,Tormenta Breeze,Legendarios,BREEZE,false
+quimera_endermite,Quimera Endermite,Legendarios,ENDERMITE,false
+verdugo_necrotico,Verdugo Necrótico,Legendarios,WITHER_SKELETON,false
+serpiente_saqueadora,Serpiente Saqueadora,Legendarios,PILLAGER,false
+colmillo_del_vacio,Colmillo del Vacío,Míticos,ZOGLIN,false
+coloso_fragmentado,Coloso Fragmentado,Míticos,GIANT,false
+rey_de_las_brasas,Rey de las Brasas,Míticos,BLAZE,false
+titan_de_barro,Titán de Barro,Míticos,RAVAGER,false
+leviatan_del_end,Leviatán del End,Míticos,SHULKER,false
+liche_de_la_noche,Liche de la Noche,Míticos,WITHER_SKELETON,false
+colmillo_abismal,Colmillo Abismal,Abismales,ZOGLIN,false
+nharzul_soberano_del_abismo,"Nharzul, Soberano del Abismo",Abismales,WARDEN,false
+maestro_creaking,Maestro Creaking,Abismales,CREAKING,false
+reina_piglin,Reina Piglin,Abismales,PIGLIN_BRUTE,false
+guardian_ancestral,Guardián Ancestral,Abismales,ELDER_GUARDIAN,false
+xalther_emperador_del_vacio,"Xalther, Emperador del Vacío",Abismales,ZOMBIE,false
+morvex_arquero_del_ocaso,"Morvex, Arquero del Ocaso",Abismales,SKELETON,false
+kaelthar_puno_del_averno,"Kaelthar, Puño del Averno",Abismales,PIGLIN_BRUTE,false
+vaelora_oraculo_de_las_sombras,"Vaelora, Oráculo de las Sombras",Abismales,EVOKER,false
+draxion_devastador_eterno,"Draxion, Devastador Eterno",Abismales,RAVAGER,false
+tharok_segador_de_almas,"Tharok, Segador de Almas",Abismales,WITHER_SKELETON,false
+ignaroth_sol_negro,"Ignaroth, Sol Negro",Abismales,BLAZE,false
+zyrakk_custodio_del_umbral,"Zyrakk, Custodio del Umbral",Abismales,SHULKER,false
+thalassar_monarca_del_abismo,"Thalassar, Monarca del Abismo",Abismales,ELDER_GUARDIAN,false
+aerthos_ciclon_de_la_ruina,"Aerthos, Ciclón de la Ruina",Abismales,BREEZE,false
+nyssara_matriarca_de_la_penumbra,"Nyssara, Matriarca de la Penumbra",Abismales,CAVE_SPIDER,false
+velkaris_caminante_del_vacio,"Velkaris, Caminante del Vacío",Abismales,ENDERMAN,false
+brumgor_colmillo_del_eclipse,"Brumgor, Colmillo del Eclipse",Abismales,HOGLIN,false
+korvath_verdugo_del_silencio,"Korvath, Verdugo del Silencio",Abismales,VINDICATOR,false
+ossyra_plaga_de_la_medianoche,"Ossyra, Plaga de la Medianoche",Abismales,BOGGED,false
+thumra_pezuna_del_trueno,"Thumra, Pezuña del Trueno",Minijefes,COW,true
+porvax_colmillo_de_cobre,"Porvax, Colmillo de Cobre",Minijefes,PIG,true
+lanora_vellon_de_escarcha,"Lanora, Vellón de Escarcha",Minijefes,SHEEP,true
+plumak_pico_del_vendaval,"Plumak, Pico del Vendaval",Minijefes,CHICKEN,true
+lepthor_salto_del_eclipse,"Lepthor, Salto del Eclipse",Minijefes,RABBIT,true
+equiron_crin_de_tormenta,"Equiron, Crin de Tormenta",Minijefes,HORSE,true
+rokbur_casco_de_granito,"Rokbur, Casco de Granito",Minijefes,DONKEY,true
+mularis_guardian_del_desfiladero,"Mularis, Guardián del Desfiladero",Minijefes,MULE,true
+dunarak_joroba_del_desierto,"Dunarak, Joroba del Desierto",Minijefes,CAMEL,true
+bambor_abrazo_del_bosque,"Bambor, Abrazo del Bosque",Minijefes,PANDA,true
+axoria_branquia_de_nacar,"Axoria, Branquia de Nácar",Minijefes,AXOLOTL,true
+ocelkar_garra_del_dosel,"Ocelkar, Garra del Dosel",Minijefes,OCELOT,true
+feluna_sombra_de_medianoche,"Feluna, Sombra de Medianoche",Minijefes,CAT,true
+arakor_pluma_del_relampago,"Arakor, Pluma del Relámpago",Minijefes,PARROT,true
+escudrax_coraza_del_yermo,"Escudrax, Coraza del Yermo",Minijefes,ARMADILLO,true
+delfyr_aleta_de_la_marea,"Delfyr, Aleta de la Marea",Minijefes,DOLPHIN,true
+tintor_abrazo_de_tinta,"Tintor, Abrazo de Tinta",Minijefes,SQUID,true
+luminox_faro_de_las_profundidades,"Luminox, Faro de las Profundidades",Minijefes,GLOW_SQUID,true
+sepulkris_guardia_del_osario,"Sepulkris, Guardia del Osario",Raros,ZOMBIE,false
+dunvex_errante_de_arena,"Dunvex, Errante de Arena",Raros,HUSK,false
+marvok_ancla_del_naufragio,"Marvok, Ancla del Naufragio",Raros,DROWNED,false
+osserak_flecha_de_caliza,"Osserak, Flecha de Caliza",Raros,SKELETON,false
+nevrath_vigia_del_hielo,"Nevrath, Vigía del Hielo",Raros,STRAY,false
+lodrakk_flechero_del_pantano,"Lodrakk, Flechero del Pantano",Raros,BOGGED,false
+silvarax_hilandera_del_sotobosque,"Silvarax, Hilandera del Sotobosque",Raros,SPIDER,false
+venorys_aguijon_del_mineral,"Venorys, Aguijón del Mineral",Raros,CAVE_SPIDER,false
+grisvorn_saqueador_de_bruma,"Grisvorn, Saqueador de Bruma",Raros,PILLAGER,false
+hachvex_verdugo_del_robledal,"Hachvex, Verdugo del Robledal",Raros,VINDICATOR,false
+morgalyn_alquimista_del_lodazal,"Morgalyn, Alquimista del Lodazal",Raros,WITCH,false
+cindrakk_brasa_errante,"Cindrakk, Brasa Errante",Raros,BLAZE,false
+gelthos_nucleo_del_fango,"Gelthos, Núcleo del Fango",Raros,SLIME,false
+magmoryx_corazon_de_basalto,"Magmoryx, Corazón de Basalto",Raros,MAGMA_CUBE,false
+velmorn_peregrino_del_umbral,"Velmorn, Peregrino del Umbral",Raros,ENDERMAN,false
+necrovar_portador_de_ceniza,"Necrovar, Portador de Ceniza",Épicos,WITHER_SKELETON,false
+ignelys_sacerdote_de_las_brasas,"Ignelys, Sacerdote de las Brasas",Épicos,BLAZE,false
+vendrak_filo_del_ciclon,"Vendrak, Filo del Ciclón",Épicos,BREEZE,false
+rokmash_ariete_de_obsidiana,"Rokmash, Ariete de Obsidiana",Épicos,RAVAGER,false
+prismorys_ojo_de_la_marea,"Prismorys, Ojo de la Marea",Épicos,GUARDIAN,false
+runeth_invocador_del_espejo,"Runeth, Invocador del Espejo",Épicos,EVOKER,false
+umbrel_guardian_de_la_fractura,"Umbrel, Guardián de la Fractura",Épicos,ENDERMAN,false
+taloryx_cofre_de_las_estrellas,"Taloryx, Cofre de las Estrellas",Épicos,SHULKER,false
+fangrath_embestida_del_crater,"Fangrath, Embestida del Cráter",Épicos,HOGLIN,false
+nocthira_ala_del_presagio,"Nocthira, Ala del Presagio",Épicos,PHANTOM,false
+aurvok_hacha_del_tesoro,"Aurvok, Hacha del Tesoro",Épicos,PIGLIN_BRUTE,false
+ferrak_puno_de_la_forja,"Ferrak, Puño de la Forja",Épicos,IRON_GOLEM,false
+thargran_mariscal_del_amanecer_roto,"Thargran, Mariscal del Amanecer Roto",Legendarios,ZOMBIE,false
+velthar_rey_de_la_cripta,"Velthar, Rey de la Cripta",Legendarios,WITHER_SKELETON,false
+solmara_corona_del_incendio,"Solmara, Corona del Incendio",Legendarios,BLAZE,false
+aerion_heraldo_de_los_cuatro_vientos,"Aerion, Heraldo de los Cuatro Vientos",Legendarios,BREEZE,false
+nautheris_trono_del_oceano,"Nautheris, Trono del Océano",Legendarios,ELDER_GUARDIAN,false
+orvandel_tejedor_de_runas,"Orvandel, Tejedor de Runas",Legendarios,EVOKER,false
+celoryn_custodio_del_firmamento,"Celoryn, Custodio del Firmamento",Legendarios,SHULKER,false
+dromgar_ruina_de_las_murallas,"Dromgar, Ruina de las Murallas",Legendarios,RAVAGER,false
+vaelthos_senor_del_horizonte,"Vaelthos, Señor del Horizonte",Legendarios,ENDERMAN,false
+orothar_soberano_del_bastion,"Orothar, Soberano del Bastión",Legendarios,PIGLIN_BRUTE,false
+glacerys_flecha_del_invierno,"Glacerys, Flecha del Invierno",Legendarios,STRAY,false
+miasvorn_arquero_de_la_pestilencia,"Miasvorn, Arquero de la Pestilencia",Legendarios,BOGGED,false
+althera_bruja_del_crepusculo,"Althera, Bruja del Crepúsculo",Legendarios,WITCH,false
+argenthor_centinela_de_plata,"Argenthor, Centinela de Plata",Legendarios,IRON_GOLEM,false
+pyroth_latido_del_volcan,"Pyroth, Latido del Volcán",Legendarios,MAGMA_CUBE,false
+seryx_reina_de_los_hilos_dorados,"Seryx, Reina de los Hilos Dorados",Legendarios,CAVE_SPIDER,false
+marethon_capitan_del_silencio,"Marethon, Capitán del Silencio",Legendarios,DROWNED,false
+nekrion_emperador_del_osario,"Nekrion, Emperador del Osario",Míticos,ZOMBIE,false
+xerathor_segador_del_horizonte,"Xerathor, Segador del Horizonte",Míticos,WITHER_SKELETON,false
+astraphor_estrella_del_averno,"Astraphor, Estrella del Averno",Míticos,BLAZE,false
+cyrathis_espiral_del_cataclismo,"Cyrathis, Espiral del Cataclismo",Míticos,BREEZE,false
+ocealith_oraculo_de_las_mareas,"Ocealith, Oráculo de las Mareas",Míticos,ELDER_GUARDIAN,false
+arcaneth_maestro_del_vacio_azul,"Arcaneth, Maestro del Vacío Azul",Míticos,EVOKER,false
+chronyx_prision_del_tiempo,"Chronyx, Prisión del Tiempo",Míticos,SHULKER,false
+gravoryx_colmillo_del_fin,"Gravoryx, Colmillo del Fin",Míticos,RAVAGER,false
+elyndor_peregrino_de_los_mil_mundos,"Elyndor, Peregrino de los Mil Mundos",Míticos,ENDERMAN,false
+aurumex_tirano_de_la_corona,"Aurumex, Tirano de la Corona",Míticos,PIGLIN_BRUTE,false
+nycterion_ala_del_sol_muerto,"Nycterion, Ala del Sol Muerto",Míticos,PHANTOM,false
+coralyth_ojo_del_diluvio,"Coralyth, Ojo del Diluvio",Míticos,GUARDIAN,false
+bronthex_bestia_del_ultimo_crater,"Bronthex, Bestia del Último Cráter",Míticos,HOGLIN,false
+hielvorn_arquero_del_cero_eterno,"Hielvorn, Arquero del Cero Eterno",Míticos,STRAY,false
+putrathis_heraldo_del_miasma,"Putrathis, Heraldo del Miasma",Míticos,BOGGED,false
+ysmeria_reina_de_la_alquimia,"Ysmeria, Reina de la Alquimia",Míticos,WITCH,false
+titanorys_puno_de_los_antiguos,"Titanorys, Puño de los Antiguos",Míticos,IRON_GOLEM,false
+calderyx_corazon_del_nucleo,"Calderyx, Corazón del Núcleo",Míticos,MAGMA_CUBE,false
+aranyth_tejedora_de_destinos,"Aranyth, Tejedora de Destinos",Míticos,CAVE_SPIDER,false
+nerathos_almirante_del_gran_abismo,"Nerathos, Almirante del Gran Abismo",Míticos,DROWNED,false
+valthruk_hacha_de_los_juramentos,"Valthruk, Hacha de los Juramentos",Míticos,VINDICATOR,false
+gelumor_devorador_de_minerales,"Gelumor, Devorador de Minerales",Míticos,SLIME,false
+oblivar_soberano_de_la_nada,"Oblivar, Soberano de la Nada",Abismales,WITHER_SKELETON,false
+asterion_sepulcro_de_las_constelaciones,"Asterion, Sepulcro de las Constelaciones",Abismales,SHULKER,false
+maledryn_profeta_del_silencio_eterno,"Maledryn, Profeta del Silencio Eterno",Abismales,EVOKER,false
+vorthel_huracan_del_ultimo_dia,"Vorthel, Huracán del Último Día",Abismales,BREEZE,false
+thaloryx_hambre_del_oceano_negro,"Thaloryx, Hambre del Océano Negro",Abismales,ELDER_GUARDIAN,false
+erebhor_antorcha_del_sol_extinto,"Erebhor, Antorcha del Sol Extinto",Abismales,BLAZE,false
+morthrak_devastador_de_realidades,"Morthrak, Devastador de Realidades",Abismales,RAVAGER,false
+zerathiel_guardian_del_fin_absoluto,"Zerathiel, Guardián del Fin Absoluto",Abismales,ENDERMAN,false

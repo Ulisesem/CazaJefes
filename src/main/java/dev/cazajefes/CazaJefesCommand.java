@@ -75,6 +75,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                this.compass(var1, var4);
                break;
             case "essence":
+            case "esscence":
             case "esencia":
                this.essence(var1, var4);
                break;
@@ -169,7 +170,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          if(args.length==2)out.addAll(BossCatalog.ids());else if(args.length==3){out.add("here");var section=plugin.getConfig().getConfigurationSection("spawnpoints");if(section!=null)out.addAll(section.getKeys(false));}
       }else if(isAdmin(sender,"rareitemhunter.admin.essence")){
          if(root.equals("give")){if(args.length==2)out.add("rare");else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else if(args.length==4){out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}else if(args.length==5)out.addAll(onlinePlayerNames());}}
-         else if(root.equals("rare")||root.equals("book")||root.equals("essence")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():items.catalogIds());else if(args.length==3){for(int level=1;level<=items.maxLevel(args[1].toLowerCase(java.util.Locale.ROOT));level++)out.add(Integer.toString(level));out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
+         else if(root.equals("rare")||root.equals("book")||root.equals("essence")||root.equals("esscence")||root.equals("esencia")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():items.catalogIds());else if(args.length==3){for(int level=1;level<=items.maxLevel(args[1].toLowerCase(java.util.Locale.ROOT));level++)out.add(Integer.toString(level));out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
          else if(root.equals("get")){if(args.length==2)out.addAll(List.of("compass","essence","fragment","tribute","rare","hacha","espada","arco"));else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else{out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}}else if(args.length==3)out.addAll(onlinePlayerNames());}
          else if(root.equals("armor")||root.equals("weapon")){if(args.length==2)out.addAll(List.of("comun","raro","epico","legendario","mitico","abismal"));else if(args.length==3)out.addAll(onlinePlayerNames());}
          else if((root.equals("fragment")||root.equals("tribute")||root.equals("compass"))&&args.length==2)out.addAll(onlinePlayerNames());
@@ -231,13 +232,13 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             ? (var2.length > var5 ? this.plugin.getServer().getPlayerExact(var2[var5]) : (var1 instanceof Player var8 ? var8 : null))
             : (var2.length > 1 ? this.plugin.getServer().getPlayerExact(var2[1]) : (var1 instanceof Player var7 ? var7 : null));
          if (var6 == null) {
-            var1.sendMessage("Uso: /ri essence <id> [nivel 1-5; Haste 1-6] [jugador] • también: /ri essence [jugador]");
+            var1.sendMessage("Uso: /ri essence <id> [nivel] [jugador] • también: /ri essence [jugador]");
          } else if (!var3 || var4 >= 1 && var4 <= this.items.maxLevel(var2[1])) {
-            ItemStack var10 = var3 ? this.items.rareBook(var2[1].toLowerCase(), var4) : this.items.essence();
+            ItemStack var10 = var3 ? this.items.commandEssence(var2[1].toLowerCase(), var4) : this.items.essence();
             var6.getInventory().addItem(new ItemStack[]{var10}).values().forEach(var1x -> var6.getWorld().dropItemNaturally(var6.getLocation(), var1x));
             var1.sendMessage(
                Component.text(
-                  (var3 ? (this.items.spellIds().contains(var2[1].toLowerCase()) ? "Libro de " : "Esencia de ") + var2[1] + " nivel " + var4 : "Esencia Rara")
+                  (var3 ? "Esencia de " + var2[1] + " nivel " + var4 : "Esencia Rara")
                      + " entregada a "
                      + var6.getName()
                      + ".",

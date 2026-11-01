@@ -1,3 +1,7 @@
+# CazaJefes 1.24.1
+
+Comandos de libros y esencias separados. [Detalles](docs/CAMBIOS-1.24.1.md).
+
 # CazaJefes 1.24.0
 
 Rares de impacto rediseñadas, probabilidades por nivel, avisos de activación y cambios de movimiento. [Cambios completos](docs/CAMBIOS-1.24.0.md).
