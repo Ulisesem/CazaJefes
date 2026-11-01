@@ -1,3 +1,7 @@
+# CazaJefes 1.24.0
+
+Rares de impacto rediseñadas, probabilidades por nivel, avisos de activación y cambios de movimiento. [Cambios completos](docs/CAMBIOS-1.24.0.md).
+
 # CazaJefes 1.23.4
 
 Entrega administrativa de libros corregida y categorías de recetas diferenciadas. [Detalles](docs/CAMBIOS-1.23.4.md).
