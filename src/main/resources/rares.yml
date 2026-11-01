@@ -79,3 +79,33 @@ fulgor_alba: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
 ceniza_solar: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
 sello_ruina: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
 impacto_sismico: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+
+# Rares Jail 1.27.0: mayor nivel equipado, recargas por rare.
+ultimo_aliento: { useCost: 0, maxLvl: 3, cooldownSeconds: 28 }
+paso_rescate: { useCost: 0, maxLvl: 3, cooldownSeconds: 18 }
+piel_adamantina: { useCost: 0, maxLvl: 3, cooldownSeconds: 8 }
+pulso_represalia: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+sangre_serena: { useCost: 0, maxLvl: 3, cooldownSeconds: 16 }
+ancla_firme: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+velo_niebla: { useCost: 0, maxLvl: 3, cooldownSeconds: 22 }
+antidoto_carmesi: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+reserva_forja: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+guardia_ceniza: { useCost: 0, maxLvl: 3, cooldownSeconds: 8 }
+voto_cazador: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+combo_ruptura: { useCost: 0, maxLvl: 3, cooldownSeconds: 8 }
+filo_persecucion: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+colmillo_ponzona: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+cazador_espectral: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+veto_vital: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+cadena_gravitoria: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+martillo_carcelero: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+sello_desorientador: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+paso_duelista: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+cosecha_hierro: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+vigia_fuga: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+filo_ascenso: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+furia_herido: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+respiro_minero: { useCost: 0, maxLvl: 3, cooldownSeconds: 15 }
+forja_errante: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+llama_purificadora: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+ruptura_combo: { useCost: 0, maxLvl: 3, cooldownSeconds: 18 }
