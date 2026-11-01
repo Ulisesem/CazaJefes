@@ -64,3 +64,10 @@ ancla_abisal: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
 marea_ascendente: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
 resaca: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
 conductor_tempestades: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+
+# Nuevas rares 1.25.0
+flecha_silencio: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
+impacto_ariete: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+municion_necrotica: { useCost: 0, maxLvl: 3, cooldownSeconds: 12 }
+destello_umbral: { useCost: 0, maxLvl: 3, cooldownSeconds: 14 }
+grillete_hierro: { useCost: 0, maxLvl: 3, cooldownSeconds: 10 }
