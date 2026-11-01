@@ -1,3 +1,7 @@
+# CazaJefes 1.27.0 · Legado del Presidio
+
+28 rares de armadura, 28 de espadas/hachas y navegación actualizada. [Lista y cambios completos](docs/CAMBIOS-1.27.0.md).
+
 # CazaJefes 1.26.0
 
 Diez rares de arco, diez de ballesta y recetario reorganizado. [Cambios completos](docs/CAMBIOS-1.26.0.md).

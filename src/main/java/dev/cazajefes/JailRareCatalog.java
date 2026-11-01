@@ -1,0 +1,40 @@
+package dev.cazajefes;
+import java.util.*;
+import org.bukkit.Material;
+final class JailRareCatalog {
+ record Spec(String id,String title,RareCompatibility.Group group,int cooldown,String effect,String description,Material reagent,String material){}
+ static final List<Spec> ALL=List.of(
+ new Spec("ultimo_aliento","Último Aliento (LastStand)",RareCompatibility.Group.ARMOR,28,"heal_low","Al recibir daño que te deja bajo 35% de vida: 25/35/45% de curarte 1/2/3 HP. Máximo III. Recarga 28 s.",Material.GOLDEN_APPLE,"filamento_tormenta"),
+ new Spec("paso_rescate","Paso del Fugitivo (Escape)",RareCompatibility.Group.ARMOR,18,"speed_low","Bajo 35% de vida: 25/35/45% al recibir daño de ganar Velocidad II durante 2/3/4 s. Máximo III. Recarga 18 s.",Material.RABBIT_FOOT,"perla_profundidades"),
+ new Spec("piel_adamantina","Piel Adamantina (Guard)",RareCompatibility.Group.ARMOR,8,"guard","25/35/45% de reducir el impacto recibido un 6/9/12%. Máximo III. Recarga 8 s.",Material.DIAMOND,"cristal_escarcha"),
+ new Spec("pulso_represalia","Pulso del Presidio (Reprisal)",RareCompatibility.Group.ARMOR,12,"repel","25/35/45% al recibir un golpe cuerpo a cuerpo de repeler al atacante y debilitarlo 2/3/4 s. Máximo III. Recarga 12 s.",Material.BREEZE_ROD,"filamento_tormenta"),
+ new Spec("sangre_serena","Sangre Serena (Cleanse)",RareCompatibility.Group.ARMOR,16,"cleanse","Si tienes Veneno o Wither: 25/35/45% al recibir daño de quitar uno de esos efectos. Máximo III. Recarga 16 s.",Material.HONEY_BOTTLE,"perla_profundidades"),
+ new Spec("ancla_firme","Raíz Inquebrantable (Anchor)",RareCompatibility.Group.ARMOR,10,"anchor","25/35/45% al recibir daño de reducir el próximo empuje horizontal 30/40/50% durante 0,75 s. Máximo III. Recarga 10 s.",Material.IRON_CHAIN,"cristal_escarcha"),
+ new Spec("velo_niebla","Velo del Prófugo (Veil)",RareCompatibility.Group.ARMOR,22,"veil","25/35/45% al recibir daño de obtener Invisibilidad durante 2/3/4 s. La armadura sigue visible. Máximo III. Recarga 22 s.",Material.INK_SAC,"filamento_tormenta"),
+ new Spec("antidoto_carmesi","Antídoto Carmesí (Antidote)",RareCompatibility.Group.ARMOR,12,"antidote","25/35/45% de rechazar un efecto de Veneno entrante. No elimina otros efectos. Máximo III. Recarga 12 s.",Material.MILK_BUCKET,"perla_profundidades"),
+ new Spec("reserva_forja","Reserva del Herrero (Mend)",RareCompatibility.Group.ARMOR,10,"repair_armor","25/35/45% al recibir daño de reparar 8/12/16 puntos en la pieza equipada más desgastada. Máximo III. Recarga 10 s.",Material.ANVIL,"cristal_escarcha"),
+ new Spec("guardia_ceniza","Guardia de Ceniza (EmberWard)",RareCompatibility.Group.ARMOR,8,"fire_guard","25/35/45% de reducir 20/35/50% un impacto de fuego, lava o suelo caliente. Máximo III. Recarga 8 s.",Material.MAGMA_BLOCK,"filamento_tormenta"),
+ new Spec("voto_cazador","Voto del Centinela (Focus)",RareCompatibility.Group.ARMOR,14,"focus","25/35/45% al recibir un proyectil de preparar 10/15/20% extra en tu próximo golpe cuerpo a cuerpo durante 4 s. Máximo III. Recarga 14 s.",Material.TARGET,"perla_profundidades"),
+ new Spec("combo_ruptura","Ruptura del Presidio (Combo)",RareCompatibility.Group.MELEE,8,"combo","El tercer impacto al mismo rival en 5 s añade 1/2/3 HP. Se cuentan solo golpes con daño. Máximo III. Recarga 8 s.",Material.FLINT,"engranaje_umbrio"),
+ new Spec("filo_persecucion","Filo del Rastreador (Pursuit)",RareCompatibility.Group.MELEE,10,"pursuit","25/35/45% de añadir 5/10/15% de daño contra un objetivo que corre o se mueve rápidamente. Máximo III. Recarga 10 s.",Material.SUGAR,"polvora_resonante"),
+ new Spec("colmillo_ponzona","Colmillo de Ponzoña (VenomStrike)",RareCompatibility.Group.MELEE,10,"venom","25/35/45% de añadir 10/15/20% de daño contra un objetivo ya envenenado. Máximo III. Recarga 10 s.",Material.SPIDER_EYE,"pluma_vendaval"),
+ new Spec("cazador_espectral","Cazador Espectral (RevealStrike)",RareCompatibility.Group.MELEE,10,"spectral","25/35/45% de añadir 10/15/20% de daño contra objetivos con Invisibilidad o Brillo. Máximo III. Recarga 10 s.",Material.GLOW_INK_SAC,"engranaje_umbrio"),
+ new Spec("veto_vital","Veto del Sepulturero (Hex)",RareCompatibility.Group.MELEE,14,"hex","25/35/45% de reducir las curas del rival 10/20/30% durante 4 s. La reducción combinada por estas rares no supera 50%. Máximo III. Recarga 14 s.",Material.WITHER_ROSE,"polvora_resonante"),
+ new Spec("cadena_gravitoria","Cadena del Carcelero (Pull)",RareCompatibility.Group.MELEE,12,"pull","25/35/45% de atraer brevemente al objetivo si está a más de 2 bloques. Máximo III. Recarga 12 s.",Material.LEAD,"pluma_vendaval"),
+ new Spec("martillo_carcelero","Martillo del Carcelero (Launch)",RareCompatibility.Group.MELEE,14,"launch","25/35/45% de aplicar un impulso vertical creciente al objetivo al golpear. Máximo III. Recarga 14 s.",Material.HEAVY_CORE,"engranaje_umbrio"),
+ new Spec("sello_desorientador","Sello del Desconcierto (Daze)",RareCompatibility.Group.MELEE,14,"daze","25/35/45% de aplicar Debilidad I 2/3/4 s y Náuseas 2 s. No bloquea comandos. Máximo III. Recarga 14 s.",Material.FERMENTED_SPIDER_EYE,"polvora_resonante"),
+ new Spec("paso_duelista","Paso del Duelista (Strafe)",RareCompatibility.Group.MELEE,12,"stride","25/35/45% al golpear de ganar Velocidad I durante 2/3/4 s. Máximo III. Recarga 12 s.",Material.FEATHER,"pluma_vendaval"),
+ new Spec("cosecha_hierro","Cosecha del Verdugo (Leech)",RareCompatibility.Group.MELEE,14,"harvest","25/35/45% al golpear un rival bajo 40% de vida de recuperar 1/2/3 HP. Máximo III. Recarga 14 s.",Material.GHAST_TEAR,"engranaje_umbrio"),
+ new Spec("vigia_fuga","Vigía de la Fuga (Track)",RareCompatibility.Group.MELEE,12,"track","25/35/45% de revelar con Brillo al objetivo durante 3/4/5 s. Máximo III. Recarga 12 s.",Material.GLOWSTONE_DUST,"polvora_resonante"),
+ new Spec("filo_ascenso","Filo del Firmamento (Skycut)",RareCompatibility.Group.MELEE,10,"sky","25/35/45% de añadir 8/12/16% de daño contra objetivos en el aire y por encima de ti. Máximo III. Recarga 10 s.",Material.PHANTOM_MEMBRANE,"pluma_vendaval"),
+ new Spec("furia_herido","Juramento del Herido (Fury)",RareCompatibility.Group.MELEE,12,"fury","Bajo 35% de tu vida: 25/35/45% de añadir 8/12/16% de daño al golpear. Máximo III. Recarga 12 s.",Material.REDSTONE_BLOCK,"engranaje_umbrio"),
+ new Spec("respiro_minero","Respiro del Minero (Sustain)",RareCompatibility.Group.MELEE,15,"food","Con menos de 14 puntos de comida: 25/35/45% al golpear de recuperar 1/2/3 puntos de comida. Máximo III. Recarga 15 s.",Material.GOLDEN_CARROT,"polvora_resonante"),
+ new Spec("forja_errante","Forja Errante (Temper)",RareCompatibility.Group.MELEE,12,"repair_weapon","25/35/45% al golpear de reparar 4/8/12 puntos de durabilidad del arma usada, si sigue en tu mano. Máximo III. Recarga 12 s.",Material.NETHERITE_SCRAP,"pluma_vendaval"),
+ new Spec("llama_purificadora","Sentencia de Brasas (ScorchStrike)",RareCompatibility.Group.MELEE,10,"scorch","25/35/45% de añadir 8/12/16% de daño contra un objetivo que ya está ardiendo. Máximo III. Recarga 10 s.",Material.FIRE_CHARGE,"engranaje_umbrio"),
+ new Spec("ruptura_combo","Rompecombos del Duelista (Breaker)",RareCompatibility.Group.MELEE,18,"breaker","Tras recibir tres golpes del mismo enemigo en 5 s, tu siguiente golpe contra él lo repele y aplica Debilidad I 2/3/4 s. Máximo III. Recarga 18 s.",Material.PISTON,"polvora_resonante"));
+ static Spec get(String id){return ALL.stream().filter(s->s.id().equals(id)).findFirst().orElse(null);}
+ static double chance(int level){return .15+.1*Math.max(1,Math.min(3,level));}
+ static double outgoingCap(double multiplier){return Math.min(1.5,Math.max(1,multiplier));}
+ static double defensiveCap(double factor){return Math.max(.5,Math.min(1,factor));}
+ static void addDefinitions(Map<String,RareDefinitions.Definition> map){for(var s:ALL)map.put(s.id(),new RareDefinitions.Definition(s.id(),s.title(),3,0,s.cooldown(),s.group(),s.description(),List.of(s.reagent(),Material.ECHO_SHARD,s.reagent(),Material.NETHERITE_SCRAP,Material.AIR,Material.DIAMOND,s.reagent(),Material.AMETHYST_BLOCK,s.reagent())));}
+}

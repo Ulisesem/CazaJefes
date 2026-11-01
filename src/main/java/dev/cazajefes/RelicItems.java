@@ -118,48 +118,7 @@ public final class RelicItems implements Listener {
       var definition=RareDefinitions.get(var1);if(definition!=null)return definition.maximum();return var1.equals("despertar")?1:ArmorRareRules.title(var1)!=null?ArmorRareRules.maximum(var1):Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
    }
 
-   public List<String> catalogIds() {
-      ArrayList var1 = new ArrayList<>(
-         List.of(
-            "poison",
-            "backstab",
-            "blinding",
-            "calllighting",
-            "confuse",
-            "disarm",
-            "slow",
-            "vampiricregeneration",
-            "weaken",
-            "execute",
-            "bleed",
-            "fertilize",
-            "meltobsidian",
-            "smelt",
-            "spore",
-            "veinminer",
-            "treefeller",
-            "magneto",
-            "burst",
-            "craftitem",
-            "fireresistance",
-            "greaterburst",
-            "haste",
-            "invisibility",
-            "magicbag",
-            "repairitem",
-            "durability",
-            "regeneration",
-            "nofalldamage",
-            "doublejump",
-            "fly",
-            "hardy", "strength", "turtle", "garlic",
-            "saturacion",
-            "flame"
-         )
-      );
-      var1.addAll(this.enchantIds());var1.add("despertar");for(String id:RareDefinitions.ALL.keySet())if(!var1.contains(id))var1.add(id);var1.add("aura_esporas");
-      var1.removeIf(id->RareAliases.duplicate((String)id));return var1;
-   }
+   public List<String> catalogIds() {return RareCollections.ids();}
 
    public ItemStack rareBook(String var1) {
       return this.rareBook(var1, 1);
@@ -252,6 +211,7 @@ public final class RelicItems implements Listener {
       String properties=item.getItemMeta().getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);
       return properties!=null&&Arrays.stream(properties.split(",")).map(RareAliases::canonical).anyMatch(property::equals)&&RareCompatibility.accepts(property,item.getType())?Math.min(maxLevel(property),Math.max(0,propertyLevel(item,property))):0;
    }
+   Map<String,Integer> activeProperties(ItemStack item){Map<String,Integer> out=new LinkedHashMap<>();if(item==null||!item.hasItemMeta())return out;var meta=item.getItemMeta();String stored=meta.getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);if(stored==null)return out;Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));for(String raw:stored.split(",")){String id=RareAliases.canonical(raw);if(rareConfig.getDouble(id+".useCost",0)<0||!RareCompatibility.accepts(id,item.getType()))continue;int n=Math.min(maxLevel(id),Math.max(0,levels.getOrDefault(id,1)));if(n>0)out.merge(id,n,Math::max);}return out;}
    public ItemStack armorSet(BossCatalog.Tier tier,int slot){return EquipmentSets.armor(tier,slot,itemKey);}
    public ItemStack weaponSet(BossCatalog.Tier tier,int slot){return EquipmentSets.weapon(tier,slot,itemKey);}
    int armorLevel(Player player,String id){return armorRares.level(player,id);}
@@ -1388,6 +1348,7 @@ public final class RelicItems implements Listener {
       var definition=supplied==null?null:RareDefinitions.get(supplied);
       if(definition!=null){var3=new String[]{"ABC","DEF","GHI"};var4=new HashMap<>();for(int index=0;index<9;index++){Material material=definition.ingredients().get(index);var4.put((char)('A'+index),material==Material.AIR?new ExactChoice(essence()):new MaterialChoice(material));}}
       if(supplied!=null&&RangedRareCatalog.get(supplied)!=null){var spec=RangedRareCatalog.get(supplied);var4.put('B',new ExactChoice(rangedMaterial(spec.material())));var4.put('H',new ExactChoice(rangedMaterial(spec.material())));var4.put('D',bossCoreChoice());var4.put('F',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)));}
+      if(supplied!=null&&JailRareCatalog.get(supplied)!=null){var spec=JailRareCatalog.get(supplied);var4.put('B',new ExactChoice(rangedMaterial(spec.material())));var4.put('H',new ExactChoice(rangedMaterial(spec.material())));var4.put('D',bossCoreChoice());var4.put('F',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)));}
       var3 = var3.clone();
       var4 = new HashMap<>(var4);
       try {
