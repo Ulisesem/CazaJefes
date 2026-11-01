@@ -1,3 +1,7 @@
+# CazaJefes 1.25.0
+
+Siete esencias por arma, presentación de rares renovada y Relevo sobre desniveles. [Detalles](docs/CAMBIOS-1.25.0.md).
+
 # CazaJefes 1.24.1
 
 Comandos de libros y esencias separados. [Detalles](docs/CAMBIOS-1.24.1.md).
