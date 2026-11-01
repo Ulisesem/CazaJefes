@@ -1,3 +1,7 @@
+# CazaJefes 1.25.1
+
+Carga en ambos recetarios y explosión radial de ballesta. [Detalles](docs/CAMBIOS-1.25.1.md).
+
 # CazaJefes 1.25.0
 
 Siete esencias por arma, presentación de rares renovada y Relevo sobre desniveles. [Detalles](docs/CAMBIOS-1.25.0.md).

@@ -12,7 +12,7 @@ final class RangedRareCatalog {
  new Spec("marca_cazador","Herida del Eclipse",Material.BOW,4,8,"pluma_vendaval","20/30/40/50% al acertar de causar Wither I durante 2/4/6/8 s y añadir 1/2/3/4 HP al impacto. Sustituye Marca del Cazador.",Material.SPECTRAL_ARROW),
  new Spec("estela_boreal","Estela Boreal",Material.BOW,3,10,"cristal_escarcha","25/40/55% de aplicar Lentitud I/II/III durante 3 s al acertar, con una corona helada visible y aviso.",Material.BLUE_ICE),
  new Spec("pulso_retorno","Pulso de Retorno",Material.BOW,3,12,"perla_profundidades","20/35/50% de drenar 1/2/3 HP adicionales al impactar y curarte según la vida realmente perdida por el rival. Funciona cerca o lejos.",Material.GHAST_TEAR),
- new Spec("ojo_tormenta","Descarga de Tormenta",Material.BOW,3,8,"filamento_tormenta","20/35/50% de añadir 1/2/3 HP al impacto y aplicar Lentitud I durante 3 s, con destello eléctrico y sonido. Sustituye Ojo de Tormenta.",Material.LIGHTNING_ROD),
+ new Spec("ojo_tormenta","Descarga de Tormenta",Material.BOW,3,8,"filamento_tormenta","20/35/50% de añadir 1/2/3 HP al impacto y aplicar Lentitud I durante 3 s, con destello eléctrico y sonido. Recarga 8 s.",Material.LIGHTNING_ROD),
  new Spec("ancla_abisal","Ancla Abisal",Material.TRIDENT,3,10,"perla_profundidades","Un lanzamiento marca al rival 6 s. Un golpe cuerpo a cuerpo con este tridente consume la marca: +15% de daño por nivel y atracción.",Material.IRON_CHAIN),
  new Spec("marea_ascendente","Marea Ascendente",Material.TRIDENT,3,12,"perla_profundidades","Alternar lanzamiento y golpe cuerpo a cuerpo al mismo rival en 6 s libera una onda que empuja hasta 8 enemigos visibles a 4 bloques.",Material.PRISMARINE_CRYSTALS),
  new Spec("resaca","Resaca",Material.TRIDENT,3,12,"cristal_escarcha","Un tridente que golpea un bloque deja un remolino 3 s: Lentitud I–III durante 2 s a enemigos visibles a 3 bloques.",Material.NAUTILUS_SHELL),
@@ -21,6 +21,7 @@ final class RangedRareCatalog {
  new Spec("municion_necrotica","Munición Necrótica",Material.CROSSBOW,3,12,"polvora_resonante","20/35/50% de aplicar Wither I durante 2/4/6 s al acertar. Respeta las inmunidades naturales.",Material.ROTTEN_FLESH),
  new Spec("destello_umbral","Destello del Umbral",Material.CROSSBOW,3,14,"filamento_tormenta","20/35/50% de aplicar Ceguera durante 1/2/3 s al acertar, con partículas oscuras y aviso.",Material.GLOW_INK_SAC),
  new Spec("grillete_hierro","Grillete de Hierro",Material.CROSSBOW,3,10,"cristal_escarcha","20/35/50% de aplicar Lentitud I/II/III durante 2 s al impactar, con anillos de partículas.",Material.IRON_INGOT),
+ new Spec("detonacion_grieta","Detonación de la Grieta",Material.CROSSBOW,3,14,"polvora_resonante","Impactar un bloque deja una carga visible que explota tras 2 s: radio 3/4/5 bloques y daño base 6/9/12 HP según nivel. No destruye bloques. Recarga 14 s.",Material.FIRE_CHARGE),
  new Spec("conductor_tempestades","Conductor de Tempestades",Material.TRIDENT,3,12,"filamento_tormenta","Tres lanzamientos acertados al mismo rival en 8 s descargan 2 HP por nivel a un segundo enemigo visible a 4 bloques. Sin fuego.",Material.COPPER_BLOCK));
  static boolean compatible(Spec spec,Material weapon){return spec.weapon()==weapon||spec.id().equals("carga_inestable")&&weapon==Material.CROSSBOW;}
  static Spec get(String id){return ALL.stream().filter(s->s.id().equals(id)).findFirst().orElse(null);}

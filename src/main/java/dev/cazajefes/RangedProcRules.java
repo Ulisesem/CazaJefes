@@ -4,5 +4,7 @@ final class RangedProcRules {
  static boolean rolls(String id,int level,double roll){return roll>=0&&roll<chance(id,level);}
  static boolean direct(String id){return switch(id){case "flecha_silencio","impacto_ariete","municion_necrotica","destello_umbral","grillete_hierro","carga_inestable","cerrojo_vacio","relevo_fantasma","pulso_retorno","ojo_tormenta","marca_cazador","estela_boreal","quebranto"->true;default->false;};}
  static double extraDamage(String id,int level){return switch(id){case "carga_inestable"->3*Math.max(1,Math.min(4,level));case "pulso_retorno","ojo_tormenta"->Math.max(1,Math.min(3,level));case "marca_cazador"->Math.max(1,Math.min(4,level));default->0;};}
+ static double blastDamage(int level){return 3+3*Math.max(1,Math.min(3,level));}
+ static double blastRadius(int level){return 2+Math.max(1,Math.min(3,level));}
  static double stepDistance(int level,double roll){return Math.max(1,Math.min(4,level))+Math.max(0,Math.min(1,roll));}
 }
