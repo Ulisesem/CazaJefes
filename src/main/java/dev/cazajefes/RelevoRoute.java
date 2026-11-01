@@ -2,6 +2,7 @@ package dev.cazajefes;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import java.util.function.Predicate;
+/** A blink checks its destination; intervening obstacles do not block activation. */
 final class RelevoRoute {
- static Location destination(Location from,Vector side,double distance,Predicate<Location> clear){for(double rise=0;rise<=1.25;rise+=.25){boolean valid=true;for(double y=0;y<=rise;y+=.25)if(!clear.test(from.clone().add(0,y,0))){valid=false;break;}if(!valid)continue;for(double d=.2;d<=distance+.19;d+=.2)if(!clear.test(from.clone().add(side.clone().multiply(Math.min(d,distance))).add(0,rise,0))){valid=false;break;}if(valid)return from.clone().add(side.clone().multiply(distance)).add(0,rise,0);}return null;}
+ static Location destination(Location from,Vector side,double distance,Predicate<Location> clear){for(double angle:new double[]{0,30,-30,60,-60,90,-90,180}){Vector direction=side.clone().rotateAroundY(Math.toRadians(angle));for(double offset:new double[]{0,.25,-.25,.5,-.5,.75,-.75,1,-1,1.5,-1.5,2,-2,2.5,-2.5,3,-3}){Location at=from.clone().add(direction.clone().multiply(distance)).add(0,offset,0);if(clear.test(at))return at;}}return null;}
 }
