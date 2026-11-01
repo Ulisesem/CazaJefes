@@ -1,10 +1,10 @@
 {
-  "version": "1.25.1",
-  "sha256": "4e41bc18f2bcba23b36cd08acf797430bb8aa15f21dd05865fa8e5b05a18ca56",
-  "size": 618966,
+  "version": "1.25.2",
+  "sha256": "e259b600dbd987708ee285e271fc0fa46b1e22b80420c092cce72684378027ce",
+  "size": 619157,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 237,
+  "tests": 239,
   "server_executed": false,
   "categories": {
     "Legendarios": 28,
