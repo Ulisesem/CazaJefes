@@ -1,10 +1,10 @@
 {
-  "version": "1.25.2",
-  "sha256": "e259b600dbd987708ee285e271fc0fa46b1e22b80420c092cce72684378027ce",
-  "size": 619157,
+  "version": "1.26.0",
+  "sha256": "b48fa5f8fd44f16b94cdafe0f1eeebc1b7b1dfb71eae519ab8c53a1ecc0b2450",
+  "size": 622563,
   "zip_crc": "OK",
   "bytecode_major": 65,
-  "tests": 239,
+  "tests": 242,
   "server_executed": false,
   "categories": {
     "Legendarios": 28,
@@ -236,6 +236,8 @@
     "dev/cazajefes/RebirthRules.class",
     "dev/cazajefes/RecipeAlchemy$Profile.class",
     "dev/cazajefes/RecipeAlchemy.class",
+    "dev/cazajefes/RecipePresentation$1.class",
+    "dev/cazajefes/RecipePresentation.class",
     "dev/cazajefes/RecipeSettings.class",
     "dev/cazajefes/RelevoRoute.class",
     "dev/cazajefes/RelicItems$1.class",
