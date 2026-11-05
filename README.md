@@ -1,3 +1,7 @@
+# CazaJefes 1.29.0 · Combate y bestiario
+
+Los 168 jefes en JSON, ataques animados y retratos en el bestiario. [Cambios y configuración](docs/CAMBIOS-1.29.0.md).
+
 # CazaJefes 1.28.0 · Jefes JSON
 
 Crea jefes personalizados y configura su ataque final. [Guía y ejemplo](docs/CAMBIOS-1.28.0.md).
