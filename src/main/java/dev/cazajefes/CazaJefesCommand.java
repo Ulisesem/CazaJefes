@@ -58,6 +58,9 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                ((CazaJefesPlugin)plugin).statistics.command(var1,var4);break;
             case "particulas":
                ((CazaJefesPlugin)plugin).auras.command(var1,var4);break;
+            case "provocar":
+               if(var1 instanceof Player player) ThreatTable.taunt(player);
+               break;
             case "diagnostico":
                ((CazaJefesPlugin)plugin).damageDiagnostics.inspect(var1);break;
             case "spawnpoint":
@@ -157,7 +160,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
 
    public List<String> onTabComplete(CommandSender sender,Command command,String label,String[] args){
       if(args.length==0)return List.of();List<String> out=new ArrayList<>();String root=AdminArguments.root(args[0]);
-      if(args.length==1){out.addAll(List.of("help","estadisticas","ranking","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
+      if(args.length==1){
+         out.add("provocar");out.addAll(List.of("help","estadisticas","ranking","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
          for(String action:List.of("spawnpoint","egg","boss","reload"))if(isAdmin(sender,"rareitemhunter.admin."+action))out.add(action);
          if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.add("diagnostico");
       }else if(root.equals("particulas")){if(args.length==2)out.addAll(List.of("baja","media","alta","off"));}
@@ -1311,6 +1315,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          this.deny(var1);
       } else {
          this.plugin.reloadConfig();
+         CombatScripts.load((CazaJefesPlugin)this.plugin);
          ((CazaJefesPlugin)this.plugin).recipeSettings.reload();
          this.items.reloadRares();
          var1.sendMessage(Component.text("Configuración recargada.", NamedTextColor.GREEN));

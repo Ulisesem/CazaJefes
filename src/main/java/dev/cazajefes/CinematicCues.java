@@ -61,10 +61,14 @@ final class CinematicCues implements Listener {
    }
 
    boolean play(LivingEntity boss, BossCatalog.Definition definition, BossStyle.Beat beat, List<Player> audience) {
+      return play(boss, definition, beat, audience, true);
+   }
+
+   boolean play(LivingEntity boss, BossCatalog.Definition definition, BossStyle.Beat beat, List<Player> audience, boolean sounds) {
       Location at = boss.getLocation();
       BossStyle style = BossStyle.of(boss.getType());
       float pitch = switch (beat) { case PREPARE -> .86f; case IMPACT -> .98f; case RECOVERY -> 1.28f; };
-      for (Player player : audience) {
+      if (sounds) for (Player player : audience) {
          if (loaded.contains(player.getUniqueId())) player.playSound(at, style.key(beat), SoundCategory.HOSTILE, .72f, pitch);
          else player.playSound(at, style.sound(beat), SoundCategory.HOSTILE, .72f, pitch);
       }

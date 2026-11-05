@@ -1,0 +1,53 @@
+# Los tiempos de preparación y advertencia están en ticks. 20 ticks = 1 segundo.
+skills:
+  corte_del_presidio:
+    name: Corte del Presidio
+    pattern: CONE
+    effect: WEAKNESS
+    radius: 7
+    damage: 26
+    pulses: 3
+    cooldown: 13
+    prepare-ticks: 20
+    warning-ticks: 30
+    interval-ticks: 20
+    recovery-ticks: 25
+  fractura_del_vacio:
+    name: Fractura del Vacío
+    pattern: BEAM
+    effect: SLOWNESS
+    radius: 9
+    damage: 34
+    pulses: 2
+    cooldown: 16
+  lluvia_de_obsidiana:
+    name: Lluvia de Obsidiana
+    pattern: METEORS
+    effect: WITHER
+    radius: 8
+    damage: 36
+    pulses: 3
+    cooldown: 18
+  llamada_del_presidio:
+    name: Llamada del Presidio
+    pattern: NOVA
+    effect: WEAKNESS
+    radius: 6
+    damage: 0
+    cooldown: 22
+    summon: true
+
+bosses:
+  default:
+    phase-2-health: 65
+    phase-3-health: 30
+    phase-1: [nativo_1, nativo_2, nativo_3]
+    phase-2: [nativo_1, nativo_2, nativo_3, nativo_4]
+    phase-3: [nativo_1, definitivo]
+  gorath_quebrantador_de_mundos:
+    phase-2-health: 70
+    phase-3-health: 30
+    phase-1: [corte_del_presidio, llamada_del_presidio]
+    phase-2: [fractura_del_vacio, corte_del_presidio, llamada_del_presidio]
+    phase-3: [lluvia_de_obsidiana, definitivo]
+    horde: [ZOMBIE:TANK, EVOKER:HEALER, SKELETON:ARCHER, HUSK:EXPLOSIVE, ZOMBIE:GUARD, ZOMBIE:GUARD]

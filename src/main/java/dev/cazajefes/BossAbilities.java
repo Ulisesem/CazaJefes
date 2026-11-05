@@ -48,12 +48,12 @@ final class BossAbilities implements Listener {
  private boolean recovering(LivingEntity boss){Long end=recovery.get(boss.getUniqueId());if(end==null)return false;if(System.currentTimeMillis()>=end){recovery.remove(boss.getUniqueId());return false;}return true;}
  private final Map<UUID,Tracked> tracked=new HashMap<>();
  private final org.bukkit.scheduler.BukkitTask burstTimer;
- private final Map<UUID,StageAttackRules.Rotation> rotations=new HashMap<>();
+ private final Map<UUID,CombatScripts.Rotation> rotations=new HashMap<>();
  private final BossDisplacement displacement;private final AbyssalGaze gaze;
  private final CazaJefesPlugin plugin;private final NamespacedKey readyKey;private final Map<UUID,Cast> casts=new HashMap<>();
  BossAbilities(CazaJefesPlugin plugin){this.plugin=plugin;gaze=new AbyssalGaze(plugin);plugin.getServer().getPluginManager().registerEvents(gaze,plugin);displacement=new BossDisplacement(plugin);readyKey=new NamespacedKey(plugin,"ultimate_ready_at");burstTimer=plugin.getServer().getScheduler().runTaskTimer(plugin,this::tickBursts,5,5);}
  void track(LivingEntity boss,BossCatalog.Definition definition){tracked.put(boss.getUniqueId(),new Tracked(boss,definition));}
- private void tickBursts(){long now=System.currentTimeMillis();for(var it=tracked.entrySet().iterator();it.hasNext();){var entry=it.next();var active=entry.getValue();var boss=active.boss();if(!boss.isValid()||boss.isDead()){plugin.species.remove(entry.getKey());gaze.remove(entry.getKey());displacement.remove(entry.getKey());plugin.cinematics.remove(entry.getKey());it.remove();continue;}if(!boss.isInvulnerable()){if(plugin.species.tick(boss,now,!occupied(boss)&&!plugin.pillagers.charging(boss.getUniqueId())&&!plugin.archers.charging(boss.getUniqueId())&&!plugin.mages.busy(boss.getUniqueId())))continue;boolean blocked=(plugin.safety!=null&&plugin.safety.claiming(boss))||recovering(boss)||busy(boss)||displacement.busy(boss.getUniqueId())||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId());if(!gaze.tick(boss,active.definition(),BossStages.phase(boss),now,blocked))displacement.tick(boss,active.definition(),BossStages.phase(boss),now,(plugin.safety!=null&&plugin.safety.claiming(boss))||recovering(boss)||busy(boss)||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId()));}}}
+ private void tickBursts(){long now=System.currentTimeMillis();for(var it=tracked.entrySet().iterator();it.hasNext();){var entry=it.next();var active=entry.getValue();var boss=active.boss();if(!boss.isValid()||boss.isDead()){plugin.species.remove(entry.getKey());gaze.remove(entry.getKey());displacement.remove(entry.getKey());plugin.cinematics.remove(entry.getKey());ThreatTable.remove(entry.getKey());it.remove();continue;}if(!boss.isInvulnerable()){if(plugin.species.tick(boss,now,!occupied(boss)&&!plugin.pillagers.charging(boss.getUniqueId())&&!plugin.archers.charging(boss.getUniqueId())&&!plugin.mages.busy(boss.getUniqueId())))continue;boolean blocked=(plugin.safety!=null&&plugin.safety.claiming(boss))||recovering(boss)||busy(boss)||displacement.busy(boss.getUniqueId())||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId());if(!gaze.tick(boss,active.definition(),BossStages.phase(boss),now,blocked))displacement.tick(boss,active.definition(),BossStages.phase(boss),now,(plugin.safety!=null&&plugin.safety.claiming(boss))||recovering(boss)||busy(boss)||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId()));}}}
  boolean retaliate(LivingEntity boss,long now){return !occupied(boss)&&displacement.retaliate(boss.getUniqueId(),now);}
  void relocating(LivingEntity boss){Cast cast=casts.get(boss.getUniqueId());if(cast!=null)cast.finish(false);displacement.remove(boss.getUniqueId());gaze.remove(boss.getUniqueId());}
  boolean contactAllowed(LivingEntity boss){return !recovering(boss)&&!busy(boss)&&!plugin.species.defending(boss)&&!gaze.busy(boss.getUniqueId())&&!displacement.busy(boss.getUniqueId());}
@@ -65,18 +65,23 @@ final class BossAbilities implements Listener {
   long now=System.currentTimeMillis();if(plugin.safety!=null&&plugin.safety.claiming(boss))return true;if(plugin.species.defending(boss)||gaze.busy(boss.getUniqueId())||displacement.busy(boss.getUniqueId())||busy(boss)||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId()))return true;
   if(recovering(boss))return true;
   boolean ultimateReady=ready(phase,now,boss.getPersistentDataContainer().getOrDefault(readyKey,PersistentDataType.LONG,0L),false);
-  int slot=rotations.computeIfAbsent(boss.getUniqueId(),id->new StageAttackRules.Rotation()).select(phase,now,ultimateReady);
-  if(slot>=0){begin(boss,definition,target,StageAttackRules.profile(definition,phase,slot),phase>=3&&slot==1);return true;}return false;
+  var skill=rotations.computeIfAbsent(boss.getUniqueId(),id->new CombatScripts.Rotation())
+      .next(CombatScripts.rotation(definition,phase),phase,now,ultimateReady);
+  if(skill==null)return false;
+  begin(boss,definition,target,skill);
+  return true;
  }
- void special(LivingEntity boss,BossCatalog.Definition definition,Player target,int variant){if(occupied(boss))return;int phase=BossStages.phase(boss);int slot=Math.floorMod(variant,StageAttackRules.groundCount(phase));begin(boss,definition,target,StageAttackRules.profile(definition,phase,slot),phase>=3&&slot==1);}
- private void begin(LivingEntity boss,BossCatalog.Definition definition,Player target,BossAbilityCatalog.Ultimate profile,boolean ultimate){
+ void special(LivingEntity boss,BossCatalog.Definition definition,Player target,int variant) {
+  if(!occupied(boss)) tick(boss,definition,target,BossStages.phase(boss));
+ }
+ private void begin(LivingEntity boss,BossCatalog.Definition definition,Player target,CombatScripts.Skill skill){
   if(!boss.isValid()||boss.isDead()||boss.isInvulnerable()||!CombatGuard.eligible(target))return;
-  if(ultimate)boss.getPersistentDataContainer().set(readyKey,PersistentDataType.LONG,System.currentTimeMillis()+ULTIMATE_COOLDOWN+3000);
-  Cast cast=new Cast(boss,definition,target,profile,ultimate);casts.put(boss.getUniqueId(),cast);cast.runTaskTimer(plugin,0,5);
+  if(skill.ultimate())boss.getPersistentDataContainer().set(readyKey,PersistentDataType.LONG,System.currentTimeMillis()+skill.cooldown()+3000);
+  Cast cast=new Cast(boss,definition,target,skill);casts.put(boss.getUniqueId(),cast);cast.runTaskTimer(plugin,0,5);
  }
  private final class Cast extends BukkitRunnable {
-  private static final int PREPARE = 20;
-  private static final int CHARGE = 50;
+  final int prepare, charge;
+  final CombatScripts.Skill skill;
   final LivingEntity boss;
   final BossCatalog.Definition definition;
   final BossAbilityCatalog.Ultimate profile;
@@ -90,15 +95,18 @@ final class BossAbilities implements Listener {
   Vector beamDirection;
   final BossStyle style;
   boolean modeled;
-  int ticks, pulse, comboAt = -1;
+  int ticks, pulse, comboAt = -1, endAt = -1;
 
-  Cast(LivingEntity boss, BossCatalog.Definition definition, Player target, BossAbilityCatalog.Ultimate profile, boolean ultimate) {
+  Cast(LivingEntity boss, BossCatalog.Definition definition, Player target, CombatScripts.Skill skill) {
    this.boss = boss;
    style = BossStyle.of(boss.getType());
    this.definition = definition;
-   this.profile = profile;
+   this.skill = skill;
+   profile = skill.profile() == null ? BossAbilityCatalog.ultimate(definition) : skill.profile();
+   prepare = skill.prepare();
+   charge = prepare + skill.warning();
    this.target = target;
-   this.ultimate = ultimate;
+   ultimate = skill.ultimate();
    center = boss.getLocation();
    beamOrigin = boss.getEyeLocation();
    Vector facing = target.getLocation().toVector().subtract(center.toVector());
@@ -140,6 +148,7 @@ final class BossAbilities implements Listener {
     finish(false);
     return;
    }
+   if (endAt >= 0 && ticks >= endAt) { finish(true); return; }
    if (boss instanceof Mob mob) {
     mob.getPathfinder().stopPathfinding();
     if (mob.getTarget() != null) mob.setTarget(null);
@@ -159,38 +168,41 @@ final class BossAbilities implements Listener {
     show(audience, "COMBINACIÓN · " + MobCombos.plan(boss.getType()).name(), 1 - (comboAt - ticks) / 60f,
        net.kyori.adventure.bossbar.BossBar.Color.WHITE);
     preview(audience);
-   } else if (ticks < CHARGE) {
-    boolean preparing = ticks < PREPARE;
+   } else if (ticks < charge) {
+    boolean preparing = ticks < prepare;
     if (preparing) aim();
     show(audience, preparing ? "PREPARACIÓN" : ultimate ? "DEFINITIVO · ¡ESQUIVA!" : "ZONA DE PELIGRO",
-       ticks / (float) CHARGE, ultimate ? net.kyori.adventure.bossbar.BossBar.Color.PURPLE
+       ticks / (float) charge, ultimate ? net.kyori.adventure.bossbar.BossBar.Color.PURPLE
           : net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
-    if (ticks == 0) modeled = plugin.cinematics.play(boss, definition, BossStyle.Beat.PREPARE, audience);
-    if (!modeled) presentation.prop(boss, style, ticks / (float) CHARGE, false);
-    if (ticks == PREPARE || ticks == CHARGE - 10) {
+    if (ticks == 0) modeled = plugin.cinematics.play(boss, definition, BossStyle.Beat.PREPARE, audience, skill.sounds());
+    if (!modeled) presentation.prop(boss, style, ticks / (float) charge, false);
+    if (ticks == prepare || ticks == charge - 10) {
      cue(audience, Sound.BLOCK_NOTE_BLOCK_PLING, .65f + ticks / 50f);
     }
-    if (ticks == PREPARE) setZone(false);
-    if (ticks == CHARGE - 10) fallingMeteor();
-    SpellVisuals.charge(boss, definition, ticks);
+    if (ticks == prepare) setZone(false);
+    if (ticks == charge - 10) fallingMeteor();
+    if (skill.particles()) SpellVisuals.charge(boss, definition, ticks);
     preview(audience);
    } else {
-    int sinceCharge = ticks - CHARGE;
-    if (sinceCharge % 20 == 0) {
+    int sinceCharge = ticks - charge;
+    if (sinceCharge % skill.interval() == 0) {
      show(audience, "IMPACTO " + (pulse + 1) + "/" + profile.pulses(), 1,
         net.kyori.adventure.bossbar.BossBar.Color.RED);
      boss.swingMainHand();
-     boolean modelImpact = plugin.cinematics.play(boss, definition, BossStyle.Beat.IMPACT, audience);
+     boolean modelImpact = plugin.cinematics.play(boss, definition, BossStyle.Beat.IMPACT, audience, skill.sounds());
      if (!modelImpact) presentation.prop(boss, style, 1, true);
-     CinematicFX.impact(boss, style, audience);
+     if (skill.particles()) CinematicFX.impact(boss, style, audience);
      release();
      if (casts.get(boss.getUniqueId()) != this) return;
      pulse++;
-     if (pulse >= profile.pulses()) comboAt = ticks + 60;
+     if (pulse >= profile.pulses()) {
+      if (!skill.combo()) { endAt = ticks + 5; ticks += 5; return; }
+      comboAt = ticks + 60;
+     }
      setZone(comboAt >= 0);
     } else {
-     if (sinceCharge % 20 == 5) presentation.clearProp();
-     if (sinceCharge % 20 == 10) fallingMeteor();
+     if (sinceCharge % skill.interval() == 5) presentation.clearProp();
+     if (sinceCharge % skill.interval() == skill.interval() - 10) fallingMeteor();
      preview(audience);
     }
    }
@@ -206,7 +218,7 @@ final class BossAbilities implements Listener {
   }
 
   private void cue(List<Player> audience, Sound sound, float pitch) {
-   for (Player player : audience) player.playSound(center, sound, .65f, pitch);
+   if (skill.sounds()) for (Player player : audience) player.playSound(center, sound, .65f, pitch);
   }
 
   private double beamRange() {
@@ -235,7 +247,9 @@ final class BossAbilities implements Listener {
   private void setZone(boolean combo) {
    List<Location> points = new ArrayList<>();
    double radius = profile.radius();
-   if (!combo && profile.pattern() == BossAbilityCatalog.Pattern.BEAM) {
+   if (!combo && !skill.dodgeable()) {
+    if (target.getWorld() == center.getWorld()) points.add(target.getLocation().add(0,.12,0));
+   } else if (!combo && profile.pattern() == BossAbilityCatalog.Pattern.BEAM) {
     double range = beamRange();
     for (double step = .5; step <= range; step += .65) {
      points.add(beamOrigin.clone().add(beamDirection.clone().multiply(step)));
@@ -256,6 +270,7 @@ final class BossAbilities implements Listener {
   }
 
   private void preview(List<Player> audience) {
+   if (!skill.particles()) return;
    int count = Math.min(36, zone.size());
    var dust = new Particle.DustOptions(comboAt >= 0 ? Color.WHITE : ultimate ? Color.PURPLE : Color.RED, .95f);
    for (int index = 0; index < count; index++) {
@@ -268,23 +283,31 @@ final class BossAbilities implements Listener {
    if (profile.pattern() == BossAbilityCatalog.Pattern.METEORS) presentation.meteor(marks.get(pulse % marks.size()));
   }
   void release(){
-   if(!valid())return;SpellVisuals.release(boss,definition,marks);CombatVisuals.special(boss,definition);
+   if (!valid()) return;
+   if (skill.summon() && pulse == 0 && CombatGuard.eligible(target) && target.getWorld() == boss.getWorld()) {
+    plugin.bosses().summonConfiguredHorde(boss, definition, target);
+   }
+   if (skill.particles()) CombatVisuals.special(boss,definition);
    boolean beam = profile.pattern() == BossAbilityCatalog.Pattern.BEAM;
    double range = beam ? beamRange() : 0;
-   if (beam) {
+   if (skill.particles() && beam) {
     for (double step = .5; step < range; step += .6) {
      CosmeticFX.emit(Particle.END_ROD, beamOrigin.clone().add(beamDirection.clone().multiply(step)), 1);
     }
-   } else {
+   } else if (skill.particles()) {
     int samples = Math.min(16, zone.size());
     for (int index=0; index<samples; index++) CosmeticFX.emit(Particle.CRIT, zone.get(index * zone.size() / samples), 2);
    }
    for(Player player:players()){
-    if(!(beam ? beamHits(player,range) : hits(player.getLocation(),pulse))||player.getLocation().distanceSquared(boss.getLocation())>576||!boss.hasLineOfSight(player))continue;
+    boolean inPattern = skill.dodgeable()
+       ? beam ? beamHits(player,range) : hits(player.getLocation(),pulse)
+       : player.equals(target) && player.getLocation().distanceSquared(center) <= profile.radius() * profile.radius();
+    if(!inPattern||player.getLocation().distanceSquared(boss.getLocation())>576||!boss.hasLineOfSight(player))continue;
     if(profile.pattern()==BossAbilityCatalog.Pattern.VORTEX&&pulse<profile.pulses()-1){Vector pull=center.toVector().subtract(player.getLocation().toVector());if(pull.lengthSquared()>.1)player.setVelocity(pull.normalize().multiply(.4).setY(.1));}
     var attack=boss.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
     double baseline=attack==null?definition.tier().damage:Math.max(definition.tier().damage,attack.getValue());
-    boolean damaged=AbilityDamage.hit(player,boss,CombatPower.special(baseline,definition.tier().ordinal(),BossStages.phase(boss),ultimate));
+    double damage = skill.damage() < 0 ? CombatPower.special(baseline,definition.tier().ordinal(),BossStages.phase(boss),ultimate) : skill.damage();
+    boolean damaged = damage > 0 && AbilityDamage.hit(player,boss,damage);
     if(damaged&&!player.isDead()&&CombatGuard.eligible(player))BossEffects.applyFrom(boss,player,BossEffects.effect(profile.effect().potion(),ultimate?80:40,0));
    }
   }
@@ -293,19 +316,19 @@ final class BossAbilities implements Listener {
    if (!casts.remove(boss.getUniqueId(), this)) return;
    presentation.close();
    if (completed && boss.isValid() && !boss.isDead()) {
-    rest(boss);
+    recovery.put(boss.getUniqueId(), System.currentTimeMillis() + skill.recovery() * 50L);
     var audience = players();
-    plugin.cinematics.play(boss, definition, BossStyle.Beat.RECOVERY, audience);
+    plugin.cinematics.play(boss, definition, BossStyle.Beat.RECOVERY, audience, skill.sounds());
     for (Player player : audience) BossWarnings.send(player, Component.text(
        "RECUPERACIÓN · ¡Contraataca!", NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
    }
    if (!completed) plugin.cinematics.remove(boss.getUniqueId());
    if (ultimate && boss.isValid()) boss.getPersistentDataContainer().set(readyKey, PersistentDataType.LONG,
-      System.currentTimeMillis() + ULTIMATE_COOLDOWN);
+      System.currentTimeMillis() + skill.cooldown());
    cancel();
   }
  }
- @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());transformations.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
- @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){plugin.species.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());transformations.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
- void stop(){gaze.stop();burstTimer.cancel();recovery.clear();transformations.clear();tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
+ @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());transformations.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
+ @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());transformations.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
+ void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();transformations.clear();tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
 }

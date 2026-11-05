@@ -14,6 +14,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossAbilities abilities;
    BossCrystals crystals;
    CinematicCues cinematics;
+   HordeSpecials hordeSpecials;
    final java.util.Set<java.util.UUID> pendingHordes = new java.util.HashSet<>();
    BossAuras auras;
    AnimalMinions animalMinions;
@@ -33,6 +34,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.saveDefaultConfig();BossWarnings.start(this);
       ConfigMigration.run(this);
       BossCatalog.installCustom(JsonBosses.load(this));
+      CombatScripts.load(this);
       this.recipeSettings = new RecipeSettings(this);
       statistics=new BossStatistics(this);getServer().getServicesManager().register(BossStatistics.class,statistics,this,org.bukkit.plugin.ServicePriority.Normal);
       this.guard = new CombatGuard(this);
@@ -57,6 +59,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.rebirth=new BossRebirth(this);getServer().getPluginManager().registerEvents(rebirth,this);
       this.auras=new BossAuras(this);getServer().getPluginManager().registerEvents(auras,this);
       mages=new MageCombat(this);getServer().getPluginManager().registerEvents(mages,this);
+      hordeSpecials=new HordeSpecials(this);getServer().getPluginManager().registerEvents(hordeSpecials,this);
       safety=new EncounterSafety(this);getServer().getPluginManager().registerEvents(safety,this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);
@@ -108,6 +111,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       if(abilities!=null)abilities.stop();
       if(crystals!=null)crystals.stop();
       if(cinematics!=null)cinematics.stop();
+      if(hordeSpecials!=null)hordeSpecials.stop();
       pendingHordes.clear();
       if (shulkers!=null)shulkers.stop();
       if (guard != null) guard.cleanup();
