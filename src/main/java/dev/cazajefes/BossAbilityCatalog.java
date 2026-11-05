@@ -1,7 +1,7 @@
 package dev.cazajefes;
 import java.util.*;
 final class BossAbilityCatalog {
- enum Pattern {RINGS,CROSS,CONE,SPIRAL,METEORS,VORTEX,LANES,CHECKER,GEYSERS,NOVA,RUSH,CAGE,BEAM}
+ enum Pattern {RINGS,CROSS,CONE,SPIRAL,METEORS,VORTEX,LANES,CHECKER,GEYSERS,NOVA,RUSH,CAGE,BEAM,OBSIDIAN}
  enum Debuff {SLOWNESS,POISON,WEAKNESS,WITHER,BLINDNESS,HUNGER,LEVITATION,DARKNESS;
   org.bukkit.potion.PotionEffectType potion(){return switch(this){case SLOWNESS->org.bukkit.potion.PotionEffectType.SLOWNESS;case POISON->org.bukkit.potion.PotionEffectType.POISON;case WEAKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case WITHER->org.bukkit.potion.PotionEffectType.WITHER;case BLINDNESS,DARKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case HUNGER->org.bukkit.potion.PotionEffectType.HUNGER;case LEVITATION->org.bukkit.potion.PotionEffectType.LEVITATION;};}
  }
@@ -14,7 +14,7 @@ final class BossAbilityCatalog {
   return profile;
  }
  static boolean hits(Pattern pattern,double x,double z,int pulse,int pulses,double radius,double angle){
-  double c=Math.cos(angle),s=Math.sin(angle),a=x*c+z*s,b=-x*s+z*c,d=Math.hypot(x,z);if(d>radius+1)return false;
+  double c=Math.cos(angle),s=Math.sin(angle),a=x*c+z*s,b=-x*s+z*c,d=Math.hypot(x,z);if(pattern!=Pattern.OBSIDIAN&&d>radius+1)return false;
   return switch(pattern){
    case RINGS->Math.abs(d-radius*(pulse+1)/pulses)<1.25;
    case CROSS->Math.abs(a)<1||Math.abs(b)<1;
@@ -27,6 +27,7 @@ final class BossAbilityCatalog {
    case GEYSERS->Math.abs(d-(2+pulse*1.4))<1.1&&Math.abs(Math.sin(Math.atan2(z,x)*3-angle))<.65;
    case NOVA->d>2+Math.sin(pulse)*.6;
    case RUSH->Math.abs(b)<1.3&&a>=-1;
+   case OBSIDIAN->ObsidianRain.hits(x,z,pulse);
    case BEAM->false; // Beam uses a three-dimensional ray.
    case CAGE->Math.abs(d-(radius-pulse*1.6))<1;
   };

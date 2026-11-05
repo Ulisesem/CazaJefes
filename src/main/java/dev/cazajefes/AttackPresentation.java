@@ -68,7 +68,21 @@ final class AttackPresentation {
       add(impact.clone().add(0, 6, 0), Material.MAGMA_BLOCK, true);
    }
 
+   void obsidianTiles(List<Location> centers) {
+      clearDisplays();
+      for (Location point : centers) add(point, Material.RED_STAINED_GLASS, false, 0, 4.88f);
+   }
+
+   void obsidian(Location impact) {
+      add(impact.clone().add(0, 9, 0), Material.OBSIDIAN, true, 9, .95f);
+      add(impact.clone().add(.29, 9.28, -.13), Material.CRYING_OBSIDIAN, true, 9, .52f);
+   }
+
    private void add(Location at, Material material, boolean falling) {
+      add(at,material,falling,6,.65f);
+   }
+
+   private void add(Location at, Material material, boolean falling, double height, float size) {
       if (viewers.isEmpty() || activeDisplays >= GLOBAL_DISPLAYS || !at.isChunkLoaded()) return;
       if (at.getBlockY() < at.getWorld().getMinHeight() || at.getBlockY() >= at.getWorld().getMaxHeight()) return;
       var display = at.getWorld().spawn(at, BlockDisplay.class, entity -> {
@@ -76,7 +90,7 @@ final class AttackPresentation {
          entity.setPersistent(false);
          entity.setBlock(material.createBlockData());
          entity.setBrightness(new Display.Brightness(15, 15));
-         entity.setTransformation(transform(falling ? .65f : .18f, falling ? .65f : .065f));
+         entity.setTransformation(falling ? new Transformation(new Vector3f(-size/2,0,-size/2),new AxisAngle4f(.58f,.70710677f,.70710677f,0),new Vector3f(size),new AxisAngle4f()) : transform(size > 1 ? 2.0f : .18f,.065f));
          entity.setTeleportDuration(10);
          entity.setInterpolationDuration(10);
       });
@@ -86,7 +100,7 @@ final class AttackPresentation {
       for (var viewer : viewers) viewer.showEntity(plugin, display);
       plugin.getServer().getScheduler().runTask(plugin, () -> {
          if (!display.isValid()) return;
-         if (falling) display.teleport(at.clone().subtract(0, 6, 0));
+         if (falling) display.teleport(at.clone().subtract(0, height, 0));
          else {
             display.setInterpolationDelay(0);
             display.setTransformation(transform(.82f, .065f));
@@ -127,7 +141,7 @@ final class AttackPresentation {
          activeDisplays++;
          for (var viewer : viewers) viewer.showEntity(plugin, prop);
       } else prop.teleport(at);
-      float scale = (float)Math.clamp(.75 + boss.getHeight() * .2, .85, 2.5);
+      float scale = (float)Math.clamp((style == BossStyle.EXECUTIONER ? 1.25 : .75) + boss.getHeight() * .2, .85, 3);
       prop.setInterpolationDelay(0);
       prop.setTransformation(new Transformation(new Vector3f(),
          new AxisAngle4f(strike ? 1.45f : -.55f - progress * 1.3f, 1, 0, 0),

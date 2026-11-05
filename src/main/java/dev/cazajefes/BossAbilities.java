@@ -102,7 +102,10 @@ final class BossAbilities implements Listener {
    style = BossStyle.of(boss.getType());
    this.definition = definition;
    this.skill = skill;
-   profile = skill.profile() == null ? BossAbilityCatalog.ultimate(definition) : skill.profile();
+   var base = skill.profile() == null ? BossAbilityCatalog.ultimate(definition) : skill.profile();
+   profile = skill.profile() == null
+      ? new BossAbilityCatalog.Ultimate(base.name(),base.pattern(),base.effect(),base.radius()+2,base.pulses(),base.angle())
+      : base;
    prepare = skill.prepare();
    charge = prepare + skill.warning();
    this.target = target;
@@ -171,7 +174,10 @@ final class BossAbilities implements Listener {
    } else if (ticks < charge) {
     boolean preparing = ticks < prepare;
     if (preparing) aim();
-    show(audience, preparing ? "PREPARACIÓN" : ultimate ? "DEFINITIVO · ¡ESQUIVA!" : "ZONA DE PELIGRO",
+    show(audience, profile.pattern() == BossAbilityCatalog.Pattern.CONE && style == BossStyle.EXECUTIONER
+       ? preparing ? "ALZA EL HACHA" : "SAL DEL ABANICO ROJO"
+       : profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN && !preparing ? "¡SAL DE LAS CASILLAS ROJAS!"
+       : preparing ? "PREPARACIÓN" : ultimate ? "DEFINITIVO · ¡ESQUIVA!" : "ZONA DE PELIGRO",
        ticks / (float) charge, ultimate ? net.kyori.adventure.bossbar.BossBar.Color.PURPLE
           : net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
     if (ticks == 0) modeled = plugin.cinematics.play(boss, definition, BossStyle.Beat.PREPARE, audience, skill.sounds());
@@ -191,7 +197,10 @@ final class BossAbilities implements Listener {
      boss.swingMainHand();
      boolean modelImpact = plugin.cinematics.play(boss, definition, BossStyle.Beat.IMPACT, audience, skill.sounds());
      if (!modelImpact) presentation.prop(boss, style, 1, true);
-     if (skill.particles()) CinematicFX.impact(boss, style, audience);
+     if (skill.particles()) {
+      CinematicFX.impact(boss, style, audience);
+      if (profile.pattern() == BossAbilityCatalog.Pattern.CONE) axeWave(audience);
+     }
      release();
      if (casts.get(boss.getUniqueId()) != this) return;
      pulse++;
@@ -200,8 +209,12 @@ final class BossAbilities implements Listener {
       comboAt = ticks + 60;
      }
      setZone(comboAt >= 0);
+     if (comboAt < 0 && profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN)
+      show(audience,"LLUVIA · CAMBIA DE CASILLA",.5f,net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
     } else {
      if (sinceCharge % skill.interval() == 5) presentation.clearProp();
+     if (sinceCharge % skill.interval() == 10 && profile.pattern() == BossAbilityCatalog.Pattern.CONE)
+      show(audience,"SIGUIENTE CORTE · CAMBIA DE LADO",.5f,net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
      if (sinceCharge % skill.interval() == skill.interval() - 10) fallingMeteor();
      preview(audience);
     }
@@ -257,7 +270,7 @@ final class BossAbilities implements Listener {
    } else {
     Location origin = !combo && profile.pattern() == BossAbilityCatalog.Pattern.METEORS
        ? marks.get(pulse % marks.size()) : center;
-    double extent = origin == center ? radius + 1 : 2;
+    double extent = !combo && profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN ? 10 : origin == center ? radius + 1 : 2;
     for (double x = -extent; x <= extent; x += 1) for (double z = -extent; z <= extent; z += 1) {
      var point = origin.clone().add(x, .08, z);
      if (combo ? Math.hypot(x,z) <= radius && BossAbilityCatalog.hits(BossAbilityCatalog.Pattern.CROSS,
@@ -279,7 +292,20 @@ final class BossAbilities implements Listener {
    }
   }
 
+  private void axeWave(List<Player> audience) {
+   double heading = angle + (pulse - (profile.pulses() - 1) / 2.0) * .55;
+   var trail = new Particle.DustTransition(Color.ORANGE,Color.RED,1.3f);
+   for (int i = -7; i <= 7; i++) {
+    double direction = heading + i * .08;
+    var at = center.clone().add(Math.cos(direction)*profile.radius(),.55,Math.sin(direction)*profile.radius());
+    for (Player viewer : audience) CosmeticFX.to(viewer,Particle.DUST_COLOR_TRANSITION,at,1,0,0,0,0,trail);
+   }
+  }
+
   private void fallingMeteor() {
+   if (profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN) {
+    for (var point : ObsidianRain.centers(pulse)) presentation.obsidian(center.clone().add(point.x(),.25,point.z()));
+   }
    if (profile.pattern() == BossAbilityCatalog.Pattern.METEORS) presentation.meteor(marks.get(pulse % marks.size()));
   }
   void release(){
