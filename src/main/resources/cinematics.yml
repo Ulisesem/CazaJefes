@@ -1,0 +1,15 @@
+# Opcional. El enlace debe devolver directamente el ZIP del paquete.
+audio-pack:
+  url: ""
+  sha1: ""
+
+# Requiere Model Engine R4 y un modelo importado. El modelo se añade sin hitbox propia.
+# Se puede usar el ID de un jefe o style_executioner, style_archer, style_arcane,
+# style_tide, style_ember, style_void, style_sky, style_wild, style_venom, style_bastion.
+models: {}
+# models:
+#   gorath_quebrantador_de_mundos:
+#     id: gorath
+#     prepare: prepare
+#     impact: attack
+#     recovery: recover

@@ -3,7 +3,7 @@ import java.util.*;
 final class BossAbilityCatalog {
  enum Pattern {RINGS,CROSS,CONE,SPIRAL,METEORS,VORTEX,LANES,CHECKER,GEYSERS,NOVA,RUSH,CAGE,BEAM}
  enum Debuff {SLOWNESS,POISON,WEAKNESS,WITHER,BLINDNESS,HUNGER,LEVITATION,DARKNESS;
-  org.bukkit.potion.PotionEffectType potion(){return switch(this){case SLOWNESS->org.bukkit.potion.PotionEffectType.SLOWNESS;case POISON->org.bukkit.potion.PotionEffectType.POISON;case WEAKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case WITHER->org.bukkit.potion.PotionEffectType.WITHER;case BLINDNESS->org.bukkit.potion.PotionEffectType.BLINDNESS;case HUNGER->org.bukkit.potion.PotionEffectType.HUNGER;case LEVITATION->org.bukkit.potion.PotionEffectType.LEVITATION;case DARKNESS->org.bukkit.potion.PotionEffectType.DARKNESS;};}
+  org.bukkit.potion.PotionEffectType potion(){return switch(this){case SLOWNESS->org.bukkit.potion.PotionEffectType.SLOWNESS;case POISON->org.bukkit.potion.PotionEffectType.POISON;case WEAKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case WITHER->org.bukkit.potion.PotionEffectType.WITHER;case BLINDNESS,DARKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case HUNGER->org.bukkit.potion.PotionEffectType.HUNGER;case LEVITATION->org.bukkit.potion.PotionEffectType.LEVITATION;};}
  }
  record Ultimate(String name,Pattern pattern,Debuff effect,double radius,int pulses,double angle){}
  static final Map<String,Ultimate> ALL=BossCatalog.builtIns().values().stream().collect(

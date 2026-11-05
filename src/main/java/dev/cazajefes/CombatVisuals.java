@@ -10,11 +10,11 @@ final class CombatVisuals {
 
 
  static Color signature(BossCatalog.Definition boss){int hash=boss.id().hashCode();return Color.fromRGB(80+((hash>>>16)&127),80+((hash>>>8)&127),80+(hash&127));}
- static Particle motif(BossCatalog.Definition boss){return switch(Math.floorMod(boss.id().hashCode(),8)){case 0->Particle.SOUL;case 1->Particle.ENCHANT;case 2->Particle.WITCH;case 3->Particle.REVERSE_PORTAL;case 4->Particle.END_ROD;case 5->Particle.FLAME;case 6->Particle.SPORE_BLOSSOM_AIR;default->Particle.CRIT;};}
+ static Particle motif(BossCatalog.Definition boss){return BossStyle.of(boss.entityType()).particle;}
  record AuraDot(Location location,Particle.DustOptions data){}
  record Ambient(java.util.List<AuraDot> dots,Location crown,Particle motif){}
  static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,double angle,int points){
-  var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();var primary=new Particle.DustOptions(signature(boss),1.8f);var accent=new Particle.DustOptions(BossRebirth.used(entity)?Color.ORANGE:color(boss.tier()),1.6f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
+  var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();var primary=new Particle.DustOptions(BossStyle.of(boss.entityType()).primary,1.6f);var accent=new Particle.DustOptions(BossRebirth.used(entity)?Color.ORANGE:color(boss.tier()),1.6f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
   for(var point:AuraShape.sampled(width,height,angle,points))dots.add(new AuraDot(origin.clone().add(point.x(),point.y(),point.z()),point.accent()?accent:primary));return new Ambient(dots,origin.clone().add(0,height+.3,0),motif(boss));
  }
  static void ambient(org.bukkit.entity.Player player,Ambient frame){for(var dot:frame.dots())player.spawnParticle(Particle.DUST,dot.location(),1,0,0,0,0,dot.data(),false);player.spawnParticle(frame.motif(),frame.crown(),1,.2,.15,.2,.005,null,false);}

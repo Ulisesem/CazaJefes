@@ -13,6 +13,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    PillagerCombat pillagers;
    BossAbilities abilities;
    BossCrystals crystals;
+   CinematicCues cinematics;
    final java.util.Set<java.util.UUID> pendingHordes = new java.util.HashSet<>();
    BossAuras auras;
    AnimalMinions animalMinions;
@@ -44,6 +45,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
       burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);
       animalMinions=new AnimalMinions(this);getServer().getPluginManager().registerEvents(animalMinions,this);
       species=new BossSpecies();getServer().getPluginManager().registerEvents(species,this);
+      this.cinematics = new CinematicCues(this);
+      getServer().getPluginManager().registerEvents(cinematics, this);
       this.crystals = new BossCrystals(this);
       getServer().getPluginManager().registerEvents(crystals, this);
       this.abilities=new BossAbilities(this);getServer().getPluginManager().registerEvents(abilities,this);
@@ -104,6 +107,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
       CosmeticFX.clear();if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if(crystals!=null)crystals.stop();
+      if(cinematics!=null)cinematics.stop();
+      pendingHordes.clear();
       if (shulkers!=null)shulkers.stop();
       if (guard != null) guard.cleanup();
       if (this.bossManager != null) {
