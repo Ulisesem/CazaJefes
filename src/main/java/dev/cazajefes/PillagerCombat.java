@@ -53,9 +53,8 @@ final class PillagerCombat implements Listener {
     static double arrowRangeSquared(Entity entity){return entity.getPersistentDataContainer().has(ARROW,PersistentDataType.BYTE)||entity.getPersistentDataContainer().has(SkeletonCombat.ARROW,PersistentDataType.BYTE)?2304:576;}
     private Player target(Raider state) {
         Player focus = state.focus == null ? null : plugin.getServer().getPlayer(state.focus);
-        if (eligible(state.boss, focus)) return focus;
-        return state.boss.getWorld().getPlayers().stream().filter(p -> eligible(state.boss, p))
-            .min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(state.boss.getLocation()))).orElse(null);
+        if ((state.chargeUntil > 0 || state.burst.active()) && eligible(state.boss, focus)) return focus;
+        return ThreatTable.pick(state.boss, 48, player -> eligible(state.boss, player));
     }
     private boolean eligible(Pillager boss, Player player) {
         return player != null && CombatGuard.eligible(player) && player.getWorld().equals(boss.getWorld())

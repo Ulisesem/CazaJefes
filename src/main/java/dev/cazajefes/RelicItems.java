@@ -363,6 +363,7 @@ public final class RelicItems implements Listener {
                      }
 
                      CinematicFX.book(var4, var20, var3);
+                     ThreatTable.book(var4, var20);
                      var4.sendActionBar(Component.text(this.titleForRare(var3) + " activada", NamedTextColor.LIGHT_PURPLE));
                   }
                }

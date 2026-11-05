@@ -1,0 +1,16 @@
+{
+  "id": "azrak_monarca_del_vacio",
+  "template": "arcaneth_maestro_del_vacio_azul",
+  "name": "Azrak, Monarca del Vacío",
+  "description": "Alterna cortes, rayos y meteoritos. Usa cobertura y rompe su barrera de cristales.",
+  "health": 1000,
+  "damage": 42,
+  "scale": 2.2,
+  "ultimate": {
+    "name": "Juicio del Monarca",
+    "pattern": "CHECKER",
+    "effect": "WEAKNESS",
+    "radius": 8,
+    "pulses": 4
+  }
+}

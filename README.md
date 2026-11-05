@@ -1,3 +1,7 @@
+# CazaJefes 1.31.0 · Habilidades por fase
+
+Combate configurable en YAML, amenaza por jugador y hordas con roles. [Cambios y configuración](docs/CAMBIOS-1.31.0.md).
+
 # CazaJefes 1.30.0 · Combate por especie
 
 Ataques por especie, portales de hordas, efectos de rares y botín mejorado. [Cambios y configuración](docs/CAMBIOS-1.30.0.md).

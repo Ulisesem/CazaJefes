@@ -748,6 +748,10 @@ public final class BossManager implements Listener {
 
    public boolean isEggBlock(org.bukkit.block.Block block) { return eggsByBlock.containsKey(key(block.getLocation())); }
 
+   void summonConfiguredHorde(LivingEntity boss, BossCatalog.Definition definition, Player player) {
+      new BossAttackTask(plugin,boss,definition,minionKey).summonMinions(player);
+   }
+
    public void stopAllAttacks() {
       this.attacks.values().forEach(BukkitTask::cancel);
       this.attacks.clear();
@@ -1101,6 +1105,16 @@ public final class BossManager implements Listener {
       }
       private void summonCustom(EntityType type,Player player,int ignored,String flavor){horde(player,SpellVisuals.mage(definition.entityType())?new EntityType[]{EntityType.EVOKER}:new EntityType[]{type},SpellVisuals.mage(definition.entityType())?"healer":flavor);}
       private void horde(Player target,EntityType[] types,String flavor){
+         var configured = CombatScripts.horde(definition.id());
+         if (!configured.isEmpty()) {
+            showHorde(target, configured.stream().map(CombatScripts.Minion::type).toArray(EntityType[]::new),
+               "generic", configured.stream().map(CombatScripts.Minion::role).toList());
+         } else {
+            showHorde(target, types, flavor, List.of());
+         }
+      }
+
+      private void showHorde(Player target,EntityType[] types,String flavor,List<CombatScripts.Role> roles){
          CazaJefesPlugin owner=(CazaJefesPlugin)plugin;String parent=boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"),PersistentDataType.STRING);
          if(!HordeRules.room(owner.safety.minionCount(parent),owner.safety.minionCount(null)))return;
          var pendingHordes = owner.pendingHordes;
@@ -1136,15 +1150,29 @@ public final class BossManager implements Listener {
                 || boss.getLocation().distanceSquared(center) > 144 || target.getLocation().distanceSquared(center) > 1024
                 || portals.stream().anyMatch(portal -> !portal.isChunkLoaded())
                 || !HordeRules.room(owner.safety.minionCount(parent), owner.safety.minionCount(null))) return;
-            spawnHorde(owner, target, types, flavor, parent, portals);
+            spawnHorde(owner, target, types, flavor, parent, portals, roles);
          }, 15L);
       }
 
       private void spawnHorde(CazaJefesPlugin owner, Player target, EntityType[] types, String flavor,
-                              String parent, List<Location> portals) {
+                              String parent, List<Location> portals, List<CombatScripts.Role> roles) {
          List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<portals.size();i++){Location point=portals.get(i);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid())throw new IllegalArgumentException("No hay espacio libre para la horda");unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
          }catch(IllegalArgumentException blocked){for(var unit:batch)unit.remove();return;}
-         for(var unit:batch){if(flavor.equals("healer"))owner.mages.healer(unit,boss);CinematicFX.portal(unit.getLocation(), BossStyle.of(unit.getType()), 3);}boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
+         for(int i=0;i<batch.size();i++){
+            var unit=batch.get(i);
+            if(!roles.isEmpty()){
+               var role=roles.get(i);
+               owner.hordeSpecials.apply(unit,boss,role);
+               unit.customName(Component.text(switch(role){
+                  case TANK -> "Bastión";
+                  case HEALER -> "Conjurador de Vida";
+                  case ARCHER -> "Tirador";
+                  case EXPLOSIVE -> "Demoledor";
+                  case GUARD -> "Custodio";
+               }+" · "+definition.name(),definition.tier().color));
+            }else if(flavor.equals("healer"))owner.mages.healer(unit,boss);
+            CinematicFX.portal(unit.getLocation(), BossStyle.of(unit.getType()), 3);
+         }boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
       }
 
       private void strengthenMinion(Entity var1, String var2) {

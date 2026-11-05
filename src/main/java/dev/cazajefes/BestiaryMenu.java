@@ -41,7 +41,15 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER A CATEGORÍAS",NamedTextColor.GOLD,true));
   }else{
    inv.setItem(22,BossPortraits.tile(detail,color,detail.description(),"Categoría: "+category.title,"ID: "+detail.id()));
-   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"ATAQUES POR ETAPA",NamedTextColor.AQUA,true,"I · Ascensión, Anillo, Corte y Barrido triple","II · Ascensión, Espiral, Runas, Vórtice y Rayo","III · Ascensión, Ruptura, Lluvia y Definitivo","Burst · recarga compartida 25 s","Cataclismo del Destierro X · fase III · 25 s","Barra de carga · Zona marcada · Recuperación"));
+   List<String> skillLore = new ArrayList<>();
+   for (int stage = 1; stage <= 3; stage++) {
+    skillLore.add("ETAPA " + stage);
+    for (var skill : CombatScripts.rotation(detail, stage)) {
+     var profile = skill.profile() == null ? BossAbilityCatalog.ultimate(detail) : skill.profile();
+     skillLore.add("  · " + profile.name());
+    }
+   }
+   inv.setItem(20,PremiumStyle.tile(Material.IRON_SWORD,"ATAQUES POR ETAPA",NamedTextColor.AQUA,true,skillLore.toArray(String[]::new)));
    inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"DEFENSAS DEL GUARDIÁN",color,true,"Protección del equipo: "+(SkeletonCombat.archer(detail.entityType())?10:BossProtection.level(detail)),"Fuerza: "+BattleRules.strength(detail),"Al 50 % · Barrera de cuatro cristales", "Rómpelos para reducir su protección", "El equipo del boss no es su botín"));
    var ultimate=BossAbilityCatalog.ultimate(detail);
    inv.setItem(30,PremiumStyle.tile(Material.NETHER_STAR,"ATAQUE DEFINITIVO",color,true,ultimate.name(),"Se prepara durante la tercera etapa","Radio: "+(int)ultimate.radius()+" bloques · Pulsos: "+ultimate.pulses(),"Recarga: 15 segundos tras finalizar"));
