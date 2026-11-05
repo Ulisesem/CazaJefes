@@ -32,7 +32,7 @@ final class CombatScripts {
       Map<String, Plan> loaded = new HashMap<>();
       var definitions = root.getConfigurationSection("skills");
       if (definitions != null) for (String id : definitions.getKeys(false)) {
-         try { skills.put(id, readSkill(id, definitions.getConfigurationSection(id))); }
+         try { skills.put(id, readSkill(id, root.getInt("schema-version",1) < 2 ? upgraded(id, definitions.getConfigurationSection(id)) : definitions.getConfigurationSection(id))); }
          catch (RuntimeException invalid) { plugin.getLogger().warning("combate.yml skills." + id + ": " + invalid.getMessage()); }
       }
       var bosses = root.getConfigurationSection("bosses");
@@ -47,6 +47,41 @@ final class CombatScripts {
       plans = Map.copyOf(loaded);
    }
 
+   // Earlier installations already have combate.yml. Upgrade only intact old preset values.
+   private static ConfigurationSection upgraded(String id, ConfigurationSection existing) {
+      if (existing == null) return null;
+      var copy = new YamlConfiguration();
+      existing.getValues(false).forEach(copy::set);
+      switch (id) {
+         case "corte_del_presidio" -> {
+            if (copy.getDouble("radius") == 7) copy.set("radius",11);
+            if (copy.getDouble("damage") == 26) copy.set("damage",32);
+         }
+         case "fractura_del_vacio" -> {
+            if (copy.getDouble("radius") == 9) copy.set("radius",15);
+            if (copy.getDouble("damage") == 34) copy.set("damage",40);
+         }
+         case "lluvia_de_obsidiana" -> {
+            if ("METEORS".equals(copy.getString("pattern")) && copy.getDouble("radius") == 8
+                && copy.getInt("pulses") == 3 && copy.getDouble("damage") == 36 && !copy.contains("interval-ticks")) {
+               copy.set("pattern","OBSIDIAN");
+               copy.set("radius",10);
+               copy.set("pulses",4);
+               copy.set("damage",42);
+               copy.set("interval-ticks",25);
+            }
+         }
+         case "llamada_del_presidio" -> {
+            if (copy.getDouble("radius") == 6) {
+               copy.set("radius",12);
+               if (copy.getDouble("damage") == 0 && copy.getBoolean("summon")) copy.set("damage",16);
+            }
+         }
+         default -> {}
+      }
+      return copy;
+   }
+
    static Skill readSkill(String id, ConfigurationSection s) {
       if (s == null || !id.matches("[a-z][a-z0-9_]{1,47}") || (id.equals("definitivo") || id.startsWith("nativo_"))) throw new IllegalArgumentException("ID inválido");
       String name = s.getString("name", id);
@@ -54,7 +89,7 @@ final class CombatScripts {
       var pattern = BossAbilityCatalog.Pattern.valueOf(s.getString("pattern", "NOVA").toUpperCase(Locale.ROOT));
       var effect = BossAbilityCatalog.Debuff.valueOf(s.getString("effect", "WEAKNESS").toUpperCase(Locale.ROOT));
       var profile = new BossAbilityCatalog.Ultimate(name, pattern, effect, number(s,"radius",6,2,16),
-         integer(s,"pulses",1,1,6,1), 0);
+         pattern == BossAbilityCatalog.Pattern.OBSIDIAN ? 4 : integer(s,"pulses",1,1,6,1), 0);
       return new Skill(id, profile, integer(s,"cooldown",12,2,180,1)*1000L,
          integer(s,"prepare-ticks",20,5,100,5), integer(s,"warning-ticks",30,10,120,5),
          integer(s,"interval-ticks",20,15,100,5), integer(s,"recovery-ticks",20,5,100,5),
