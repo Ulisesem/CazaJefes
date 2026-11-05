@@ -94,7 +94,7 @@ final class PillagerCombat implements Listener {
                 state.chargeUntil = now + PillagerRules.CHARGE; boss.setChargingAttack(true);
                 boss.getPathfinder().stopPathfinding();
                 BossWarnings.send(player, Component.text("⚠ CARGANDO · " + NAME, NamedTextColor.GOLD));
-                boss.getWorld().playSound(boss.getLocation(), Sound.ITEM_CROSSBOW_QUICK_CHARGE_3, 1, .8f);
+                plugin.cinematics.play(boss, state.definition, BossStyle.Beat.PREPARE);
             } else if (now >= state.nextShot) {
                 fire(state, player, false, now); state.nextShot = now + 2500;
             }
@@ -148,7 +148,8 @@ final class PillagerCombat implements Listener {
             if (arrow.isValid()) shots.put(arrow.getUniqueId(), new Shot(arrow, boss.getUniqueId(), volleyId, player.getUniqueId(),shotIndex==0,special,damage,now + PillagerRules.ARROW_LIFETIME));
             shotIndex++;
         }
-        boss.getWorld().playSound(boss.getLocation(), Sound.ITEM_CROSSBOW_SHOOT, 1.2f, special ? .65f : 1.1f);
+        if (special) plugin.cinematics.play(boss, state.definition, BossStyle.Beat.IMPACT);
+        else boss.getWorld().playSound(boss.getLocation(), Sound.ITEM_CROSSBOW_SHOOT, 1.2f, 1.1f);
         if (special) {
             CombatVisuals.special(boss, state.definition);
             BossWarnings.send(player, Component.text("✦ " + NAME + " · ráfaga "+state.burst.fired()+"/6 · " + state.definition.name(), NamedTextColor.GOLD));

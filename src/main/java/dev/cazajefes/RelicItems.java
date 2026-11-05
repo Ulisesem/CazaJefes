@@ -21,6 +21,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Keyed;
 import org.bukkit.Location;
@@ -361,7 +362,7 @@ public final class RelicItems implements Listener {
                         var20.sendMessage(Component.text("Has recibido " + var11 + " de " + var4.getName() + ".", NamedTextColor.AQUA));
                      }
 
-                     var4.playSound(var4.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0F, 1.2F);
+                     CinematicFX.book(var4, var20, var3);
                      var4.sendActionBar(Component.text(this.titleForRare(var3) + " activada", NamedTextColor.LIGHT_PURPLE));
                   }
                }
@@ -1431,7 +1432,7 @@ public final class RelicItems implements Listener {
          for(int dy:new int[]{0,1,2,-1,-2,-3}){Location check=candidate.clone().add(0,dy,0);if(check.getBlock().isPassable()&&check.clone().add(0,1,0).getBlock().isPassable()&&check.clone().add(0,-1,0).getBlock().getType().isSolid()){landing=check;break;}}
          releaseLoot(new QueuedLoot(landing,reward.stack(),reward.particle(),reward.encounter()),true);
       }
-      if(!plugin.isEnabled()||rewards.isEmpty())return;
+      if(!plugin.isEnabled()||rewards.isEmpty()||lootSounds.size()>=24)return;
       Location center=rewards.get(0).location().clone();final BukkitTask[] timer={null};timer[0]=plugin.getServer().getScheduler().runTaskTimer(plugin,new Runnable(){int pulse;public void run(){if(pulse>=8){lootSounds.remove(timer[0]);timer[0].cancel();return;}center.getWorld().playSound(center,Sound.BLOCK_AMETHYST_BLOCK_CHIME,.5f,.8f+pulse++*.12f);}},1,20);lootSounds.add(timer[0]);
    }
    void stopLootAnimations(){
@@ -1440,7 +1441,11 @@ public final class RelicItems implements Listener {
    }
    private void dropWithAura(final Location origin, ItemStack stack, final Particle particle, UUID encounter) {
       QueuedLoot reward=new QueuedLoot(origin.clone(),stack.clone(),particle,encounter);
-      if(!plugin.isEnabled()){releaseLoot(reward,false);return;}
+      if(!plugin.isEnabled() || animatedLoot.size() >= 96 || !origin.isChunkLoaded()) {
+         releaseLoot(reward,false);
+         return;
+      }
+      boolean essence = LootPresentation.essence(customId(reward.stack()));
       final org.bukkit.entity.ItemDisplay display;
       double phase=ThreadLocalRandom.current().nextDouble(Math.PI*2);
       double dropHeight=Math.max(.3,Math.min(16,origin.getWorld().getMaxHeight()-origin.getY()-1));
@@ -1458,7 +1463,7 @@ public final class RelicItems implements Listener {
       DeathCompletion completion=new DeathCompletion(()->{
          LootAnimation active=animatedLoot.remove(id);if(active!=null&&active.task!=null)active.task.cancel();
          boolean landed=display.isValid()&&plugin.isEnabled();display.remove();releaseLoot(reward,false);
-         if(landed&&LootPresentation.essence(customId(reward.stack())))essenceLanding(origin);
+         if(landed&&essence)essenceLanding(origin);
       });
       LootAnimation animation=new LootAnimation(display,completion);animatedLoot.put(id,animation);
       animation.task=plugin.getServer().getScheduler().runTaskTimer(plugin,new Runnable(){int ticks;
@@ -1467,11 +1472,8 @@ public final class RelicItems implements Listener {
             if(!display.isValid()||ticks>=LootSpiral.DURATION+2){completion.finish();return;}
             try{
                var point=LootSpiral.at(ticks,phase,dropHeight);Location at=origin.clone().add(point.x(),point.y(),point.z());at.setYaw(ticks*4.5f);display.teleport(at);
-               if(ticks%8==0)for(Player viewer:origin.getWorld().getPlayers())if(viewer.getLocation().distanceSquared(at)<=1024){
-                  viewer.spawnParticle(Particle.END_ROD,at,2,.13,.18,.13,.015,null,true);
-                  viewer.spawnParticle(Particle.DUST,at.clone().add(0,.2,0),1,.12,.12,.12,0,new Particle.DustOptions(org.bukkit.Color.fromRGB(110,255,210),1.1f),true);
-               }
-               if(ticks==LootSpiral.DURATION)origin.getWorld().spawnParticle(Particle.FIREWORK,at,12,.2,.25,.2,.03);
+               if(ticks%8==0) CinematicFX.lootTrail(at, phase + ticks * .18, essence, particle);
+               if(ticks==LootSpiral.DURATION) CosmeticFX.emit(Particle.FIREWORK,at,8,.2,.25,.2,.03);
             }catch(IllegalArgumentException error){completion.finish();plugin.getLogger().warning("Botín liberado tras cancelar animación: "+error.getMessage());}
          }
       },2L,2L);
@@ -1481,8 +1483,9 @@ public final class RelicItems implements Listener {
       origin.getWorld().strikeLightningEffect(origin);
       origin.getWorld().playSound(origin,Sound.ENTITY_LIGHTNING_BOLT_THUNDER,.7f,1.4f);
       origin.getWorld().playSound(origin,Sound.UI_TOAST_CHALLENGE_COMPLETE,.8f,1.2f);
-      origin.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,origin.clone().add(0,.5,0),20,.4,.6,.4,.04);
-      origin.getWorld().spawnParticle(Particle.FIREWORK,origin.clone().add(0,.5,0),16,.3,.5,.3,.03);
+      CosmeticFX.emit(Particle.TOTEM_OF_UNDYING,origin.clone().add(0,.5,0),12,.4,.6,.4,.04);
+      CosmeticFX.emit(Particle.FIREWORK,origin.clone().add(0,.5,0),10,.3,.5,.3,.03);
+      CinematicFX.ring(origin, CinematicFX.audience(origin, 32), 1.35, 0, 12, Color.YELLOW, Color.FUCHSIA);
    }
    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
    public void separateBossLoot(org.bukkit.event.entity.ItemMergeEvent event){

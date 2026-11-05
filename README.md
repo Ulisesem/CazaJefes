@@ -1,3 +1,7 @@
+# CazaJefes 1.30.0 · Combate por especie
+
+Ataques por especie, portales de hordas, efectos de rares y botín mejorado. [Cambios y configuración](docs/CAMBIOS-1.30.0.md).
+
 # CazaJefes 1.29.0 · Combate y bestiario
 
 Los 168 jefes en JSON, ataques animados y retratos en el bestiario. [Cambios y configuración](docs/CAMBIOS-1.29.0.md).

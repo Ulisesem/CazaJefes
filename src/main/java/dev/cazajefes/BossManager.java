@@ -1061,7 +1061,7 @@ public final class BossManager implements Listener {
                   Vector var9 = var1.getLocation().toVector().subtract(var2.toVector()).normalize();
                   this.boss.setVelocity(var9.multiply(1.4));
                   var1.damage(12.0, this.boss);
-                  BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.BLINDNESS, 55, 0));
+
                   CosmeticFX.emit(Particle.SOUL, var2, 60, 0.8, 0.5, 0.8, 0.1);
                   return;
                case VINDICATOR:
@@ -1082,7 +1082,7 @@ public final class BossManager implements Listener {
                      if (var6.getLocation().distanceSquared(var2) <= 36.0) {
                         var6.damage(8.0, this.boss);
                         BossEffects.applyFrom(boss,var6,BossEffects.effect(PotionEffectType.POISON, 100, 1));
-                        BossEffects.applyFrom(boss,var6,BossEffects.effect(PotionEffectType.BLINDNESS, 45, 0));
+
                      }
                   }
 
@@ -1119,7 +1119,16 @@ public final class BossManager implements Listener {
          }
          hordeWarning();
          boss.getWorld().playSound(center, Sound.ENTITY_EVOKER_PREPARE_SUMMON, .8f, .65f);
-         for (Location portal : portals) CombatVisuals.signatureRing(portal, definition, .9, 10);
+         for (int frame = 0; frame < 3; frame++) {
+            int step = frame;
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+               if (!boss.isValid() || boss.isDead() || boss.getWorld() != center.getWorld()) return;
+               for (int i = 0; i < portals.size(); i++) {
+                  Location portal = portals.get(i);
+                  if (portal.isChunkLoaded()) CinematicFX.portal(portal, BossStyle.of(types[i % types.length]), step);
+               }
+            }, frame * 5L + 1);
+         }
          plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             pendingHordes.remove(boss.getUniqueId());
             if (!boss.isValid() || boss.isDead() || boss.isInvulnerable() || !CombatGuard.eligible(target)
@@ -1135,7 +1144,7 @@ public final class BossManager implements Listener {
                               String parent, List<Location> portals) {
          List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<portals.size();i++){Location point=portals.get(i);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid())throw new IllegalArgumentException("No hay espacio libre para la horda");unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
          }catch(IllegalArgumentException blocked){for(var unit:batch)unit.remove();return;}
-         for(var unit:batch){if(flavor.equals("healer"))owner.mages.healer(unit,boss);CombatVisuals.summon(unit.getLocation(),definition);}boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
+         for(var unit:batch){if(flavor.equals("healer"))owner.mages.healer(unit,boss);CinematicFX.portal(unit.getLocation(), BossStyle.of(unit.getType()), 3);}boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
       }
 
       private void strengthenMinion(Entity var1, String var2) {
@@ -1259,7 +1268,7 @@ public final class BossManager implements Listener {
                break;
             case LEGENDARY:
                BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 75, 1));
-               BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.BLINDNESS, 35, 0));
+
                break;
             case MYTHIC:
                BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.WITHER, 90, 1));

@@ -1,0 +1,272 @@
+{
+  "executioner.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:item.armor.equip_netherite",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "executioner.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:block.anvil.land",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "executioner.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.chain.fall",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "archer.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:item.crossbow.loading_start",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "archer.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:item.crossbow.shoot",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "archer.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:item.crossbow.loading_end",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "arcane.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.evoker.prepare_attack",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "arcane.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.evoker.cast_spell",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "arcane.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.amethyst_block.chime",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "tide.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:block.conduit.ambient.short",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "tide.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.guardian.attack",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "tide.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.conduit.deactivate",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "ember.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.blaze.ambient",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "ember.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.blaze.shoot",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "ember.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.fire.extinguish",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "void.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:block.respawn_anchor.charge",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "void.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.warden.sonic_boom",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "void.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.amethyst_block.resonate",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "sky.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.breeze.inhale",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "sky.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.breeze.wind_burst",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "sky.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:item.elytra.flying",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "wild.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:block.moss.place",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "wild.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.ravager.attack",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "wild.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.azalea_leaves.fall",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "venom.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.spider.ambient",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "venom.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.spider.hurt",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "venom.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.slime_block.fall",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  },
+  "bastion.prepare": {
+    "sounds": [
+      {
+        "name": "minecraft:block.iron_door.open",
+        "type": "event",
+        "pitch": 0.94
+      }
+    ]
+  },
+  "bastion.impact": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.iron_golem.attack",
+        "type": "event",
+        "pitch": 0.88
+      }
+    ]
+  },
+  "bastion.recovery": {
+    "sounds": [
+      {
+        "name": "minecraft:block.iron_door.close",
+        "type": "event",
+        "pitch": 1.13
+      }
+    ]
+  }
+}

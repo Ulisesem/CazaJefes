@@ -11,7 +11,7 @@ final class MobCombos {
  case STRAY,BOGGED,SNOW_GOLEM->new Plan("Agujas de Escarcha","Poder","SLOWNESS",false);
  case SKELETON,PILLAGER->new Plan("Marca del Tirador","Perforación","WEAKNESS",false);
  case ZOMBIE,HUSK,ZOMBIE_VILLAGER,GIANT,WITHER_SKELETON,PHANTOM,WITHER->new Plan("Réquiem del Caído","Castigo","WITHER",false);
- case WARDEN,SHULKER,ENDERMAN,BREEZE->new Plan("Fractura Resonante","Ráfaga","DARKNESS",false);
+ case WARDEN,SHULKER,ENDERMAN,BREEZE->new Plan("Fractura Resonante","Ráfaga","WEAKNESS",false);
  case EVOKER,ILLUSIONER,WITCH->new Plan("Sello de Condena","Maldición arcana","WITHER",false);
  default->new Plan("Zarpa del Depredador","Filo","SLOWNESS",false);
  };}

@@ -6,6 +6,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Transformation;
@@ -25,6 +28,7 @@ final class AttackPresentation {
    private final Plugin plugin;
    private final BossBar bar = BossBar.bossBar(Component.empty(), 0, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
    private final Set<Player> viewers = new HashSet<>();
+   private ItemDisplay prop;
    private final List<BlockDisplay> displays = new ArrayList<>();
 
    AttackPresentation(Plugin plugin) {
@@ -40,12 +44,14 @@ final class AttackPresentation {
          if (nearby.contains(player)) return false;
          player.hideBossBar(bar);
          for (var display : displays) player.hideEntity(plugin, display);
+         if (prop != null) player.hideEntity(plugin, prop);
          return true;
       });
       for (var player : audience) {
          if (!viewers.add(player)) continue;
          player.showBossBar(bar);
          for (var display : displays) player.showEntity(plugin, display);
+         if (prop != null) player.showEntity(plugin, prop);
       }
    }
 
@@ -93,6 +99,48 @@ final class AttackPresentation {
          new Vector3f(width, height, width), new AxisAngle4f());
    }
 
+   void prop(LivingEntity boss, BossStyle style, float progress, boolean strike) {
+      if (viewers.isEmpty()) return;
+      if (prop != null && !prop.isValid()) clearProp();
+      var at = boss.getLocation();
+      var forward = at.getDirection().setY(0);
+      if (forward.lengthSquared() < .01) forward.setZ(1);
+      forward.normalize();
+      double reach = Math.clamp(boss.getWidth() * .6, .55, 2);
+      at.add(forward.clone().multiply(strike ? reach + .8 : reach))
+         .add(-forward.getZ() * reach * .6, Math.clamp(boss.getHeight() * (strike ? .4 : .5 + progress * .25), .55, 5),
+            forward.getX() * reach * .6);
+      if (!at.isChunkLoaded() || at.getY() >= at.getWorld().getMaxHeight()) return;
+      if (prop == null) {
+         if (activeDisplays >= GLOBAL_DISPLAYS) return;
+         var item = at.getWorld().spawn(at, ItemDisplay.class, entity -> {
+            entity.setVisibleByDefault(false);
+            entity.setPersistent(false);
+            entity.setItemStack(new ItemStack(style.prop));
+            entity.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+            entity.setBrightness(new Display.Brightness(15, 15));
+            entity.setTeleportDuration(4);
+            entity.setInterpolationDuration(4);
+         });
+         if (!item.isValid()) return;
+         prop = item;
+         activeDisplays++;
+         for (var viewer : viewers) viewer.showEntity(plugin, prop);
+      } else prop.teleport(at);
+      float scale = (float)Math.clamp(.75 + boss.getHeight() * .2, .85, 2.5);
+      prop.setInterpolationDelay(0);
+      prop.setTransformation(new Transformation(new Vector3f(),
+         new AxisAngle4f(strike ? 1.45f : -.55f - progress * 1.3f, 1, 0, 0),
+         new Vector3f(scale), new AxisAngle4f(progress * .65f, 0, 1, 0)));
+   }
+
+   void clearProp() {
+      if (prop == null) return;
+      prop.remove();
+      prop = null;
+      activeDisplays--;
+   }
+
    void clearDisplays() {
       for (var display : displays) display.remove();
       activeDisplays -= displays.size();
@@ -102,6 +150,7 @@ final class AttackPresentation {
    void close() {
       for (var viewer : viewers) viewer.hideBossBar(bar);
       viewers.clear();
+      clearProp();
       clearDisplays();
    }
 }
