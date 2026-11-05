@@ -227,73 +227,12 @@ public final class BossManager implements Listener {
          var20.set(this.encounterKey, PersistentDataType.STRING, var19.toString());
          var20.set(this.typeKey, PersistentDataType.STRING, var4.id());
          var20.set(this.awakenerKey, PersistentDataType.STRING, var3);
-         double var8 = var4.mini() ? 1.35 + var4.tier().ordinal() * 0.12 : var4.tier().scale;
-         double var10 = var4.tier().health * (var4.mini() ? 0.28 : 1.0);
-         double var12 = var4.tier().damage * (var4.mini() ? 0.72 : 1.0);
-         if (var4.id().equals("melisara_emperatriz_del_enjambre")) {
-            var8 = 1.45;
-            var10 = 520.0;
-            var12 = 16.0;
-         }
-
-         if (var4.id().equals("kitsar_acechador_carmesi")) {
-            var8 = 1.38;
-            var10 = 530.0;
-            var12 = 25.0;
-         }
-
-         if (var4.id().equals("brakk_colmillo_del_averno")) {
-            var8 = 1.22;
-            var10 = 680.0;
-            var12 = 30.0;
-         }
-
-         if (var4.id().equals("volkar_corazon_del_cataclismo")) {
-            var8 = 1.6;
-            var10 = 2000.0;
-            var12 = 38.0;
-         }
-
-         if (var4.id().equals("boreon_garra_de_la_ventisca")) {
-            var8 = 1.55;
-            var10 = 620.0;
-            var12 = 27.0;
-         }
-
-         if (var4.id().equals("fenrak_aullido_de_ceniza")) {
-            var8 = 1.28;
-            var10 = 480.0;
-            var12 = 25.0;
-         }
-
-         if (var4.id().equals("kragnar_rompecumbres")) {
-            var8 = 1.45;
-            var10 = 540.0;
-            var12 = 28.0;
-         }
-
-         if (var4.id().equals("aegora_bastion_viviente")) {
-            var8 = 1.8;
-            var10 = 900.0;
-            var12 = 30.0;
-         }
-
-         if (var4.id().equals("zalira_saqueadora_del_yermo")) {
-            var8 = 1.42;
-            var10 = 560.0;
-            var12 = 26.0;
-         }
-
-         if(var4.mini()){var10=Math.max(360,var10);var12=Math.max(26,var12);}
-         if (var4.custom() != null) {
-            var8 = var4.custom().scale();
-            var10 = var4.custom().health();
-            var12 = var4.custom().damage();
-         }
+         double var8 = var4.custom().scale();
+         double var10 = var4.custom().health();
+         double var12 = var4.custom().damage();
          var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".scale", var8)));
          var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".health", var10)));
          var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".damage", var12)));
-         if (var4.custom()==null && var4.entityType()==EntityType.WARDEN) { var10=Math.max(var10, var4.id().equals("nharzul_soberano_del_abismo") ? 14000 : 10000); var12=Math.max(var12,90); }
          this.setAttribute(var5, Attribute.MAX_HEALTH, var10);
          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));
@@ -850,16 +789,19 @@ public final class BossManager implements Listener {
             Player var2=tactics.pickTarget();
             if (var2 != null) {
                if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
+               var combat = (CazaJefesPlugin) plugin;
+               combat.crystals.check(boss, definition, var2);
                int nextPhase = BossStages.phase(boss);
                if (nextPhase > phase) {
                   phase = nextPhase;
                   BossBuffs.apply(boss);
             AquaticCombat.maintain(boss);
+                  combat.abilities.transition(boss, definition, phase);
                   summonMinions(var2);
-
+                  return;
                }
                if(CombatHitbox.distanceSquared(var2.getEyeLocation(),boss)>576){tactics.tick(var2,phase);return;}
-               if(definition.mini()){if(!((CazaJefesPlugin)plugin).abilities.casting(boss))pursue(var2);if(((CazaJefesPlugin)plugin).abilities.contactAllowed(boss))attackNearby(var2);}
+               if(definition.mini()){if(!combat.abilities.occupied(boss))pursue(var2);if(((CazaJefesPlugin)plugin).abilities.contactAllowed(boss))attackNearby(var2);}
                if(((CazaJefesPlugin)plugin).abilities.tick(boss,definition,var2,phase))return;
                if(boss instanceof org.bukkit.entity.Shulker){
 
@@ -1161,9 +1103,39 @@ public final class BossManager implements Listener {
       private void horde(Player target,EntityType[] types,String flavor){
          CazaJefesPlugin owner=(CazaJefesPlugin)plugin;String parent=boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"),PersistentDataType.STRING);
          if(!HordeRules.room(owner.safety.minionCount(parent),owner.safety.minionCount(null)))return;
-         List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<HordeRules.SIZE;i++){double angle=i*Math.PI*2/HordeRules.SIZE+attacks,radius=Math.max(3,boss.getWidth()/2+1.5);Location point=boss.getLocation().clone().add(Math.cos(angle)*radius,.2,Math.sin(angle)*radius);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid())throw new IllegalArgumentException("No hay espacio libre para la horda");unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
+         var pendingHordes = owner.pendingHordes;
+         if (pendingHordes.size() >= 32 || !pendingHordes.add(boss.getUniqueId())) return;
+         List<Location> portals = new ArrayList<>();
+         Location center = boss.getLocation();
+         double radius = Math.max(3, boss.getWidth() / 2 + 1.5);
+         for (int i = 0; i < HordeRules.SIZE; i++) {
+            double angle = i * Math.PI * 2 / HordeRules.SIZE + attacks;
+            var portal = center.clone().add(Math.cos(angle) * radius, .2, Math.sin(angle) * radius);
+            if (!portal.isChunkLoaded()) {
+               pendingHordes.remove(boss.getUniqueId());
+               return;
+            }
+            portals.add(portal);
+         }
+         hordeWarning();
+         boss.getWorld().playSound(center, Sound.ENTITY_EVOKER_PREPARE_SUMMON, .8f, .65f);
+         for (Location portal : portals) CombatVisuals.signatureRing(portal, definition, .9, 10);
+         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            pendingHordes.remove(boss.getUniqueId());
+            if (!boss.isValid() || boss.isDead() || boss.isInvulnerable() || !CombatGuard.eligible(target)
+                || target.getWorld() != center.getWorld() || boss.getWorld() != center.getWorld()
+                || boss.getLocation().distanceSquared(center) > 144 || target.getLocation().distanceSquared(center) > 1024
+                || portals.stream().anyMatch(portal -> !portal.isChunkLoaded())
+                || !HordeRules.room(owner.safety.minionCount(parent), owner.safety.minionCount(null))) return;
+            spawnHorde(owner, target, types, flavor, parent, portals);
+         }, 15L);
+      }
+
+      private void spawnHorde(CazaJefesPlugin owner, Player target, EntityType[] types, String flavor,
+                              String parent, List<Location> portals) {
+         List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<portals.size();i++){Location point=portals.get(i);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid())throw new IllegalArgumentException("No hay espacio libre para la horda");unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
          }catch(IllegalArgumentException blocked){for(var unit:batch)unit.remove();return;}
-         for(var unit:batch){if(flavor.equals("healer"))owner.mages.healer(unit,boss);CombatVisuals.summon(unit.getLocation(),definition);}hordeWarning();boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_EVOKER_PREPARE_SUMMON,1,.8f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
+         for(var unit:batch){if(flavor.equals("healer"))owner.mages.healer(unit,boss);CombatVisuals.summon(unit.getLocation(),definition);}boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
       }
 
       private void strengthenMinion(Entity var1, String var2) {

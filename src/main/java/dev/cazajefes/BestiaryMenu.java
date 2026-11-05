@@ -23,7 +23,7 @@ final class BestiaryMenu implements CommandExecutor,Listener {
   View view=new View(category,page,detail);NamedTextColor color=category==null?NamedTextColor.GOLD:category.color;
   view.inventory=Bukkit.createInventory(view,54,PremiumStyle.heading(detail!=null?"✦ Archivo de cacería":category==null?"✦ BESTIARIO · LA GRIETA":"✦ "+category.title+" · "+(page+1)+"/"+pages,color));
   Inventory inv=view.inventory;PremiumStyle.frame(inv,category==null?Material.YELLOW_STAINED_GLASS_PANE:switch(category){case MINI->Material.CYAN_STAINED_GLASS_PANE;case RARE->Material.LIME_STAINED_GLASS_PANE;case EPIC->Material.MAGENTA_STAINED_GLASS_PANE;case LEGENDARY->Material.ORANGE_STAINED_GLASS_PANE;case MYTHIC->Material.PURPLE_STAINED_GLASS_PANE;case ABYSSAL->Material.RED_STAINED_GLASS_PANE;});
-  inv.setItem(4,PremiumStyle.tile(Material.ENCHANTED_BOOK,detail!=null?detail.name():category==null?"✦ EL ARCHIVO DE LOS CAZADORES ✦":category.title,color,true,"76 encuentros • categorías exclusivas","Selecciona un sello para explorar."));
+  inv.setItem(4,PremiumStyle.tile(Material.ENCHANTED_BOOK,detail!=null?detail.name():category==null?"✦ EL ARCHIVO DE LOS CAZADORES ✦":category.title,color,true,BossCatalog.all().size()+" encuentros • categorías exclusivas","Selecciona un sello para explorar."));
   if(category==null){
    int[] slots={20,22,24,29,31,33};int index=0;
    for(var c:BestiaryCategory.values()){
@@ -33,17 +33,16 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    inv.setItem(49,PremiumStyle.tile(Material.COMPASS,"PROGRESIÓN DE LA CACERÍA",NamedTextColor.AQUA,false,"Minijefes → Raros → Épicos","Legendarios → Míticos → Abismales","Warden: desafío supremo de la categoría Abismal"));
   }else if(detail==null){
    for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){
-    var boss=list.get(i);int slot=PremiumStyle.GRID[i-page*28];Material icon=Material.matchMaterial(boss.entityType().name()+"_SPAWN_EGG");if(icon==null)icon=Material.DRAGON_HEAD;
-    inv.setItem(slot,PremiumStyle.tile(icon,boss.name(),color,boss.entityType()==org.bukkit.entity.EntityType.WARDEN,"◆ "+category.title,"Código: "+boss.id(),boss.mini()?"Tributos, fragmentos y cristal común":"Fragmentos y botín de categoría","Clic para consultar fases y botín"));view.bosses.put(slot,boss);
+    var boss=list.get(i);int slot=PremiumStyle.GRID[i-page*28];
+    inv.setItem(slot,BossPortraits.tile(boss,color,"◆ "+category.title,"Código: "+boss.id(),boss.mini()?"Tributos, fragmentos y cristal común":"Fragmentos y botín de categoría","Clic para consultar fases y botín"));view.bosses.put(slot,boss);
    }
    if(page>0)inv.setItem(45,PremiumStyle.tile(Material.ARROW,"ANTERIOR",color,false));
    if(page+1<pages)inv.setItem(53,PremiumStyle.tile(Material.ARROW,"SIGUIENTE",color,false));
    inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER A CATEGORÍAS",NamedTextColor.GOLD,true));
   }else{
-   Material icon=Material.matchMaterial(detail.entityType().name()+"_SPAWN_EGG");if(icon==null)icon=Material.DRAGON_HEAD;
-   inv.setItem(22,PremiumStyle.tile(icon,detail.name(),color,true,detail.description(),"Categoría: "+category.title,"ID: "+detail.id()));
-   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"ATAQUES POR ETAPA",NamedTextColor.AQUA,true,"I · Ascensión, Anillo, Corte y Barrido","II · Ascensión, Espiral, Runas y Vórtice","III · Ascensión, Ruptura, Lluvia y Definitivo","Burst · recarga compartida 25 s","Cataclismo del Destierro X · fase III · 25 s","La carga y la recarga aparecen sobre la barra"));
-   inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"DEFENSAS DEL GUARDIÁN",color,true,"Protección del equipo: "+(SkeletonCombat.archer(detail.entityType())?10:BossProtection.level(detail)),"Fuerza: "+BattleRules.strength(detail),"El equipo del boss no es su botín"));
+   inv.setItem(22,BossPortraits.tile(detail,color,detail.description(),"Categoría: "+category.title,"ID: "+detail.id()));
+   inv.setItem(20,PremiumStyle.tile(Material.SHIELD,"ATAQUES POR ETAPA",NamedTextColor.AQUA,true,"I · Ascensión, Anillo, Corte y Barrido triple","II · Ascensión, Espiral, Runas, Vórtice y Rayo","III · Ascensión, Ruptura, Lluvia y Definitivo","Burst · recarga compartida 25 s","Cataclismo del Destierro X · fase III · 25 s","Barra de carga · Zona marcada · Recuperación"));
+   inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"DEFENSAS DEL GUARDIÁN",color,true,"Protección del equipo: "+(SkeletonCombat.archer(detail.entityType())?10:BossProtection.level(detail)),"Fuerza: "+BattleRules.strength(detail),"Al 50 % · Barrera de cuatro cristales", "Rómpelos para reducir su protección", "El equipo del boss no es su botín"));
    var ultimate=BossAbilityCatalog.ultimate(detail);
    inv.setItem(30,PremiumStyle.tile(Material.NETHER_STAR,"ATAQUE DEFINITIVO",color,true,ultimate.name(),"Se prepara durante la tercera etapa","Radio: "+(int)ultimate.radius()+" bloques · Pulsos: "+ultimate.pulses(),"Recarga: 15 segundos tras finalizar"));
    if(detail.entityType()==org.bukkit.entity.EntityType.PILLAGER)inv.setItem(23,PremiumStyle.tile(Material.CROSSBOW,"TEMPESTAD DEL DESTIERRO",NamedTextColor.GOLD,true,"Represalia tras cinco golpes recientes","Carga rápida X · Multidisparo XV","Infinidad I · Perforación X · Empuje X","Poder X · Irrompibilidad X · Reparación I","30 flechas por ráfaga · 6 ráfagas por carga","No recogibles · recarga 12 s al finalizar"));

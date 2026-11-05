@@ -19,7 +19,16 @@ final class CombatPhases implements Listener {
  private int phase(LivingEntity e){return BossStages.phase(e);}
  private boolean warden(Entity e){return e.getType()==EntityType.WARDEN;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
-  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*(warden(living)?0.85:1));
+  if(event.getEntity() instanceof LivingEntity boss&&isBoss(boss)&&plugin.abilities.transforming(boss)){
+   event.setCancelled(true);
+   return;
+  }
+  if(event instanceof EntityDamageByEntityEvent hit&&hit.getDamager() instanceof LivingEntity boss
+      &&isBoss(boss)&&!AbilityDamage.active()&&plugin.abilities.inRecovery(boss)){
+   event.setCancelled(true);
+   return;
+  }
+  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*plugin.crystals.incoming(living)*(warden(living)?0.85:1));
   if(event instanceof EntityDamageByEntityEvent hit&&source(hit.getDamager()) instanceof LivingEntity attacker&&isBoss(attacker)
       &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(AbilityDamage.active()||PillagerCombat.specialShot(hit.getDamager())||SkeletonCombat.shot(hit.getDamager())?200:80,(event.getDamage()+(!(hit.getDamager() instanceof Projectile)&&!AbilityDamage.active()?BossEquipment.virtualSharpness(attacker):0))*PhaseRules.outgoing(phase(attacker))*PhaseRules.finalBonus(phase(attacker),BossRebirth.used(attacker))*(warden(attacker)?1.35:1)));
  }
