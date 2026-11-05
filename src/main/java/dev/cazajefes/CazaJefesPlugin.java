@@ -29,6 +29,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    public void onEnable() {
       this.saveDefaultConfig();BossWarnings.start(this);
       ConfigMigration.run(this);
+      BossCatalog.installCustom(JsonBosses.load(this));
       this.recipeSettings = new RecipeSettings(this);
       statistics=new BossStatistics(this);getServer().getServicesManager().register(BossStatistics.class,statistics,this,org.bukkit.plugin.ServicePriority.Normal);
       this.guard = new CombatGuard(this);

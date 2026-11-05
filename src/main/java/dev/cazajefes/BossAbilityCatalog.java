@@ -175,7 +175,7 @@ final class BossAbilityCatalog {
   Map.entry("brumgor_colmillo_del_eclipse",new Ultimate("Colmillo del Eclipse Sangriento",Pattern.CROSS,Debuff.LEVITATION,7,3,0.392699)),
   Map.entry("korvath_verdugo_del_silencio",new Ultimate("Veredicto del Silencio Total",Pattern.CONE,Debuff.LEVITATION,8,4,0.785398)),
   Map.entry("ossyra_plaga_de_la_medianoche",new Ultimate("Medianoche de las Mil Plagas",Pattern.SPIRAL,Debuff.LEVITATION,6,2,1.178097)));
- static Ultimate ultimate(BossCatalog.Definition boss){Ultimate profile=ALL.get(boss.id());if(profile==null)throw new IllegalArgumentException("Falta definitivo de "+boss.id());return profile;}
+ static Ultimate ultimate(BossCatalog.Definition boss){Ultimate profile=boss.custom()!=null?boss.custom().ultimate():ALL.get(boss.id());if(profile==null)throw new IllegalArgumentException("Falta definitivo de "+boss.id());return profile;}
  static boolean hits(Pattern pattern,double x,double z,int pulse,int pulses,double radius,double angle){
   double c=Math.cos(angle),s=Math.sin(angle),a=x*c+z*s,b=-x*s+z*c,d=Math.hypot(x,z);if(d>radius+1)return false;
   return switch(pattern){

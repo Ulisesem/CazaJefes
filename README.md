@@ -1,3 +1,7 @@
+# CazaJefes 1.28.0 · Jefes JSON
+
+Crea jefes personalizados y configura su ataque final. [Guía y ejemplo](docs/CAMBIOS-1.28.0.md).
+
 # CazaJefes 1.27.0 · Legado del Presidio
 
 28 rares de armadura, 28 de espadas/hachas y navegación actualizada. [Lista y cambios completos](docs/CAMBIOS-1.27.0.md).

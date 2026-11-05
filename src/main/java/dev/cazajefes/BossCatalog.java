@@ -9,19 +9,30 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.EntityType;
 
 public final class BossCatalog {
-   private static final Map<String, BossCatalog.Definition> DEFINITIONS = build();
+   private static final Map<String, Definition> BUILT_INS = build();
+   private static Map<String, Definition> definitions = BUILT_INS;
+
+   static Map<String, Definition> builtIns() {
+      return BUILT_INS;
+   }
+
+   static void installCustom(Map<String, Definition> custom) {
+      Map<String, Definition> combined = new LinkedHashMap<>(BUILT_INS);
+      custom.forEach(combined::putIfAbsent);
+      definitions = Collections.unmodifiableMap(combined);
+   }
 
    private BossCatalog() {
    }
 
-   public static Definition get(String id) {return id==null?null:DEFINITIONS.get(id.toLowerCase(java.util.Locale.ROOT));}
+   public static Definition get(String id) {return id==null?null:definitions.get(id.toLowerCase(java.util.Locale.ROOT));}
 
    public static List<BossCatalog.Definition> all() {
-      return List.copyOf(DEFINITIONS.values());
+      return List.copyOf(definitions.values());
    }
 
    public static List<String> ids() {
-      return List.copyOf(DEFINITIONS.keySet());
+      return List.copyOf(definitions.keySet());
    }
 
    private static Map<String, BossCatalog.Definition> build() {
@@ -208,7 +219,11 @@ public final class BossCatalog {
          .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "_").replaceAll("^_|_$", "");
    }
 
-   public record Definition(String id, String name, BossCatalog.Tier tier, EntityType entityType, boolean mini, String description) {
+   public record Definition(String id, String name, BossCatalog.Tier tier, EntityType entityType, boolean mini, String description,
+                            JsonBosses.Settings custom) {
+      public Definition(String id, String name, Tier tier, EntityType entityType, boolean mini, String description) {
+         this(id, name, tier, entityType, mini, description, null);
+      }
    }
 
    public static enum Tier {

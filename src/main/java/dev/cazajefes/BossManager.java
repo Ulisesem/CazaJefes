@@ -285,10 +285,15 @@ public final class BossManager implements Listener {
          }
 
          if(var4.mini()){var10=Math.max(360,var10);var12=Math.max(26,var12);}
+         if (var4.custom() != null) {
+            var8 = var4.custom().scale();
+            var10 = var4.custom().health();
+            var12 = var4.custom().damage();
+         }
          var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".scale", var8)));
          var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".health", var10)));
          var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".damage", var12)));
-         if (var4.entityType()==EntityType.WARDEN) { var10=Math.max(var10, var4.id().equals("nharzul_soberano_del_abismo") ? 14000 : 10000); var12=Math.max(var12,90); }
+         if (var4.custom()==null && var4.entityType()==EntityType.WARDEN) { var10=Math.max(var10, var4.id().equals("nharzul_soberano_del_abismo") ? 14000 : 10000); var12=Math.max(var12,90); }
          this.setAttribute(var5, Attribute.MAX_HEALTH, var10);
          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));

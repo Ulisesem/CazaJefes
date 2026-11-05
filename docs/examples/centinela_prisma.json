@@ -1,0 +1,16 @@
+{
+  "id": "centinela_prisma",
+  "template": "golem_de_la_grieta",
+  "name": "Centinela de Prisma",
+  "description": "Un guardián que canaliza el poder de la grieta.",
+  "health": 800,
+  "damage": 22,
+  "scale": 1.65,
+  "ultimate": {
+    "name": "Fractura de Prisma",
+    "pattern": "LANES",
+    "effect": "SLOWNESS",
+    "radius": 7,
+    "pulses": 3
+  }
+}
