@@ -19,10 +19,6 @@ final class CombatPhases implements Listener {
  private int phase(LivingEntity e){return BossStages.phase(e);}
  private boolean warden(Entity e){return e.getType()==EntityType.WARDEN;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
-  if(event.getEntity() instanceof LivingEntity boss&&isBoss(boss)&&plugin.abilities.transforming(boss)){
-   event.setCancelled(true);
-   return;
-  }
   if(event instanceof EntityDamageByEntityEvent hit&&hit.getDamager() instanceof LivingEntity boss
       &&isBoss(boss)&&!AbilityDamage.active()&&plugin.abilities.inRecovery(boss)){
    event.setCancelled(true);

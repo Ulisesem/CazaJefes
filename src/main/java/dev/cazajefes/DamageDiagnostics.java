@@ -20,7 +20,12 @@ final class DamageDiagnostics implements Listener {
  @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=false)public void hit(EntityDamageByEntityEvent event){if(!plugin.getConfig().getBoolean("combat.damage-diagnostics",true)||!(event.getEntity() instanceof LivingEntity boss)||!boss.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE)||plugin.rebirth.handled(event))return;
   Entity source=event.getDamager();if(source instanceof Projectile projectile&&projectile.getShooter() instanceof Entity owner)source=owner;if(!(source instanceof Player player))return;
   double base=event.getDamage(),damage=event.getFinalDamage();
-  if(event.isCancelled()&&base==0&&Math.abs(damage)<0.000001)return;if(event.isCancelled()){report(boss,player,plugin.guard.rejection(event),base,damage);return;}if(damage<=0){report(boss,player,"daño absorbido o ataque sin fuerza",base,damage);return;}
+  if(event.isCancelled()&&base==0&&Math.abs(damage)<0.000001)return;if(event.isCancelled()){report(boss,player,plugin.guard.rejection(event),base,damage);return;}if(damage<=0){
+   var modifier=EntityDamageEvent.DamageModifier.INVULNERABILITY_REDUCTION;
+   if(event.getDamage(modifier)<0||base<=0)return;
+   String reason=event.getDamage(EntityDamageEvent.DamageModifier.ABSORPTION)<0?"absorción":"mitigación del golpe";
+   report(boss,player,reason,base,damage);return;
+  }
   double health=boss.getHealth(),absorption=boss.getAbsorptionAmount();boolean reborn=BossRebirth.used(boss);plugin.getServer().getScheduler().runTask(plugin,()->{if(boss.isValid()&&!boss.isDead()&&BossRebirth.used(boss)==reborn&&boss.getHealth()>=health&&boss.getAbsorptionAmount()>=absorption)report(boss,player,"el evento permitió daño pero la vida no cambió",base,damage);});
  }
  void inspect(CommandSender sender){if(!AdminPermissions.allows(sender::hasPermission,"rareitemhunter.admin.diagnostico")){sender.sendMessage("Necesitas permiso cazajefes.admin.");return;}if(!(sender instanceof Player p)){sender.sendMessage("Ejecuta /ri diagnostico junto al boss.");return;}

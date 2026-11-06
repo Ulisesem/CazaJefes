@@ -19,5 +19,37 @@ final class SafeDamage {
   double result=event.getFinalDamage();if(result<0&&Double.isFinite(result))event.setDamage(DamageModifier.BASE,base-result+Math.ulp(base));else if(!Double.isFinite(result))zero(event);
  }
  static void finishLowHealth(EntityDamageEvent event,double health){if(event.isCancelled())return;normalize(event);double result=event.getFinalDamage(),desired=DamageProgress.finishing(health,result);if(desired>result)event.setDamage(DamageModifier.BASE,event.getDamage()+desired-result);normalize(event);}
+ // Armor and protection can consume the whole hit in a stale modifier snapshot.
+ // Keep native cooldown, blocking and absorption in the calculation.
+ static void bossFloor(EntityDamageEvent event){
+  if(event.isCancelled())return;
+  double available=event.getDamage()
+      +event.getDamage(DamageModifier.INVULNERABILITY_REDUCTION)
+      +event.getDamage(DamageModifier.BLOCKING);
+  if(!Double.isFinite(available)||available<=0)return;
+  double remaining=available;
+  for(var modifier:DamageModifier.values()){
+   switch(modifier){
+    case BASE,INVULNERABILITY_REDUCTION,BLOCKING,ARMOR,MAGIC,ABSORPTION -> {}
+    default -> remaining+=event.getDamage(modifier);
+   }
+  }
+  double desired=Math.min(1,Math.min(available,remaining)*.15);
+  if(desired<=0)return;
+  double beforeAbsorption=event.getFinalDamage()-event.getDamage(DamageModifier.ABSORPTION);
+  double missing=desired-beforeAbsorption;
+  for(var modifier:new DamageModifier[]{DamageModifier.MAGIC,DamageModifier.ARMOR}){
+   if(missing<=0||!event.isApplicable(modifier))continue;
+   double reduction=event.getDamage(modifier);
+   double restore=Math.min(missing,Math.max(0,-reduction));
+   event.setDamage(modifier,reduction+restore);
+   missing-=restore;
+  }
+  double absorbed=event.getDamage(DamageModifier.ABSORPTION);
+  if(absorbed<0&&event.getEntity() instanceof LivingEntity boss){
+   double damage=event.getFinalDamage()-absorbed;
+   event.setDamage(DamageModifier.ABSORPTION,-Math.min(Math.max(0,damage),boss.getAbsorptionAmount()));
+  }
+ }
  static void floor(EntityDamageEvent event){if(event.isCancelled())return;normalize(event);double result=event.getFinalDamage(),desired=DamageProgress.floor(event.getDamage(),result);if(result>0&&desired>result)event.setDamage(DamageModifier.BASE,event.getDamage()+desired-result);normalize(event);}
 }
