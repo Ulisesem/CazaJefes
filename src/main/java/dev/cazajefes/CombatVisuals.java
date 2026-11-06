@@ -29,7 +29,7 @@ final class CombatVisuals {
       (family.getGreen()*2+signature.getGreen())/3,(family.getBlue()*2+signature.getBlue())/3);
  }
  static Particle motif(BossCatalog.Definition boss){return identity(boss).particle();}
- record AuraDot(Location location,Particle.DustTransition data){}
+ record AuraDot(Location location,Particle.DustTransition data,boolean spark){}
  record AuraTrail(Location origin, Particle.Trail data){}
  record Ambient(java.util.List<AuraDot> dots, java.util.List<AuraTrail> trails, Location crown,Particle motif,Particle particle){}
  static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,BossParticles config,double angle,int points){
@@ -39,6 +39,7 @@ final class CombatVisuals {
   Color secondColor=config.accent()==null?identity.accent():config.accent();
   var primary=new Particle.DustTransition(firstColor,secondColor,phase==3?1.55f:1.3f);
   var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:secondColor,firstColor,1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
+  boolean crate=config.crateVisual();
   var shape=config.shape()==BossParticles.Shape.AUTO
       ?identity.magma()>=0?AuraShape.magma(identity.magma(),width,height,angle,Math.min(points,config.points()),phase)
         :style.points(width,height,origin.getYaw(),angle,Math.min(points,config.points()),phase,identity.seed())
@@ -49,20 +50,21 @@ final class CombatVisuals {
    var point=shape.get(i);
    var start=origin.clone().add(point.x(),point.y(),point.z());
    // Replace dust points with client-animated highlights inside the existing budget.
-   if(config.particle()==null&&shape.size()>=24&&(i==first||i==(first+shape.size()/2)%shape.size())){
+   if(!crate&&config.particle()==null&&shape.size()>=24&&(i==first||i==(first+shape.size()/2)%shape.size())){
     int stride=style==CreatureAura.WIND||style==CreatureAura.WINGS||style==CreatureAura.NIGHT_FLIGHT||style==CreatureAura.EMBER_FLIGHT?4:2;
     var next=shape.get((i+stride)%shape.size());
     var end=origin.clone().add(next.x(),next.y(),next.z());
     trails.add(new AuraTrail(start,new Particle.Trail(end,point.accent()?secondColor:firstColor,phase==3?12:9)));
    }else{
-    dots.add(new AuraDot(start,point.accent()?accent:primary));
+    dots.add(new AuraDot(start,point.accent()?accent:primary,crate&&(i-first)%3==0));
    }
   }
   return new Ambient(dots,trails,origin.clone().add(0,height+.3,0),identity.particle(),config.particle());
  }
  static void ambient(org.bukkit.entity.Player player,Ambient frame){
   for(var dot:frame.dots()){
-   if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
+   if(frame.particle()==null&&dot.spark())PacketBridge.particle(player,Particle.END_ROD,dot.location(),1,0,0,0,0,null);
+   else if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
    else PacketBridge.particle(player,frame.particle(),dot.location(),1,0,0,0,0,null);
   }
   for(var trail:frame.trails())PacketBridge.particle(player,Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data());
