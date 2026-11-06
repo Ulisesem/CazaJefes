@@ -774,7 +774,7 @@ public final class BossManager implements Listener {
          this.boss = var2;
          this.definition = var3;
          this.minionKey = var4;
-         this.tactics=new BossTactics(var2,var3);this.stages=new BossStages(var2,var3);this.phase=BossStages.phase(var2);
+         this.tactics=new BossTactics(var2,var3);this.stages=new BossStages(var2,var3,((CazaJefesPlugin)var1).languages);this.phase=BossStages.phase(var2);
       }
 
       @Override
@@ -1102,7 +1102,7 @@ public final class BossManager implements Listener {
       }
 
       private long lastHorde;
-      private void hordeWarning(){long now=System.currentTimeMillis();if(now-lastHorde<2000)return;lastHorde=now;for(Player player:boss.getWorld().getPlayers())if(CombatGuard.eligible(player)&&player.getLocation().distanceSquared(boss.getLocation())<=1024)BossWarnings.send(player,Component.text("⚠ CUIDADO · 6 súbditos de "+definition.name(),net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}
+      private void hordeWarning(){long now=System.currentTimeMillis();if(now-lastHorde<2000)return;lastHorde=now;for(Player player:boss.getWorld().getPlayers())if(CombatGuard.eligible(player)&&player.getLocation().distanceSquared(boss.getLocation())<=1024)BossWarnings.send(player,Component.text("⚠ "+((CazaJefesPlugin)plugin).languages.text(player,"attack.horde","CUIDADO · 6 súbditos de {boss}").replace("{boss}",((CazaJefesPlugin)plugin).languages.boss(player,definition,"name")),net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}
       private void summonMinions(Player player){
          if(SpellVisuals.mage(definition.entityType())){horde(player,new EntityType[]{EntityType.EVOKER},"healer");return;}
          if(AnimalMinions.animal(definition.entityType())){horde(player,new EntityType[]{definition.entityType()},"animal_guard");return;}

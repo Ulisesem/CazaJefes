@@ -103,7 +103,7 @@ final class PillagerCombat implements Listener {
             }
             if (state.chargeUntil > 0) {
                 if (now < state.chargeUntil) {
-                    if (player != null) BossWarnings.send(player, Component.text("⚠ CARGANDO · " + (state.rocketMode?ROCKET_NAME:NAME), NamedTextColor.GOLD));
+                    if (player != null) BossWarnings.send(player, Component.text("⚠ "+plugin.languages.text(player,"attack.loading","CARGANDO")+" · "+(state.rocketMode?plugin.languages.text(player,"attack.rocket",ROCKET_NAME):plugin.languages.text(player,"attack.arrow",NAME)), NamedTextColor.GOLD));
                     continue;
                 }
                 state.chargeUntil = 0; boss.setChargingAttack(false);
@@ -126,7 +126,7 @@ final class PillagerCombat implements Listener {
                 state.chargeUntil = now + Math.max(PillagerRules.CHARGE,state.definition.custom().options().warningTicks()*50L);
                 boss.setChargingAttack(true);
                 boss.getPathfinder().stopPathfinding();
-                BossWarnings.send(player, Component.text("⚠ CARGANDO · " + (state.rocketMode?ROCKET_NAME:NAME), NamedTextColor.GOLD));
+                BossWarnings.send(player, Component.text("⚠ "+plugin.languages.text(player,"attack.loading","CARGANDO")+" · "+(state.rocketMode?plugin.languages.text(player,"attack.rocket",ROCKET_NAME):plugin.languages.text(player,"attack.arrow",NAME)), NamedTextColor.GOLD));
                 plugin.cinematics.play(boss, state.definition, BossStyle.Beat.PREPARE);
             } else if (now >= state.nextShot) {
                 fire(state, player, false, now); state.nextShot = now + PillagerRules.RELOAD;
@@ -218,7 +218,7 @@ final class PillagerCombat implements Listener {
         }
         int number=state.rocketTotal-state.rocketRemaining+1;
         for(Player viewer:from.getWorld().getNearbyPlayers(from,32)) BossWarnings.send(viewer,Component.text(
-            ROCKET_NAME+" · "+number+"/"+state.rocketTotal,NamedTextColor.GOLD));
+            plugin.languages.text(viewer,"attack.rocket",ROCKET_NAME)+" · "+number+"/"+state.rocketTotal,NamedTextColor.GOLD));
         var rocket=from.getWorld().spawn(from,Firework.class,entity -> {
             entity.getPersistentDataContainer().set(ROCKET,PersistentDataType.BYTE,(byte)1);
             entity.setShooter(boss);

@@ -6,8 +6,9 @@ import org.bukkit.persistence.PersistentDataType;
 import net.kyori.adventure.text.Component;
 final class BossStages {
  private static final NamespacedKey KEY=new NamespacedKey("cazajefes","battle_stage");
+ private final Languages languages;
  private final LivingEntity boss;private final BossCatalog.Definition definition;private final Map<UUID,Integer> seen=new HashMap<>();
- BossStages(LivingEntity boss,BossCatalog.Definition definition){this.boss=boss;this.definition=definition;}
+ BossStages(LivingEntity boss,BossCatalog.Definition definition,Languages languages){this.boss=boss;this.definition=definition;this.languages=languages;}
  static int phase(LivingEntity boss){int current=Math.max(boss.getPersistentDataContainer().getOrDefault(KEY,PersistentDataType.INTEGER,1),CombatScripts.phase(boss.getPersistentDataContainer().getOrDefault(new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING,""),boss.getHealth()/Math.max(1,boss.getMaxHealth())));current=Math.min(3,current);boss.getPersistentDataContainer().set(KEY,PersistentDataType.INTEGER,current);return current;}
- void update(){int stage=phase(boss);Set<UUID> online=new HashSet<>();for(UUID id:BossParticipation.participants(boss)){Player player=org.bukkit.Bukkit.getPlayer(id);if(player==null||!player.isOnline())continue;online.add(id);if(seen.getOrDefault(id,0)!=stage){player.sendMessage(StageMessages.format(definition,stage));seen.put(id,stage);}}seen.keySet().retainAll(online);}
+ void update(){int stage=phase(boss);Set<UUID> online=new HashSet<>();for(UUID id:BossParticipation.participants(boss)){Player player=org.bukkit.Bukkit.getPlayer(id);if(player==null||!player.isOnline())continue;online.add(id);if(seen.getOrDefault(id,0)!=stage){player.sendMessage(StageMessages.format(definition,stage,languages,player));seen.put(id,stage);}}seen.keySet().retainAll(online);}
 }

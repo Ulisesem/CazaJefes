@@ -24,16 +24,16 @@ final class ConfiguredText {
         }
     }
 
-    Component attack(String state, String attack, Player target) {
+    Component attack(String state, String attackId, String attack, Player viewer) {
         String template = plugin.getConfig().getString("messages.attack",DEFAULT_ATTACK);
         if (placeholders != null && template.indexOf('%') >= 0) {
             try {
-                template = (String) placeholders.invoke(null,target,template);
+                template = (String) placeholders.invoke(null,viewer,template);
             } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
                 placeholders = null;
             }
         }
-        return MiniMessage.miniMessage().deserialize(template,Placeholder.unparsed("state",state),
-            Placeholder.unparsed("attack",attack));
+        return MiniMessage.miniMessage().deserialize(template,Placeholder.unparsed("state",plugin.languages.state(viewer,state)),
+            Placeholder.unparsed("attack",plugin.languages.attack(viewer,attackId,attack)));
     }
 }

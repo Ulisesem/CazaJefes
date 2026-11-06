@@ -1,4 +1,4 @@
-# CazaJefes 1.36.1 · testRefactor
+# CazaJefes 1.36.2 · testRefactor
 
 ## Compilar y usar la API
 
@@ -72,3 +72,14 @@ Este es un ejemplo del bloque opcional `combat`. Los campos omitidos heredan la 
 ```
 
 `warningTicks` y `recoveryTicks` fijan mínimos para las habilidades de la rotación. Los enfriamientos de ataques personalizados se configuran con `skills.<id>.cooldown` en segundos. Las técnicas nativas de especie y las tablas completas de drops aún tienen reglas compartidas.
+
+
+## Idiomas en 1.36.2
+
+Usa `/settings` para elegir Español, English o Português. El menú muestra tres cabezas. La selección se guarda por jugador, y en la primera visita se usa el idioma del cliente si coincide con los incluidos.
+
+En `plugins/CazaJefes/lenguajes/{es,en,pt}.json` cada archivo tiene `meta.id`, `meta.name` y `meta.texture` en Base64. `messages` contiene textos por clave. Para personalizar los nombres, agrega `"sapo_de_fuego": {"name": "Fire Toad", "description": "..."}` dentro de `bosses` del idioma deseado. Para cambiar nombres de habilidades en la barra, agrega una clave `id_del_boss.id_de_la_habilidad` dentro de `attacks`. Los valores que falten usan el texto incluido o el nombre original. Reinicia para cargar los cambios del archivo.
+
+La selección se aplica al menú de idioma, al aviso de etapas, a títulos y categorías del bestiario y a los avisos principales de ataques. Los textos antiguos de recetas, botín y algunos ataques de especie conservan sus traducciones originales.
+
+Texturas de las cabezas de [México](https://cdn.minecraft-heads.com/custom-heads/head/70015-mexico), [Reino Unido](https://minecraft-heads.com/custom-heads/head/70085-united-kingdom-flag) y [Portugal](https://minecraft-heads.com/custom-heads/head/77846-portugal-flag).
