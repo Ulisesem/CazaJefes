@@ -11,7 +11,9 @@ public interface BossVisuals {
     }
 
     View boss(LivingEntity body);
+    enum Projectile { ARROW, FIREWORK, SHULKER, SPELL }
     View projectile(Location origin);
+    default View projectile(Location origin,Projectile kind){return projectile(origin);}
     View meteor(Location origin,ItemStack helmet);
     void explosion(Location center);
 }

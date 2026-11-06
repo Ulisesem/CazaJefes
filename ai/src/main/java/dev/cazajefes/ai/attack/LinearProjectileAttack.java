@@ -22,16 +22,25 @@ public final class LinearProjectileAttack extends BossAttack {
     }
 
     @Override public AttackMotion execute(CustomBoss boss,Player target){
-        var from=boss.origin();
+        return launch(boss,target,boss.origin(),dev.cazajefes.ai.visual.BossVisuals.Projectile.ARROW,false,0);
+    }
+
+    AttackMotion launch(CustomBoss boss,Player target,Location from,
+                        dev.cazajefes.ai.visual.BossVisuals.Projectile kind,boolean guide,double area){
+
         var direction=target.getBoundingBox().getCenter().subtract(from.toVector());
         if(direction.lengthSquared()<.00001)return AttackMotion.complete();
         direction.normalize();
         from.setDirection(direction);
-        var view=boss.environment().visuals().projectile(from);
+        var view=boss.environment().visuals().projectile(from,kind);
         return new AttackMotion(){
             Location position=from;
             int age;
             @Override public boolean tick(){
+                if(guide&&boss.environment().validTarget(boss,target)){
+                    var desired=target.getBoundingBox().getCenter().subtract(position.toVector());
+                    if(desired.lengthSquared()>.01)direction.multiply(.72).add(desired.normalize().multiply(.28)).normalize();
+                }
                 var next=position.clone().add(direction.clone().multiply(speed));
                 if(++age>lifetime||!Geometry.loaded(position,speed)||!Geometry.loaded(next,speed))return true;
                 // Sweep the whole segment from the previous tick to the next position so a fast
@@ -40,7 +49,19 @@ public final class LinearProjectileAttack extends BossAttack {
                     Math.min(radius(),2),entity->entity instanceof LivingEntity victim&&boss.environment().mayHit(boss,victim));
                 if(collision!=null){
                     var hit=collision.getHitPosition().toLocation(position.getWorld());
-                    if(collision.getHitEntity() instanceof LivingEntity victim)boss.environment().damage(boss,victim,damage());
+                    if(area>0){
+                        if(Geometry.loaded(hit,area))for(var victim:hit.getWorld().getNearbyPlayers(hit,area)){
+                            if(!boss.environment().mayHit(boss,victim)||victim.getLocation().distanceSquared(hit)>area*area)continue;
+                            var delta=victim.getEyeLocation().toVector().subtract(hit.toVector());
+                            double length=delta.length();
+                            if(length>.2&&hit.getWorld().rayTraceBlocks(hit.clone().add(direction.clone().multiply(-.08)),
+                                delta.normalize(),length-.12,FluidCollisionMode.NEVER,true)!=null)continue;
+                            boss.environment().damage(boss,victim,damage());
+                        }
+                    }else if(collision.getHitEntity() instanceof LivingEntity victim){
+                        boss.environment().damage(boss,victim,damage());
+                        if(!victim.isDead())boss.environment().projectileHit(boss,victim,kind);
+                    }
                     boss.environment().impact(boss,LinearProjectileAttack.this,hit);
                     return true;
                 }

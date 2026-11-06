@@ -40,6 +40,12 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                 double radius=number(row,"radius",2,0,24);
                 double damage=number(row,"damage",Math.min(baseDamage,500),0,500);
                 entries.add(switch(text(row,"type","")){
+                    case "FAMILY_VOLLEY" -> new dev.cazajefes.ai.attack.FamilyVolleyAttack(id,name,category,weight,cooldown,
+                        radius,damage,warn,dev.cazajefes.ai.visual.BossVisuals.Projectile.valueOf(text(row,"projectile","ARROW")),
+                        integer(row,"salvos",3,1,9),integer(row,"shots",3,1,8),integer(row,"intervalTicks",8,3,40),
+                        number(row,"speed",1.6,.1,4),number(row,"area",0,0,8),row.has("guided")&&row.get("guided").getAsBoolean());
+                    case "LIGHTNING_CHAIN" -> new dev.cazajefes.ai.attack.LightningChainAttack(id,name,category,weight,cooldown,
+                        radius,damage,warn,integer(row,"strikes",6,1,9),integer(row,"intervalTicks",20,5,60),integer(row,"minimumPhase",1,1,3));
                     case "SHOCKWAVE" -> new dev.cazajefes.ai.attack.ShockwaveAttack(id,name,weight,cooldown,radius,damage,warn);
                     case "FAULT_LINE" -> new dev.cazajefes.ai.attack.FaultLineAttack(id,name,weight,cooldown,radius,damage,warn);
                     case "MELEE_SWEEP" -> new dev.cazajefes.ai.attack.MeleeSweep(id,name,category,weight,cooldown,radius,damage,warn);

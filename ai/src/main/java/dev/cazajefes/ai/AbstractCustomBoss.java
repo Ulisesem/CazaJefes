@@ -17,6 +17,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     private Player target;
     private boolean closed;
     private BossAttack pending;
+    private BossAttack requested;
     private AttackMotion motion;
     private long releaseAt,gcdUntil,stunnedUntil,tick;
 
@@ -35,11 +36,40 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     @Override public final BossState state(){return state;}
     @Override public final Player target(){return target;}
 
+    public final boolean requestSignature(Player player,java.util.function.Supplier<AttackMotion> start){
+        if(!canRequest(player))return false;
+        var signature=start.get();
+        if(signature==null)return false;
+        target=player;
+        motion=signature;
+        state=BossState.ATTACKING;
+        return true;
+    }
+
+    private boolean canRequest(Player player){
+        return !closed&&pending==null&&motion==null&&requested==null&&tick>=gcdUntil&&tick>=stunnedUntil
+            &&!environment.occupied(this)&&environment.validTarget(this,player)&&environment.canSee(this,player);
+    }
+
+    public final boolean requestAttack(String id,Player player){
+        if(!canRequest(player))return false;
+        double distance=body.getLocation().distance(player.getLocation());
+        for(var attack:profile.attacks()){
+            if(attack.id().equals(id)&&attack.weight()>0&&tick>=ready.getOrDefault(id,0L)
+                &&attack.inRange(this,player,distance)){
+                target=player;
+                requested=attack;
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override public final void tick(long tick){
         if(closed)return;
         this.tick=tick;
         if(tick%5==0){
-            if(pending==null&&motion==null&&!environment.validTarget(this,target))target=environment.acquire(this);
+            if(pending==null&&motion==null&&requested==null&&!environment.validTarget(this,target))target=environment.acquire(this);
             environment.heartbeat(this);
         }
         if(tick<stunnedUntil){
@@ -59,14 +89,26 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             }else if(motion!=null&&motion.tick()){
                 finish();
             }
-            move(target,motion!=null||mobileWindup());
+            move(target,motion!=null&&motion.mobile()||mobileWindup());
         }else if(!environment.validTarget(this,target)){
             target=null;
+            requested=null;
             state=BossState.IDLE;
             move(null,false);
         }else{
             double distance=body.getLocation().distance(target.getLocation());
-            BossAttack choice=tick<gcdUntil||!environment.canSee(this,target)?null:DecisionMaker.choose(profile.attacks(),tick,
+            boolean free=tick>=gcdUntil&&!environment.occupied(this)&&environment.canSee(this,target);
+            BossAttack choice=requested;
+            requested=null;
+            if(choice!=null&&(!free||!choice.inRange(this,target,distance)))choice=null;
+            if(free&&choice==null)motion=environment.signature(this,target);
+            if(motion!=null){
+                state=BossState.ATTACKING;
+                move(target,motion.mobile());
+                view.move(body.getLocation());
+                return;
+            }
+            if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),attack->attack.inRange(this,target,distance));
             if(choice==null){
                 state=BossState.MOVING;
@@ -99,6 +141,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(motion!=null)motion.close();
         motion=null;
         pending=null;
+        requested=null;
         gcdUntil=tick+profile.globalCooldown();
     }
 

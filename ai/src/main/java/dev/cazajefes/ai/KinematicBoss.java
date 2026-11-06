@@ -89,7 +89,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
             }
             else {
                 var side=new Vector(-horizontal.getZ(),0,horizontal.getX());
-                if(++blockedTicks%12==0&&target!=null&&!environment().canSee(this,target))
+                if(++blockedTicks%4==0&&target!=null&&!environment().canSee(this,target))
                     environment().blocked(this,target,horizontalMove);
                 if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));
                 else if(clear(next.clone().subtract(side.clone().multiply(strafe)))){
@@ -100,7 +100,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }
         if(approach&&target!=null&&!swim&&Math.abs(target.getY()-origin.getY())>=1.5
             &&origin.distanceSquared(target.getLocation())<=49){
-            if(++verticalBlockedTicks%16==0)environment().blocked(this,target,
+            if(++verticalBlockedTicks%5==0)environment().blocked(this,target,
                 origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0));
         }else verticalBlockedTicks=0;
         if(distance>.01)next.setDirection(direction);

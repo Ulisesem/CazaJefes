@@ -204,7 +204,11 @@ final class CombatScripts {
       private final Map<String,Long> ready = new HashMap<>();
       private int phase, nextSlot;
       private long gap;
-      Skill next(List<Skill> skills, int stage, long now, boolean ultimateReady) {
+      Skill next(List<Skill> skills,int stage,long now,boolean ultimateReady){
+         return next(skills,stage,now,ultimateReady,null);
+      }
+
+      Skill next(List<Skill> skills,int stage,long now,boolean ultimateReady,String requested){
          if (stage != phase) {
             phase = stage;
             nextSlot = 0;
@@ -214,7 +218,8 @@ final class CombatScripts {
          for (int i = 0; i < skills.size(); i++) {
             int index = (nextSlot + i) % skills.size();
             Skill skill = skills.get(index);
-            if (skill.ultimate() && !ultimateReady || now < ready.getOrDefault(skill.id(),0L)) continue;
+            if (requested!=null&&!requested.equals(skill.id())||skill.ultimate()&&!ultimateReady
+               ||now<ready.getOrDefault(skill.id(),0L))continue;
             nextSlot = (index + 1) % skills.size();
             gap = now + StageAttackRules.gap(stage);
             ready.put(skill.id(),now + skill.cooldown());

@@ -42,7 +42,17 @@ public final class PacketBossVisuals implements BossVisuals {
     }
 
     @Override public View projectile(Location origin){
-        var view=new PacketView(VIRTUAL_IDS.getAndDecrement(),UUID.randomUUID(),EntityTypes.ARROW,null,null,0);
+        return projectile(origin,Projectile.ARROW);
+    }
+
+    @Override public View projectile(Location origin,Projectile kind){
+        var type=switch(kind){
+            case ARROW -> EntityTypes.ARROW;
+            case FIREWORK -> EntityTypes.FIREWORK_ROCKET;
+            case SHULKER -> EntityTypes.SHULKER_BULLET;
+            case SPELL -> EntityTypes.SMALL_FIREBALL;
+        };
+        var view=new PacketView(VIRTUAL_IDS.getAndDecrement(),UUID.randomUUID(),type,null,null,0);
         view.move(origin);
         return view;
     }
@@ -75,6 +85,7 @@ public final class PacketBossVisuals implements BossVisuals {
         private boolean closed;
         private List<Equipment> cachedEquipment=List.of();
         private int nextAudience,nextEquipment;
+        private double lastScale=Double.NaN;
 
         PacketView(int id,UUID uuid,EntityType species,LivingEntity body,ItemStack helmet,double offset){
             this.id=id;
@@ -118,6 +129,14 @@ public final class PacketBossVisuals implements BossVisuals {
                             send(viewer,new WrapperPlayServerEntityEquipment(id,current));
                     }
                 }
+                var attribute=body.getAttribute(Attribute.SCALE);
+                if(attribute!=null&&attribute.getValue()!=lastScale){
+                    lastScale=attribute.getValue();
+                    for(UUID uuid:viewers){
+                        var viewer=Bukkit.getPlayer(uuid);
+                        if(viewer!=null&&viewer.getWorld()==at.getWorld())sendScale(viewer,lastScale);
+                    }
+                }
                 nextEquipment=tick+10;
             }
         }
@@ -143,6 +162,9 @@ public final class PacketBossVisuals implements BossVisuals {
                 at.getPitch(),at.getYaw(),at.getYaw(),0,Optional.empty()));
             var metadata=new ArrayList<EntityData<?>>();
             metadata.add(new EntityData<>(5,EntityDataTypes.BOOLEAN,true));
+            if(species.equals(EntityTypes.FIREWORK_ROCKET))
+                metadata.add(new EntityData<>(8,EntityDataTypes.ITEMSTACK,
+                    SpigotConversionUtil.fromBukkitItemStack(new ItemStack(org.bukkit.Material.FIREWORK_ROCKET))));
             if(helmet!=null)metadata.add(new EntityData<>(0,EntityDataTypes.BYTE,(byte)0x20));
             if(body!=null){
                 Component name=body.customName();
@@ -155,11 +177,15 @@ public final class PacketBossVisuals implements BossVisuals {
             send(viewer,new WrapperPlayServerEntityMetadata(id,metadata));
             if(body!=null&&body.getAttribute(Attribute.SCALE)!=null){
                 double scale=body.getAttribute(Attribute.SCALE).getValue();
-                send(viewer,new WrapperPlayServerUpdateAttributes(id,List.of(
-                    new WrapperPlayServerUpdateAttributes.Property(Attributes.SCALE,scale,List.of()))));
+                sendScale(viewer,scale);
             }
             var equipment=equipment();
             if(!equipment.isEmpty())send(viewer,new WrapperPlayServerEntityEquipment(id,equipment));
+        }
+
+        private void sendScale(Player viewer,double scale){
+            send(viewer,new WrapperPlayServerUpdateAttributes(id,List.of(
+                new WrapperPlayServerUpdateAttributes.Property(Attributes.SCALE,scale,List.of()))));
         }
 
         private List<Equipment> equipment(){
