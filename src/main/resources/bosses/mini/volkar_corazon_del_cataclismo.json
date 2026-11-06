@@ -1,0 +1,88 @@
+{
+  "id": "volkar_corazon_del_cataclismo",
+  "name": "Volkar, Corazón del Cataclismo",
+  "tier": "COMMON",
+  "entity": "SNIFFER",
+  "mini": true,
+  "health": 2000.0,
+  "damage": 38.0,
+  "scale": 1.6,
+  "ultimate": {
+    "name": "Latido del Cataclismo",
+    "pattern": "LANES",
+    "effect": "SLOWNESS",
+    "radius": 6,
+    "pulses": 2,
+    "angle": 2.356194
+  },
+  "portrait": "297c5c686cc4ac4be04f21b23631804a5cac30ff537f5b532440c8e4e25481b3",
+  "combat": {
+    "aura": true,
+    "loot": true,
+    "caveBreach": true
+  },
+  "ai": {
+    "speed": 0.33,
+    "gravity": 0.08,
+    "detectionRange": 60,
+    "globalCooldownTicks": 18,
+    "aquatic": false,
+    "equipment": {},
+    "attacks": [
+      {
+        "id": "golpe_cercano",
+        "name": "Ruptura de Guardia",
+        "type": "MELEE_SWEEP",
+        "category": "SHORT_RANGE",
+        "weight": 6,
+        "cooldownTicks": 48,
+        "warningTicks": 12,
+        "radius": 3,
+        "damage": 38.0
+      },
+      {
+        "id": "descarga",
+        "name": "Descarga de la Grieta",
+        "type": "LINEAR_PROJECTILE",
+        "category": "MID_RANGE",
+        "weight": 6,
+        "cooldownTicks": 75,
+        "warningTicks": 17,
+        "radius": 0.45,
+        "damage": 32.3,
+        "speed": 1.65,
+        "lifetimeTicks": 35
+      },
+      {
+        "id": "descarga_distante",
+        "name": "Aguijón del Horizonte",
+        "type": "LINEAR_PROJECTILE",
+        "category": "LONG_RANGE",
+        "weight": 5,
+        "cooldownTicks": 85,
+        "warningTicks": 19,
+        "radius": 0.5,
+        "damage": 36.1,
+        "speed": 2,
+        "lifetimeTicks": 40
+      },
+      {
+        "id": "meteoro_distante",
+        "name": "Lluvia Incandescente",
+        "type": "METEORITE_AOE",
+        "category": "LONG_RANGE",
+        "weight": 2,
+        "cooldownTicks": 300,
+        "warningTicks": 32,
+        "radius": 3.5,
+        "damage": 43.699999999999996,
+        "height": 10,
+        "speed": 1,
+        "material": "MAGMA_BLOCK",
+        "showerRadius": 20,
+        "durationTicks": 200,
+        "intervalTicks": 10
+      }
+    ]
+  }
+}

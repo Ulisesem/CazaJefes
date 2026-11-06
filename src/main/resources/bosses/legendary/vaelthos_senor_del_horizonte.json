@@ -1,0 +1,88 @@
+{
+  "id": "vaelthos_senor_del_horizonte",
+  "name": "Vaelthos, Señor del Horizonte",
+  "tier": "LEGENDARY",
+  "entity": "ENDERMAN",
+  "mini": false,
+  "health": 2500.0,
+  "damage": 60.0,
+  "scale": 2.5,
+  "ultimate": {
+    "name": "Cacería de Vaelthos",
+    "pattern": "VORTEX",
+    "effect": "BLINDNESS",
+    "radius": 8,
+    "pulses": 4,
+    "angle": 0.594
+  },
+  "portrait": "7a59bb0a7a32965b3d90d8eafa899d1835f424509eadd4e6b709ada50b9cf",
+  "combat": {
+    "aura": true,
+    "loot": true,
+    "caveBreach": true
+  },
+  "ai": {
+    "speed": 0.33,
+    "gravity": 0.08,
+    "detectionRange": 60,
+    "globalCooldownTicks": 18,
+    "aquatic": false,
+    "equipment": {},
+    "attacks": [
+      {
+        "id": "golpe_cercano",
+        "name": "Ruptura de Guardia",
+        "type": "MELEE_SWEEP",
+        "category": "SHORT_RANGE",
+        "weight": 6,
+        "cooldownTicks": 48,
+        "warningTicks": 12,
+        "radius": 3,
+        "damage": 60.0
+      },
+      {
+        "id": "descarga",
+        "name": "Descarga de la Grieta",
+        "type": "LINEAR_PROJECTILE",
+        "category": "MID_RANGE",
+        "weight": 6,
+        "cooldownTicks": 75,
+        "warningTicks": 17,
+        "radius": 0.45,
+        "damage": 51.0,
+        "speed": 1.65,
+        "lifetimeTicks": 35
+      },
+      {
+        "id": "descarga_distante",
+        "name": "Aguijón del Horizonte",
+        "type": "LINEAR_PROJECTILE",
+        "category": "LONG_RANGE",
+        "weight": 5,
+        "cooldownTicks": 85,
+        "warningTicks": 19,
+        "radius": 0.5,
+        "damage": 57.0,
+        "speed": 2,
+        "lifetimeTicks": 40
+      },
+      {
+        "id": "meteoro_distante",
+        "name": "Lluvia Incandescente",
+        "type": "METEORITE_AOE",
+        "category": "LONG_RANGE",
+        "weight": 2,
+        "cooldownTicks": 300,
+        "warningTicks": 32,
+        "radius": 3.5,
+        "damage": 69.0,
+        "height": 10,
+        "speed": 1,
+        "material": "MAGMA_BLOCK",
+        "showerRadius": 20,
+        "durationTicks": 200,
+        "intervalTicks": 10
+      }
+    ]
+  }
+}

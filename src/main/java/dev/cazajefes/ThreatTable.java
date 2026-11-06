@@ -45,7 +45,7 @@ final class ThreatTable {
       Fight fight = fights.computeIfAbsent(boss.getUniqueId(),ignored -> new Fight());
       var candidates = boss.getWorld().getNearbyPlayers(at, range).stream()
          .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(at) <= range * range
-            && (range <= 48 || p.getLocation().distanceSquared(at) <= 576 || fight != null && fight.scores.containsKey(p.getUniqueId()))
+            && (range <= 60 || p.getLocation().distanceSquared(at) <= 576 || fight.scores.containsKey(p.getUniqueId()))
             && ArenaBoundary.allows(boss,p.getLocation()) && filter.test(p)).toList();
       if (candidates.isEmpty()) return null;
       long now = System.currentTimeMillis();

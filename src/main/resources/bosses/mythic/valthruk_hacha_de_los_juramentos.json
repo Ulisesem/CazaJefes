@@ -1,0 +1,88 @@
+{
+  "id": "valthruk_hacha_de_los_juramentos",
+  "name": "Valthruk, Hacha de los Juramentos",
+  "tier": "MYTHIC",
+  "entity": "VINDICATOR",
+  "mini": false,
+  "health": 3600.0,
+  "damage": 82.0,
+  "scale": 3.1,
+  "ultimate": {
+    "name": "Danza de Valthruk",
+    "pattern": "RUSH",
+    "effect": "LEVITATION",
+    "radius": 7,
+    "pulses": 3,
+    "angle": 0.913
+  },
+  "portrait": "2dabafde27ee12b09865047aff6f183fdb64e04dae1c00ccbde04ad93dcc6c95",
+  "combat": {
+    "aura": true,
+    "loot": true,
+    "caveBreach": true
+  },
+  "ai": {
+    "speed": 0.33,
+    "gravity": 0.08,
+    "detectionRange": 60,
+    "globalCooldownTicks": 18,
+    "aquatic": false,
+    "equipment": {},
+    "attacks": [
+      {
+        "id": "golpe_cercano",
+        "name": "Ruptura de Guardia",
+        "type": "MELEE_SWEEP",
+        "category": "SHORT_RANGE",
+        "weight": 6,
+        "cooldownTicks": 48,
+        "warningTicks": 12,
+        "radius": 3,
+        "damage": 82.0
+      },
+      {
+        "id": "descarga",
+        "name": "Descarga de la Grieta",
+        "type": "LINEAR_PROJECTILE",
+        "category": "MID_RANGE",
+        "weight": 6,
+        "cooldownTicks": 75,
+        "warningTicks": 17,
+        "radius": 0.45,
+        "damage": 69.7,
+        "speed": 1.65,
+        "lifetimeTicks": 35
+      },
+      {
+        "id": "descarga_distante",
+        "name": "Aguijón del Horizonte",
+        "type": "LINEAR_PROJECTILE",
+        "category": "LONG_RANGE",
+        "weight": 5,
+        "cooldownTicks": 85,
+        "warningTicks": 19,
+        "radius": 0.5,
+        "damage": 77.89999999999999,
+        "speed": 2,
+        "lifetimeTicks": 40
+      },
+      {
+        "id": "meteoro_distante",
+        "name": "Lluvia Incandescente",
+        "type": "METEORITE_AOE",
+        "category": "LONG_RANGE",
+        "weight": 2,
+        "cooldownTicks": 300,
+        "warningTicks": 32,
+        "radius": 3.5,
+        "damage": 94.3,
+        "height": 10,
+        "speed": 1,
+        "material": "MAGMA_BLOCK",
+        "showerRadius": 20,
+        "durationTicks": 200,
+        "intervalTicks": 10
+      }
+    ]
+  }
+}

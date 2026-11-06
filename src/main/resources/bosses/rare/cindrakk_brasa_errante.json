@@ -1,0 +1,88 @@
+{
+  "id": "cindrakk_brasa_errante",
+  "name": "Cindrakk, Brasa Errante",
+  "tier": "RARE",
+  "entity": "BLAZE",
+  "mini": false,
+  "health": 1100.0,
+  "damage": 32.0,
+  "scale": 1.6,
+  "ultimate": {
+    "name": "Cacería de Cindrakk",
+    "pattern": "VORTEX",
+    "effect": "WEAKNESS",
+    "radius": 8,
+    "pulses": 4,
+    "angle": 0.33
+  },
+  "portrait": "dee23dc7a10c6a87ef937454c0e94ed42c23aa641a91ed8470a3042d05c52c52",
+  "combat": {
+    "aura": true,
+    "loot": true,
+    "caveBreach": true
+  },
+  "ai": {
+    "speed": 0.33,
+    "gravity": 0.08,
+    "detectionRange": 60,
+    "globalCooldownTicks": 18,
+    "aquatic": false,
+    "equipment": {},
+    "attacks": [
+      {
+        "id": "golpe_cercano",
+        "name": "Ruptura de Guardia",
+        "type": "MELEE_SWEEP",
+        "category": "SHORT_RANGE",
+        "weight": 6,
+        "cooldownTicks": 48,
+        "warningTicks": 12,
+        "radius": 3,
+        "damage": 32.0
+      },
+      {
+        "id": "descarga",
+        "name": "Descarga de la Grieta",
+        "type": "LINEAR_PROJECTILE",
+        "category": "MID_RANGE",
+        "weight": 6,
+        "cooldownTicks": 75,
+        "warningTicks": 17,
+        "radius": 0.45,
+        "damage": 27.2,
+        "speed": 1.65,
+        "lifetimeTicks": 35
+      },
+      {
+        "id": "descarga_distante",
+        "name": "Aguijón del Horizonte",
+        "type": "LINEAR_PROJECTILE",
+        "category": "LONG_RANGE",
+        "weight": 5,
+        "cooldownTicks": 85,
+        "warningTicks": 19,
+        "radius": 0.5,
+        "damage": 30.4,
+        "speed": 2,
+        "lifetimeTicks": 40
+      },
+      {
+        "id": "meteoro_distante",
+        "name": "Lluvia Incandescente",
+        "type": "METEORITE_AOE",
+        "category": "LONG_RANGE",
+        "weight": 2,
+        "cooldownTicks": 300,
+        "warningTicks": 32,
+        "radius": 3.5,
+        "damage": 36.8,
+        "height": 10,
+        "speed": 1,
+        "material": "MAGMA_BLOCK",
+        "showerRadius": 20,
+        "durationTicks": 200,
+        "intervalTicks": 10
+      }
+    ]
+  }
+}

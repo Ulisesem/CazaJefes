@@ -61,6 +61,14 @@ final class ArenaBoundary {
       return at==null || at.length!=3 || allows(new Location(entity.getWorld(),at[0],at[1],at[2]),destination);
    }
 
+   static boolean allowsTerrain(org.bukkit.entity.Entity boss,Location destination) {
+      if(plugin==null||!plugin.getServer().getPluginManager().isPluginEnabled("WorldGuard"))
+         return allows(boss,destination);
+      if(api==null||!allows(boss,destination))return false;
+      try{return !regions(destination).isEmpty();}
+      catch(ReflectiveOperationException|RuntimeException failure){warn(failure);return false;}
+   }
+
    static boolean allows(Location source, Location destination) {
       if (protectedIds.isEmpty()) return true;
       if (source.getWorld()!=destination.getWorld()) return false;

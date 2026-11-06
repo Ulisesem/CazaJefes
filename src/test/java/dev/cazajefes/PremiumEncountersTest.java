@@ -10,9 +10,17 @@ import static org.junit.Assert.*;
 
 public class PremiumEncountersTest {
    @Test public void allOriginalsAreEditableJsonWithPortraitsAndExistingIds() throws Exception {
-      try (var reader = Files.newBufferedReader(Path.of("src/main/resources/bosses.json"))) {
-         var originals = JsonBosses.readCatalog(reader);
+      {
+         var originals = JsonBosses.builtIns();
          assertEquals(168, originals.size());
+         for (var boss : originals.values()) {
+            var profile = boss.custom().ai();
+            assertEquals(60, profile.get("detectionRange").getAsInt());
+            var ranges = new java.util.HashSet<String>();
+            for (var attack : profile.getAsJsonArray("attacks"))
+               ranges.add(attack.getAsJsonObject().get("category").getAsString());
+            assertEquals(java.util.Set.of("SHORT_RANGE", "MID_RANGE", "LONG_RANGE"), ranges);
+         }
          assertEquals(BossCatalog.ids(), java.util.List.copyOf(originals.keySet()));
          assertTrue(originals.values().stream().allMatch(boss ->
             boss.custom().portrait().matches("[a-f0-9]{60,64}") && boss.custom().ultimate() != null));
@@ -22,7 +30,7 @@ public class PremiumEncountersTest {
    }
 
    @Test public void catalogEditsReachCombatProfiles() throws Exception {
-      String json = Files.readString(Path.of("src/main/resources/bosses.json"));
+      String json = "[" + Files.readString(Path.of("src/main/resources/bosses/abyssal/brumgor_colmillo_del_eclipse.json")) + "]";
       var edited = JsonBosses.readCatalog(new StringReader(json.replace("Colmillo del Eclipse Sangriento", "Eco de prueba")));
       var boss = edited.get("brumgor_colmillo_del_eclipse");
       try {
