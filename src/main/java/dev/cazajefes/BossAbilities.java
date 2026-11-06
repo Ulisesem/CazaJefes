@@ -183,6 +183,7 @@ final class BossAbilities implements Listener {
    }
    if (comboAt >= 0) {
     if (ticks >= comboAt) {
+     show(audience,"IMPACTO DE COMBINACIÓN",1,net.kyori.adventure.bossbar.BossBar.Color.RED);
      combo();
      finish(true);
      return;
@@ -265,12 +266,16 @@ final class BossAbilities implements Listener {
    ticks += 5;
   }
 
+  private String lastNotice;
+
   private void show(List<Player> audience, String state, float progress,
                     net.kyori.adventure.bossbar.BossBar.Color color) {
-   Component message = Component.text(state + "  ·  ", NamedTextColor.GOLD).decorate(TextDecoration.BOLD)
-      .append(Component.text(profile.name(), NamedTextColor.WHITE));
+   Component message = plugin.text().attack(state,profile.name(),target);
    presentation.update(audience, message, progress, color);
-   if (ticks % 20 == 0 || state.startsWith("IMPACTO")) for (Player player : audience) BossWarnings.send(player, message);
+   if (!state.equals(lastNotice) || ticks % 20 == 0) {
+    lastNotice=state;
+    for (Player player : audience) BossWarnings.send(player, message);
+   }
   }
 
   private void cue(List<Player> audience, Sound sound, float pitch) {
@@ -330,7 +335,8 @@ final class BossAbilities implements Listener {
    }
   }
 
-  private void preview(List<Player> audience) {
+  private void preview(List<Player> participants) {
+   var audience = CinematicFX.audience(center,32);
    if (axeImpact != null) {
     CinematicFX.ring(axeImpact,audience,3,0,18,Color.RED,Color.YELLOW);
     if (ticks%10==0) for (Player player : audience) BossWarnings.send(player,
@@ -389,9 +395,9 @@ final class BossAbilities implements Listener {
 
   private void fallingMeteor() {
    if (profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN) {
-    for (var point : ObsidianRain.centers(pulse)) presentation.obsidian(center.clone().add(point.x(),.25,point.z()));
+    for (var point : ObsidianRain.centers(pulse)) presentation.meteor(center.clone().add(point.x(),.25,point.z()),definition,9);
    }
-   if (profile.pattern() == BossAbilityCatalog.Pattern.METEORS) presentation.meteor(marks.get(pulse % marks.size()));
+   if (profile.pattern() == BossAbilityCatalog.Pattern.METEORS) presentation.meteor(marks.get(pulse % marks.size()),definition,6);
   }
   void release(){
    if (!valid()) return;
@@ -445,8 +451,11 @@ final class BossAbilities implements Listener {
     recovery.put(boss.getUniqueId(), System.currentTimeMillis() + skill.recovery() * 50L);
     var audience = players();
     plugin.cinematics.play(boss, definition, BossStyle.Beat.RECOVERY, audience, skill.sounds());
-    for (Player player : audience) BossWarnings.send(player, Component.text(
-       "RECUPERACIÓN · ¡Contraataca!", NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
+    plugin.getServer().getScheduler().runTaskLater(plugin,() -> {
+     if(!boss.isValid()||boss.isDead()||casts.containsKey(boss.getUniqueId()))return;
+     for(Player player:players()) BossWarnings.send(player,Component.text(
+        "RECUPERACIÓN · ¡Contraataca!",NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
+    },10);
    }
    if (!completed) plugin.cinematics.remove(boss.getUniqueId());
    if (ultimate && boss.isValid()) boss.getPersistentDataContainer().set(readyKey, PersistentDataType.LONG,

@@ -1,0 +1,12 @@
+name: CazaJefesExample
+version: '${pluginVersion}'
+main: dev.cazajefes.example.CazaJefesExample
+api-version: '1.21'
+depend: [CazaJefes]
+commands:
+  cazajefesejemplo:
+    description: Demostración de la API de CazaJefes.
+    permission: cazajefesexample.use
+permissions:
+  cazajefesexample.use:
+    default: op

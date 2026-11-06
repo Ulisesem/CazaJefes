@@ -1,0 +1,33 @@
+def releaseDate = providers.gradleProperty('buildDate').orElse(
+    java.time.LocalDate.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE))
+def metadata = [pluginName: property('pluginName'), pluginVersion: property('pluginVersion'),
+                pluginDescription: property('pluginDescription')]
+
+subprojects {
+    apply plugin: 'java-library'
+    group = 'dev.cazajefes'
+    version = metadata.pluginVersion
+    repositories {
+        mavenCentral()
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    }
+    java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+    dependencies {
+        compileOnly "io.papermc.paper:paper-api:${rootProject.property('paperVersion')}"
+    }
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 21
+    }
+    tasks.named('processResources') {
+        inputs.properties(metadata)
+        filteringCharset = 'UTF-8'
+        filesMatching('plugin.yml') { expand(metadata) }
+    }
+    tasks.named('jar') {
+        def suffix = project.name == 'CazaJefes' ? '' : '-' + project.name
+        archiveFileName = "${metadata.pluginName}${suffix}-${version}-${releaseDate.get()}.jar"
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+}

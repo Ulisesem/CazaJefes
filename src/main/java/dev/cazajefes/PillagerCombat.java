@@ -19,10 +19,15 @@ final class PillagerCombat implements Listener {
     private static final NamespacedKey BOSS = new NamespacedKey("cazajefes", BossKeys.BOSS);
     private static final NamespacedKey SPECIAL = new NamespacedKey("cazajefes", "crossbow_retribution");
     private static final NamespacedKey ARROW = new NamespacedKey("cazajefes", "raider_arrow");
+    private static final NamespacedKey ROCKET = new NamespacedKey("cazajefes","raider_rocket");
+    private static final String ROCKET_NAME = "Bombardeo de la Grieta";
     private static final String NAME = "Tempestad del Destierro";
     private static final class Raider {
         final Pillager boss; final BossCatalog.Definition definition; final PillagerRules.Hits hits; final PillagerRules.Burst burst=new PillagerRules.Burst();
-        UUID focus; long chargeUntil, nextVolley, nextShot;
+        UUID focus;
+        long chargeUntil, nextVolley, nextShot, nextRocket;
+        int rocketRemaining, rocketTotal;
+        boolean rocketMode, nextRockets = true;
         Raider(Pillager boss, BossCatalog.Definition definition, int threshold) {
             this.boss = boss; this.definition = definition; hits = new PillagerRules.Hits(threshold);
         }
@@ -36,6 +41,7 @@ final class PillagerCombat implements Listener {
     private final Map<UUID, Raider> raiders = new HashMap<>();
     private final Map<UUID, Shot> shots = new LinkedHashMap<>();
     private final Map<UUID, Volley> volleys = new HashMap<>();
+    private final Map<UUID, Firework> rockets = new LinkedHashMap<>();
     private final BukkitTask timer;
 
     PillagerCombat(CazaJefesPlugin plugin) {
@@ -43,17 +49,19 @@ final class PillagerCombat implements Listener {
         timer = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 5, 5);
     }
     void track(LivingEntity entity, BossCatalog.Definition definition) {
-        if (entity instanceof Pillager pillager) raiders.putIfAbsent(entity.getUniqueId(),
+        if (!(entity instanceof Pillager pillager)) return;
+        Bukkit.getMobGoals().removeGoal(pillager,com.destroystokyo.paper.entity.ai.VanillaGoal.RANGED_CROSSBOW_ATTACK);
+        raiders.putIfAbsent(entity.getUniqueId(),
             new Raider(pillager, definition, plugin.getConfig().getInt("combat.pillager-retaliation-hits", 5)));
     }
-    boolean charging(UUID id) { Raider state = raiders.get(id); return state != null && (state.chargeUntil > 0 || state.burst.active()); }
+    boolean charging(UUID id) { Raider state = raiders.get(id); return state != null && (state.chargeUntil > 0 || state.burst.active() || state.rocketRemaining > 0); }
     static boolean specialShot(Entity entity) {
         return entity.getPersistentDataContainer().has(SPECIAL, PersistentDataType.BYTE);
     }
     static double arrowRangeSquared(Entity entity){return entity.getPersistentDataContainer().has(ARROW,PersistentDataType.BYTE)||entity.getPersistentDataContainer().has(SkeletonCombat.ARROW,PersistentDataType.BYTE)?2304:576;}
     private Player target(Raider state) {
         Player focus = state.focus == null ? null : plugin.getServer().getPlayer(state.focus);
-        if ((state.chargeUntil > 0 || state.burst.active()) && eligible(state.boss, focus)) return focus;
+        if ((state.chargeUntil > 0 || state.burst.active() || state.rocketRemaining > 0) && eligible(state.boss, focus)) return focus;
         return ThreatTable.pick(state.boss, 48, player -> eligible(state.boss, player));
     }
     private boolean eligible(Pillager boss, Player player) {
@@ -68,11 +76,26 @@ final class PillagerCombat implements Listener {
             else guide(shot);
         }
         volleys.values().removeIf(v -> now >= v.expires);
+        rockets.values().removeIf(rocket -> !rocket.isValid());
         for (Raider state : new ArrayList<>(raiders.values())) {
             Pillager boss = state.boss;
             if (!boss.isValid() || boss.isDead()) { remove(boss.getUniqueId()); continue; }
             if (boss.isInvulnerable()) continue;
             Player player = target(state);
+            if(state.rocketRemaining>0){
+                if(player==null){
+                    state.rocketRemaining=0;
+                    state.nextVolley=now+PillagerRules.COOLDOWN;
+                } else if(now>=state.nextRocket) {
+                    fireRocket(state,player);
+                    state.nextRocket=now+350;
+                    if(--state.rocketRemaining==0){
+                        state.nextVolley=now+PillagerRules.COOLDOWN;
+                        plugin.abilities.rest(boss);
+                    }
+                }
+                continue;
+            }
             if(state.burst.active()){
                 if(player==null){state.burst.cancel();state.nextVolley=now+PillagerRules.COOLDOWN;continue;}
                 if(state.burst.take(now)){fire(state,player,true,now);if(!state.burst.active()){state.nextVolley=now+PillagerRules.COOLDOWN;plugin.abilities.rest(boss);}}
@@ -80,22 +103,33 @@ final class PillagerCombat implements Listener {
             }
             if (state.chargeUntil > 0) {
                 if (now < state.chargeUntil) {
-                    if (player != null) BossWarnings.send(player, Component.text("⚠ CARGANDO · " + NAME, NamedTextColor.GOLD));
+                    if (player != null) BossWarnings.send(player, Component.text("⚠ CARGANDO · " + (state.rocketMode?ROCKET_NAME:NAME), NamedTextColor.GOLD));
                     continue;
                 }
                 state.chargeUntil = 0; boss.setChargingAttack(false);
                 state.hits.consume();
-                if (player != null){state.burst.start(now);if(state.burst.take(now))fire(state,player,true,now);}else state.nextVolley=now+PillagerRules.COOLDOWN;
+                if (player == null) state.nextVolley=now+PillagerRules.COOLDOWN;
+                else if (state.rocketMode) {
+                    state.rocketTotal=PillagerRules.rocketCharges(plugin.getConfig().getInt("combat.pillager-rocket-charges",9));
+                    state.rocketRemaining=state.rocketTotal;
+                    state.nextRocket=now;
+                } else {
+                    state.burst.start(now);
+                    if(state.burst.take(now)) fire(state,player,true,now);
+                }
                 continue;
             }
             if (player == null || plugin.abilities.occupied(boss)) continue;
             if (now >= state.nextVolley && state.hits.charged(now)) {
-                state.chargeUntil = now + PillagerRules.CHARGE; boss.setChargingAttack(true);
+                state.rocketMode=state.nextRockets;
+                state.nextRockets=!state.nextRockets;
+                state.chargeUntil = now + PillagerRules.CHARGE;
+                boss.setChargingAttack(true);
                 boss.getPathfinder().stopPathfinding();
-                BossWarnings.send(player, Component.text("⚠ CARGANDO · " + NAME, NamedTextColor.GOLD));
+                BossWarnings.send(player, Component.text("⚠ CARGANDO · " + (state.rocketMode?ROCKET_NAME:NAME), NamedTextColor.GOLD));
                 plugin.cinematics.play(boss, state.definition, BossStyle.Beat.PREPARE);
             } else if (now >= state.nextShot) {
-                fire(state, player, false, now); state.nextShot = now + 2500;
+                fire(state, player, false, now); state.nextShot = now + PillagerRules.RELOAD;
             }
         }
     }
@@ -118,9 +152,23 @@ final class PillagerCombat implements Listener {
 
     private void fire(Raider state, Player player, boolean special, long now) {
         Pillager boss = state.boss;
-        if(shots.size()+(special?PillagerRules.VOLLEY_SIZE:1)>512)return;
+        if(shots.size()+(special?PillagerRules.VOLLEY_SIZE:1)>512){
+            // Prioritize the current shot over stale projectiles; never animate an empty shot.
+            var oldest=shots.values().iterator();
+            int budget=special?PillagerRules.VOLLEY_SIZE:1;
+            while(shots.size()+budget>512&&oldest.hasNext()){
+                oldest.next().arrow().remove();
+                oldest.remove();
+            }
+        }
         var levitation=player.getPotionEffect(org.bukkit.potion.PotionEffectType.LEVITATION);
-        Vector direction=PillagerRules.aim(boss.getEyeLocation().toVector(),player.getEyeLocation().toVector(),player.getVelocity(),PillagerRules.ARROW_SPEED,levitation==null?0:levitation.getAmplifier()+1,!player.isOnGround());
+        Location muzzle=boss.getEyeLocation();
+        boolean pointBlank=muzzle.distanceSquared(player.getEyeLocation())<=9;
+        Vector direction=pointBlank?player.getBoundingBox().getCenter().subtract(muzzle.toVector())
+            :PillagerRules.aim(muzzle.toVector(),player.getEyeLocation().toVector(),player.getVelocity(),
+                PillagerRules.ARROW_SPEED,levitation==null?0:levitation.getAmplifier()+1,!player.isOnGround());
+        if(direction.lengthSquared()<.0001)direction=muzzle.getDirection();
+        direction.normalize();
         UUID volleyId = UUID.randomUUID();
         if (special) volleys.put(volleyId, new Volley(now + PillagerRules.ARROW_LIFETIME));
         var attribute = boss.getAttribute(Attribute.ATTACK_DAMAGE);
@@ -147,6 +195,11 @@ final class PillagerCombat implements Listener {
             if (arrow.isValid()) shots.put(arrow.getUniqueId(), new Shot(arrow, boss.getUniqueId(), volleyId, player.getUniqueId(),shotIndex==0,special,damage,now + PillagerRules.ARROW_LIFETIME));
             shotIndex++;
         }
+        if (shots.values().stream().noneMatch(shot -> shot.volley().equals(volleyId))) {
+            volleys.remove(volleyId);
+            return;
+        }
+        boss.swingMainHand();
         if (special) plugin.cinematics.play(boss, state.definition, BossStyle.Beat.IMPACT);
         else boss.getWorld().playSound(boss.getLocation(), Sound.ITEM_CROSSBOW_SHOOT, 1.2f, 1.1f);
         if (special) {
@@ -154,6 +207,63 @@ final class PillagerCombat implements Listener {
             BossWarnings.send(player, Component.text("✦ " + NAME + " · ráfaga "+state.burst.fired()+"/6 · " + state.definition.name(), NamedTextColor.GOLD));
         }
     }
+    private void fireRocket(Raider state, Player target) {
+        var boss=state.boss;
+        var from=boss.getEyeLocation();
+        var direction=PillagerRules.aim(from.toVector(),target.getBoundingBox().getCenter(),target.getVelocity(),1.8,0,!target.isOnGround());
+        if (rockets.size()>=72) {
+            var oldest=rockets.values().iterator();
+            oldest.next().remove();
+            oldest.remove();
+        }
+        int number=state.rocketTotal-state.rocketRemaining+1;
+        for(Player viewer:from.getWorld().getNearbyPlayers(from,32)) BossWarnings.send(viewer,Component.text(
+            ROCKET_NAME+" · "+number+"/"+state.rocketTotal,NamedTextColor.GOLD));
+        var rocket=from.getWorld().spawn(from,Firework.class,entity -> {
+            entity.getPersistentDataContainer().set(ROCKET,PersistentDataType.BYTE,(byte)1);
+            entity.setShooter(boss);
+            entity.setPersistent(false);
+            var meta=entity.getFireworkMeta();
+            meta.setPower(0);
+            meta.addEffect(FireworkEffect.builder().with(FireworkEffect.Type.BURST).withColor(Color.RED,Color.ORANGE)
+                .withFade(Color.YELLOW).trail(true).build());
+            entity.setFireworkMeta(meta);
+            entity.setShotAtAngle(true);
+            entity.setMaxLife(16);
+            entity.setVelocity(direction.multiply(1.8));
+        });
+        if (!rocket.isValid()) return;
+        rockets.put(rocket.getUniqueId(),rocket);
+        boss.swingMainHand();
+        boss.getWorld().playSound(from,Sound.ITEM_CROSSBOW_SHOOT,1.2f,.8f);
+    }
+
+    @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
+    public void explodeRocket(FireworkExplodeEvent event){
+        var rocket=event.getEntity();
+        if(rockets.remove(rocket.getUniqueId())==null||!(rocket.getShooter() instanceof Pillager boss))return;
+        var state=raiders.get(boss.getUniqueId());
+        if(state==null||!boss.isValid()||boss.isDead())return;
+        var at=rocket.getLocation();
+        double radius=4.5;
+        double base=CombatPower.special(state.definition.tier().damage,state.definition.tier().ordinal(),BossStages.phase(boss),false);
+        for(Player target:at.getWorld().getNearbyPlayers(at,radius)){
+            if(!CombatGuard.eligible(target)||!ArenaBoundary.allows(boss,target.getLocation())
+                ||!ArenaBoundary.allows(boss,at))continue;
+            Vector delta=target.getEyeLocation().toVector().subtract(at.toVector());
+            double distance=delta.length();
+            if(distance>radius)continue;
+            if(distance>.15&&at.getWorld().rayTraceBlocks(at,delta.multiply(1/distance),distance-.1,FluidCollisionMode.NEVER,true)!=null)continue;
+            AbilityDamage.hit(target,boss,Math.min(120,base*(1.25-.55*distance/radius)),true);
+        }
+    }
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void nativeRocketDamage(EntityDamageByEntityEvent event) {
+        if(event.getDamager() instanceof Firework rocket&&rocket.getPersistentDataContainer().has(ROCKET,PersistentDataType.BYTE))
+            event.setCancelled(true);
+    }
+
     @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
     public void hitBoss(EntityDamageByEntityEvent event) {
         Raider state = raiders.get(event.getEntity().getUniqueId());
@@ -202,7 +312,12 @@ final class PillagerCombat implements Listener {
     @EventHandler public void unload(ChunkUnloadEvent event) { for (Entity entity : event.getChunk().getEntities()) remove(entity.getUniqueId()); }
     private void remove(UUID id) {
         Raider state = raiders.remove(id); if (state == null) return; if (state.boss.isValid()) state.boss.setChargingAttack(false);
+        rockets.values().removeIf(rocket -> {
+            if (!(rocket.getShooter() instanceof Pillager boss) || !boss.getUniqueId().equals(id)) return false;
+            rocket.remove();
+            return true;
+        });
         for (Iterator<Shot> it = shots.values().iterator(); it.hasNext();) { Shot shot = it.next(); if (shot.owner().equals(id)) { shot.arrow().remove(); it.remove(); } }
     }
-    void stop() { timer.cancel(); for (UUID id : new ArrayList<>(raiders.keySet())) remove(id); for (Shot shot : shots.values()) shot.arrow().remove(); shots.clear(); volleys.clear(); }
+    void stop() { timer.cancel(); for (UUID id : new ArrayList<>(raiders.keySet())) remove(id); for (Shot shot : shots.values()) shot.arrow().remove(); shots.clear(); volleys.clear(); for(var rocket:rockets.values())rocket.remove();rockets.clear(); }
 }

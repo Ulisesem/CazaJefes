@@ -1,3 +1,7 @@
+# CazaJefes 1.36.0 · testRefactor
+
+[Compilación con Gradle, módulos y configuración](docs/TEST-REFACTOR.md)
+
 # CazaJefes 1.35.3 · Auras por criatura
 
 Auras y partículas diseñadas según la criatura de cada jefe. [Cambios y configuración](docs/CAMBIOS-1.35.3.md).

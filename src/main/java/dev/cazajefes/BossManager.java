@@ -933,6 +933,7 @@ public final class BossManager implements Listener {
       }
 
       private void specialDebuffWave(Player var1) {
+         BossWarnings.send(var1,Component.text("¡" + this.definition.name() + " desata su poder!", this.definition.tier().color));
          Location var2 = this.boss.getLocation();
          Particle var3 = this.definition.tier() == BossCatalog.Tier.ABYSSAL
             ? Particle.DRAGON_BREATH
@@ -949,7 +950,6 @@ public final class BossManager implements Listener {
             }
          }
 
-         var1.sendActionBar(Component.text("¡" + this.definition.name() + " desata su poder!", this.definition.tier().color));
       }
 
       private void signatureSpecial(Player var1) {
@@ -1204,6 +1204,7 @@ public final class BossManager implements Listener {
       }
 
       private void shockwave(Player var1) {
+         BossWarnings.send(var1,Component.text("¡" + this.definition.name() + " desata una onda de choque!", this.definition.tier().color));
          Location var2 = this.boss.getLocation();
          double var3 = this.definition.tier().scale * (this.definition.mini() ? 2.6 : 3.3) + 3.0;
 
@@ -1232,10 +1233,10 @@ public final class BossManager implements Listener {
             }
          }
 
-         var1.sendActionBar(Component.text("¡" + this.definition.name() + " desata una onda de choque!", this.definition.tier().color));
       }
 
       private void huntLunge(Player var1) {
+         BossWarnings.send(var1,Component.text("¡" + this.definition.name() + " se lanza hacia ti!", this.definition.tier().color));
          Location var2 = this.boss.getLocation();
          Vector var3 = var1.getLocation().toVector().subtract(var2.toVector()).setY(0).normalize();
          this.boss.getWorld().playSound(var2, Sound.ENTITY_RAVAGER_ROAR, 1.2F, 0.7F);
@@ -1247,10 +1248,10 @@ public final class BossManager implements Listener {
             var1.setVelocity(var3.multiply(-0.75).setY(0.92 + this.definition.tier().ordinal() * 0.1));
          }
 
-         var1.sendActionBar(Component.text("¡" + this.definition.name() + " se lanza hacia ti!", this.definition.tier().color));
       }
 
       private void targetedBurst(Player var1) {
+         BossWarnings.send(var1,Component.text("¡Ataque especial de " + this.definition.name() + "!", this.definition.tier().color));
          Location var2 = var1.getLocation();
          Vector var3 = var2.toVector().subtract(this.boss.getLocation().toVector()).normalize();
          Particle var4 = this.definition.tier() == BossCatalog.Tier.ABYSSAL
@@ -1282,7 +1283,6 @@ public final class BossManager implements Listener {
             }
          }
 
-         var1.sendActionBar(Component.text("¡Ataque especial de " + this.definition.name() + "!", this.definition.tier().color));
       }
 
       private void debuff(Player var1) {

@@ -1,5 +1,9 @@
 package dev.cazajefes;
 
+import dev.cazajefes.integration.NbtItems;
+
+import dev.cazajefes.integration.PacketBridge;
+
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,10 +33,13 @@ public final class CazaJefesPlugin extends JavaPlugin {
    private BossManager bossManager;
    private RelicItems relicItems;
    private HuntTracker tracker;
+   private ConfiguredText text;
+   ConfiguredText text() { return text; }
 
    public void onEnable() {
-      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);BossWarnings.start(this);
+      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);
       ConfigMigration.run(this);
+      text = new ConfiguredText(this);
       BossCatalog.installCustom(JsonBosses.load(this));
       CombatScripts.load(this);
       this.recipeSettings = new RecipeSettings(this);
@@ -93,6 +100,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       RaresMenu raresMenu = new RaresMenu(this, this.relicItems);
       this.getCommand("rares").setExecutor(raresMenu);
       this.getServer().getPluginManager().registerEvents(raresMenu, this);
+      getServer().getServicesManager().register(dev.cazajefes.api.CazaJefesApi.class,new PluginApi(this),this,org.bukkit.plugin.ServicePriority.Normal);
       this.getLogger().info("CazaJefes está listo.");
    }
 
