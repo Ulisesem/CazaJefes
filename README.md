@@ -1,3 +1,7 @@
+# CazaJefes 1.34.1 · Hacha en mano
+
+El arma del jefe cambia al preparar, lanzar y recuperar el hacha. [Cambios y configuración](docs/CAMBIOS-1.34.1.md).
+
 # CazaJefes 1.34.0 · Contraataque
 
 Avisos con partículas, hachas arrojadizas, rayos reflejados y anclas rompibles. [Cambios y configuración](docs/CAMBIOS-1.34.0.md).

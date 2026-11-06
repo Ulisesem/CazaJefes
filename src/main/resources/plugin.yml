@@ -1,5 +1,5 @@
 name: CazaJefes
-version: '1.34.0'
+version: '1.34.1'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
 softdepend: [ModelEngine, WorldGuard, packetevents]

@@ -210,7 +210,7 @@ final class BossAbilities implements Listener {
        ticks / (float) charge, ultimate ? net.kyori.adventure.bossbar.BossBar.Color.PURPLE
           : net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
     if (ticks == 0) modeled = plugin.cinematics.play(boss, definition, BossStyle.Beat.PREPARE, audience, skill.sounds());
-    if (!modeled && (axeImpact == null || ticks < charge - 10)) presentation.prop(boss, style, ticks / (float) charge, false);
+    if (!modeled && axeImpact == null) presentation.prop(boss, style, ticks / (float) charge, false);
     if (ticks == prepare || ticks == charge - 10) {
      cue(audience, Sound.BLOCK_NOTE_BLOCK_PLING, .65f + ticks / 50f);
     }
@@ -220,7 +220,7 @@ final class BossAbilities implements Listener {
     }
     if (ticks == charge - 10) {
      fallingMeteor();
-     if (axeImpact != null) presentation.thrownAxe(boss.getEyeLocation(),axeImpact);
+     if (axeImpact != null) launchAxe();
     }
     if (skill.particles()) SpellVisuals.charge(boss, definition, ticks);
     preview(audience);
@@ -265,7 +265,7 @@ final class BossAbilities implements Listener {
       show(audience,"SIGUIENTE CORTE · CAMBIA DE LADO",.5f,net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
      if (sinceCharge % skill.interval() == skill.interval() - 10) {
       fallingMeteor();
-      if (axeImpact != null) presentation.thrownAxe(boss.getEyeLocation(),axeImpact);
+      if (axeImpact != null) launchAxe();
      }
      preview(audience);
     }
@@ -330,7 +330,10 @@ final class BossAbilities implements Listener {
     Location aim = target.getLocation();
     if (aim.distanceSquared(center) <= profile.radius()*profile.radius() && aim.isChunkLoaded()) {
      var floor = aim.getWorld().rayTraceBlocks(aim.clone().add(0,.35,0),new Vector(0,-1,0),4,FluidCollisionMode.NEVER,true);
-     if (floor != null) axeImpact = floor.getHitPosition().toLocation(aim.getWorld());
+     if (floor != null) {
+      axeImpact = floor.getHitPosition().toLocation(aim.getWorld());
+      if (ThrownAxeHand.prepare(boss)) presentation.clearProp();
+     }
     }
    }
   }
@@ -363,6 +366,11 @@ final class BossAbilities implements Listener {
     Location point=zone.get((index*zone.size()/count+ticks/5)%zone.size());
     for (Player player : audience) CosmeticFX.to(player,Particle.DUST_COLOR_TRANSITION,point,1,0,0,0,0,dust);
    }
+  }
+
+  private void launchAxe() {
+   ThrownAxeHand.launch(boss);
+   presentation.thrownAxe(boss.getEyeLocation(),axeImpact);
   }
 
   private void axeShock(List<Player> audience) {
@@ -437,6 +445,7 @@ final class BossAbilities implements Listener {
 
   void finish(boolean completed) {
    if (!casts.remove(boss.getUniqueId(), this)) return;
+   ThrownAxeHand.restore(boss,plugin);
    anchors.close();
    weakPoint.close();
    presentation.close();
