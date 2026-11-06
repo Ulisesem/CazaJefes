@@ -42,7 +42,7 @@ final class ThreatTable {
 
    static Player pick(LivingEntity boss, double range, Predicate<Player> filter) {
       var at = boss.getLocation();
-      Fight fight = fights.get(boss.getUniqueId());
+      Fight fight = fights.computeIfAbsent(boss.getUniqueId(),ignored -> new Fight());
       var candidates = boss.getWorld().getNearbyPlayers(at, range).stream()
          .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(at) <= range * range
             && (range <= 48 || p.getLocation().distanceSquared(at) <= 576 || fight != null && fight.scores.containsKey(p.getUniqueId()))
@@ -52,10 +52,15 @@ final class ThreatTable {
       if (fight != null && now < fight.forcedUntil) {
          for (Player candidate : candidates) if (candidate.getUniqueId().equals(fight.forced)) return candidate;
       }
-      Player selected = candidates.stream().max(Comparator.<Player>comparingDouble(player -> {
+      for(Player candidate:candidates) if(candidate.getUniqueId().equals(fight.focus)) return candidate;
+      var facing=at.getDirection().setY(0).normalize();
+      Player selected = candidates.stream().max(Comparator.<Player,Boolean>comparing(player -> {
+         var direction=player.getLocation().toVector().subtract(at.toVector()).setY(0);
+         return direction.lengthSquared()>.001&&facing.dot(direction.normalize())>=.45;
+      }).thenComparingDouble(player -> {
          Entry e = fight == null ? null : fight.scores.get(player.getUniqueId());
          double weight = e == null ? 0 : score(e.value(), now - e.updated());
-         return fight != null && player.getUniqueId().equals(fight.focus) ? weight * 1.12 : weight;
+         return weight;
       }).thenComparingDouble(player -> -player.getLocation().distanceSquared(at))).orElseThrow();
       if (fight != null) fight.focus = selected.getUniqueId();
       return selected;

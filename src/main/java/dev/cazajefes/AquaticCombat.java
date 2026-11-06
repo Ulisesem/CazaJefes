@@ -28,6 +28,7 @@ final class AquaticCombat implements Listener {
       &&water(at.clone().add(0,0,margin))&&water(at.clone().add(0,0,-margin));
  }
  static void avoidShore(LivingEntity boss, Player target){
+  boss.setSwimming(true);
   Location origin=boss.getLocation();
   double margin=Math.clamp(boss.getWidth()*.5,.6,2);
   var velocity=boss.getVelocity();

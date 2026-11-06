@@ -53,4 +53,19 @@ public class JsonBossesTest {
       assertThrows(IllegalArgumentException.class, () -> JsonBosses.parse(SAMPLE.replace("\"damage\":22", "\"damge\":22")));
       assertThrows(IllegalArgumentException.class, () -> JsonBosses.parse(SAMPLE.replace("\"scale\":1.65", "\"scale\":1.65,\"ultimate\":{\"pulses\":2.5}")));
    }
+ @org.junit.Test public void readsPerBossCombatOptions() throws Exception {
+  var boss=JsonBosses.parse("""
+   {"id":"prueba_json_1361","template":"sapo_de_fuego","name":"Prueba",
+    "health":500,"damage":40,"scale":2,
+    "combat":{"rocketCharges":6,"warningTicks":40,"loot":false,"phase-2-health":55,"phase-1":["nativo_1"]}}
+   """);
+  var combat=boss.custom().options();
+  org.junit.Assert.assertEquals(6,combat.rocketCharges(9));
+  org.junit.Assert.assertEquals(40,combat.warningTicks());
+  org.junit.Assert.assertFalse(combat.loot());
+  var defaults=new CombatScripts.Plan(.65,.30,java.util.Map.of(),java.util.List.of());
+  var plan=combat.plan(defaults,java.util.Map.of());
+  org.junit.Assert.assertEquals(.55,plan.phase2(),.00001);
+  org.junit.Assert.assertEquals("nativo_1",plan.phases().get(1).getFirst().id());
+ }
 }

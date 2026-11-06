@@ -1,4 +1,4 @@
-# CazaJefes 1.36.0 · testRefactor
+# CazaJefes 1.36.1 · testRefactor
 
 [Compilación con Gradle, módulos y configuración](docs/TEST-REFACTOR.md)
 

@@ -44,6 +44,15 @@ final class CombatScripts {
             } catch (RuntimeException invalid) { plugin.getLogger().warning("combate.yml bosses." + id + ": " + invalid.getMessage()); }
          }
       }
+      for(var boss:BossCatalog.all()){
+         try{
+            Plan previous=loaded.getOrDefault(boss.id(),loaded.getOrDefault("default",EMPTY));
+            Plan configured=boss.custom().options().plan(previous,skills);
+            if(configured!=previous)loaded.put(boss.id(),configured);
+         }catch(RuntimeException invalid){
+            plugin.getLogger().warning("JSON "+boss.id()+" combat: "+invalid.getMessage());
+         }
+      }
       plans = Map.copyOf(loaded);
    }
 

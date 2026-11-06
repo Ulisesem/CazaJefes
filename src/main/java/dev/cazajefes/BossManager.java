@@ -231,9 +231,6 @@ public final class BossManager implements Listener {
          double var8 = var4.custom().scale();
          double var10 = var4.custom().health();
          double var12 = var4.custom().damage();
-         var8 = Math.max(0.1, Math.min(10, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".scale", var8)));
-         var10 = Math.max(1, Math.min(100000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".health", var10)));
-         var12 = Math.max(0, Math.min(1000, this.plugin.getConfig().getDouble("bosses." + var4.id() + ".damage", var12)));
          this.setAttribute(var5, Attribute.MAX_HEALTH, var10);
          this.setAttribute(var5, Attribute.ATTACK_DAMAGE, var12);
          this.setAttribute(var5, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, 0.45 + var4.tier().ordinal() * 0.12));
@@ -244,7 +241,7 @@ public final class BossManager implements Listener {
                   ? 0.38
                   : (var4.id().equals("brakk_colmillo_del_averno") ? 0.43 : (var4.id().equals("volkar_corazon_del_cataclismo") ? 0.27 : 0.28 + var4.tier().ordinal() * 0.025))
             );
-         this.setAttribute(var5, Attribute.MOVEMENT_SPEED, var14);
+         this.setAttribute(var5, Attribute.MOVEMENT_SPEED, var4.custom().options().speed(var14));
          if (var5 instanceof Bee var16 && var4.id().equals("melisara_emperatriz_del_enjambre")) {
             var16.setAnger(24000);
          }
@@ -279,13 +276,11 @@ public final class BossManager implements Listener {
       ((CazaJefesPlugin)plugin).abilities.track(var2,var3);
       AnimalBossSizing.apply(var2,var3);MiniBossSizing.apply(var2,var3);((CazaJefesPlugin)plugin).safety.track(var2);
       var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
-      ((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);ThrownAxeHand.restore(var2,plugin);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);((CazaJefesPlugin)plugin).archers.track(var2,var3);((CazaJefesPlugin)plugin).mages.track(var2,var3);
+      if(var3.custom().options().aura())((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);ThrownAxeHand.restore(var2,plugin);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);((CazaJefesPlugin)plugin).archers.track(var2,var3);((CazaJefesPlugin)plugin).mages.track(var2,var3);
       if (!this.attacks.containsKey(var1)) {
-         if (var2 instanceof Mob var6) {
-            var6.setAware(true);
-         }
+         if (var2 instanceof Mob var6&&var3.custom().options().fearless()) PassiveHostility.prepare(var6);
 
-         long var9 = var3.mini()?5:Math.max(5L,Math.min(10L,var4));
+         long var9 = var3.custom().options().attackInterval(var3.mini()?5:Math.max(5L,Math.min(10L,var4)));
          BossBuffs.apply(var2);
          this.attacks
             .put(
@@ -617,7 +612,7 @@ public final class BossManager implements Listener {
          final String winner=var8;
          final Location dropLocation=var2.getLocation().clone();
          ((CazaJefesPlugin)plugin).deathVisuals.show(var2,defeated,()->{
-            RelicItems.LootResult result=credited?this.relicItems.dropBossLoot(dropLocation,defeated,var4):new RelicItems.LootResult(0,Component.text("sin drops: no hay crédito de jugador válido"));
+            RelicItems.LootResult result=credited&&defeated.custom().options().loot()?this.relicItems.dropBossLoot(dropLocation,defeated,var4):new RelicItems.LootResult(0,Component.text(credited?"sin drops: botín desactivado":"sin drops: no hay crédito de jugador válido"));
             this.plugin.getServer().broadcast(DamageLedger.report(var2,defeated,winner,result));
          });
          CosmeticFX.emit(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
@@ -787,6 +782,8 @@ public final class BossManager implements Listener {
          if (this.boss.isValid() && !this.boss.isDead()) {
             if (this.boss.isInvulnerable()) return;
             BossBuffs.apply(boss);
+            if(boss instanceof Mob mob&&definition.custom().options().fearless())PassiveHostility.clearFear(mob);
+            BossEquipment.maintainPiglin(boss,definition);
             AquaticCombat.maintain(boss);
             int speed=definition.id().equals("kitsar_acechador_carmesi")?0:1;
             PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
@@ -796,18 +793,24 @@ public final class BossManager implements Listener {
             if (var2 != null) {
                if (boss instanceof org.bukkit.entity.Warden warden) { warden.setAnger(var2,150); warden.setDisturbanceLocation(var2.getLocation()); }
                var combat = (CazaJefesPlugin) plugin;
+               if(!combat.abilities.casting(boss))tactics.face(var2);
                combat.crystals.check(boss, definition, var2);
                int nextPhase = BossStages.phase(boss);
                if (nextPhase > phase) {
+                  if(combat.abilities.occupied(boss))return;
                   phase = nextPhase;
                   BossBuffs.apply(boss);
+            if(boss instanceof Mob mob&&definition.custom().options().fearless())PassiveHostility.clearFear(mob);
+            BossEquipment.maintainPiglin(boss,definition);
             AquaticCombat.maintain(boss);
                   combat.abilities.transition(boss, definition, phase);
-                  summonMinions(var2);
+                  plugin.getServer().getScheduler().runTaskLater(plugin,()->{
+                     if(boss.isValid()&&!boss.isDead()&&CombatGuard.eligible(var2)
+                        &&var2.getWorld().equals(boss.getWorld())&&!combat.abilities.casting(boss))summonMinions(var2);
+                  },24);
                   return;
                }
                if(CombatHitbox.distanceSquared(var2.getEyeLocation(),boss)>576){tactics.tick(var2,phase);return;}
-               if(definition.mini()){if(!combat.abilities.occupied(boss))pursue(var2);if(((CazaJefesPlugin)plugin).abilities.contactAllowed(boss))attackNearby(var2);}
                if(((CazaJefesPlugin)plugin).abilities.tick(boss,definition,var2,phase))return;
                if(boss instanceof org.bukkit.entity.Shulker){
 
@@ -838,9 +841,10 @@ public final class BossManager implements Listener {
 
       private void pursue(Player target){tactics.tick(target,phase);}
 
+      private long nextContact;
       private void attackNearby(Player var1) {
          long var2 = System.currentTimeMillis();
-         if (CombatHitbox.visible(var1,boss) && CombatHitbox.distanceSquared(var1.getEyeLocation(),boss)<=7.84 && var2 >= this.meleeCooldowns.getOrDefault(var1.getUniqueId(), 0L)) {
+         if (CombatHitbox.visible(var1,boss) && CombatHitbox.distanceSquared(var1.getEyeLocation(),boss)<=7.84 && var2 >= nextContact) {
             String var6 = this.definition.id();
 
             double var4 = switch (var6) {
@@ -852,7 +856,7 @@ public final class BossManager implements Listener {
             };
             var1.damage(definition.mini()?MiniAggression.damage(phase):var4,this.boss);
             BossEffects.applyFrom(boss,var1,BossEffects.effect(PotionEffectType.SLOWNESS, 45, 0));
-            this.meleeCooldowns.put(var1.getUniqueId(), var2 + (definition.mini()?MiniAggression.INTERVAL:BattleRules.MELEE_COOLDOWN_MS));
+            nextContact=var2+(definition.mini()?MiniAggression.INTERVAL:BattleRules.MELEE_COOLDOWN_MS);
             CosmeticFX.emit(Particle.DAMAGE_INDICATOR, var1.getLocation().add(0.0, 1.0, 0.0), 6, 0.3, 0.35, 0.3, 0.04);
          }
       }
@@ -1133,7 +1137,7 @@ public final class BossManager implements Listener {
             }
             portals.add(portal);
          }
-         hordeWarning();
+         if(!owner.abilities.busy(boss))hordeWarning();
          boss.getWorld().playSound(center, Sound.ENTITY_EVOKER_PREPARE_SUMMON, .8f, .65f);
          for (int frame = 0; frame < 3; frame++) {
             int step = frame;

@@ -20,6 +20,10 @@ final class ThrownAxeHand {
          || type==Material.BOW || type==Material.CROSSBOW || type==Material.TRIDENT || type==Material.MACE;
    }
 
+   static boolean inUse(LivingEntity boss) {
+      return boss.getPersistentDataContainer().has(SAVED,PersistentDataType.BYTE_ARRAY);
+   }
+
    static boolean usesPhysicalHand(LivingEntity boss) {
       var equipment = boss.getEquipment();
       return equipment != null && (isWeapon(equipment.getItemInMainHand().getType())

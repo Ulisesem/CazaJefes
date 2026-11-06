@@ -5,9 +5,26 @@ import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 final class BossTactics extends dev.cazajefes.boss.BossController {
  private final BossCatalog.Definition definition;private final boolean ranged,fox;private int ticks;private long nextPath;private Location lastOpenWater;
- BossTactics(LivingEntity boss,BossCatalog.Definition definition){super(boss);this.definition=definition;if(definition.mini()&&boss instanceof Mob mob)PassiveHostility.prepare(mob);fox=definition.id().equals("kitsar_acechador_carmesi");ranged=switch(boss.getType()){case SKELETON,STRAY,BOGGED,PILLAGER,WITCH,EVOKER,BLAZE,GHAST->true;default->false;};}
- @Override public Player pickTarget(){return ThreatTable.pick(boss, 64, player -> true);}
+ BossTactics(LivingEntity boss,BossCatalog.Definition definition){super(boss);this.definition=definition;fox=definition.id().equals("kitsar_acechador_carmesi");ranged=switch(boss.getType()){case SKELETON,STRAY,BOGGED,PILLAGER,WITCH,EVOKER,BLAZE,GHAST->true;default->false;};}
+ @Override public Player pickTarget(){
+  if(AquaticCombat.aquatic(boss.getType())&&boss.isInWater()){
+   Player swimming=ThreatTable.pick(boss,64,p->AquaticCombat.water(p.getLocation()));
+   if(swimming!=null)return swimming;
+  }
+  return ThreatTable.pick(boss,64,player->true);
+ }
+ void face(Player target){
+  if(boss instanceof Mob mob){
+   mob.lookAt(target,180,180);
+  }
+  var direction=target.getEyeLocation().toVector().subtract(boss.getEyeLocation().toVector());
+  if(direction.lengthSquared()>.0001){
+   var angle=boss.getLocation().setDirection(direction);
+   boss.setRotation(angle.getYaw(),angle.getPitch());
+  }
+ }
  @Override public void tick(Player target,int phase){
+  face(target);
   if(boss instanceof Shulker)return;
   if(boss instanceof Bee bee){bee.setHasStung(false);bee.setAnger(24000);bee.setTarget(target);Vector delta=target.getEyeLocation().toVector().subtract(bee.getLocation().toVector());if(delta.lengthSquared()>.01&&bee.hasLineOfSight(target)){double angle=System.currentTimeMillis()/350.0;Vector forward=delta.clone().normalize();Vector side=new Vector(-forward.getZ(),0,forward.getX());if(side.lengthSquared()>.01)side.normalize();Vector dance=forward.multiply(.40).add(side.multiply(Math.sin(angle)*.25));dance.setY(Math.max(-.4,Math.min(.4,dance.getY()+Math.cos(angle)*.18)));bee.setVelocity(dance);}else bee.getPathfinder().moveTo(target.getLocation(),1.3);return;}
   if(AquaticCombat.aquatic(boss.getType())){

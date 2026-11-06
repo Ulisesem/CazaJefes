@@ -20,7 +20,7 @@ final class CombatPhases implements Listener {
  private boolean warden(Entity e){return e.getType()==EntityType.WARDEN;}
  @EventHandler(priority=EventPriority.HIGH,ignoreCancelled=true) public void scale(EntityDamageEvent event){
   if(event instanceof EntityDamageByEntityEvent hit&&hit.getDamager() instanceof LivingEntity boss
-      &&isBoss(boss)&&!AbilityDamage.active()&&plugin.abilities.inRecovery(boss)){
+      &&isBoss(boss)&&!AbilityDamage.active()&&!LightningRetaliation.isActive()&&!plugin.abilities.contactAllowed(boss)){
    event.setCancelled(true);
    return;
   }

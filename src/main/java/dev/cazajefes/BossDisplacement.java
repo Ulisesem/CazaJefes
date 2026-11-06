@@ -27,7 +27,6 @@ final class BossDisplacement {
   if(!otherCast&&!players.isEmpty()){
    if(now>=state.lift)state.pending=phase>=3&&state.last==1?2:1;
    if(state.pending!=0){anchor.hold(boss,80);state.release=now+3000;state.lastHud=0;boss.getWorld().playSound(boss.getLocation(),Sound.BLOCK_BEACON_POWER_SELECT,.8f,.7f);warn(players,"⚠ CARGANDO · "+(state.pending==1?StageAttackRules.LIFT:StageAttackRules.REPEL));return true;}
-   if(now>=state.lastHud&&!BossWarnings.active(players.get(0))){String text=StageAttackRules.LIFT+" · recarga "+Math.max(0,(state.lift-now+999)/1000)+"s";if(phase>=3)text+="  |  "+StageAttackRules.REPEL+" · "+Math.max(0,(state.repel-now+999)/1000)+"s";warn(players,text);state.lastHud=now+1000;}
   }
   return false;
  }
