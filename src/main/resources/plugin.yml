@@ -1,8 +1,8 @@
 name: CazaJefes
-version: '1.33.0'
+version: '1.34.0'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
-softdepend: [ModelEngine]
+softdepend: [ModelEngine, WorldGuard, packetevents]
 description: Jefes grandes con ataques especiales, botín y recetas.
 authors: [CazaJefes]
 commands:

@@ -93,7 +93,9 @@ final class BossAbilities implements Listener {
   final AttackPresentation presentation = new AttackPresentation(plugin);
   List<Location> zone = List.of();
   Vector beamDirection;
-  Location axeImpact;
+  Location axeImpact, lodgedAxe;
+  final VoidAnchors weakPoint = new VoidAnchors();
+  int dischargeAt = -1;
   final VoidAnchors anchors = new VoidAnchors();
   List<BeamPath.Segment> beamPath = List.of();
   final BossStyle style;
@@ -128,7 +130,7 @@ final class BossAbilities implements Listener {
 
   List<Player> players() {
    return center.getWorld().getNearbyPlayers(center, 32).stream()
-      .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(center) <= 1024).toList();
+      .filter(p -> CombatGuard.eligible(p) && ArenaBoundary.allows(boss,p.getLocation()) && p.getLocation().distanceSquared(center) <= 1024).toList();
   }
 
   boolean valid() {
@@ -154,7 +156,7 @@ final class BossAbilities implements Listener {
     finish(false);
     return;
    }
-   if (endAt >= 0 && ticks >= endAt) { finish(true); return; }
+   if (dischargeAt < 0 && endAt >= 0 && ticks >= endAt) { finish(true); return; }
    if (boss instanceof Mob mob) {
     mob.getPathfinder().stopPathfinding();
     if (mob.getTarget() != null) mob.setTarget(null);
@@ -164,7 +166,29 @@ final class BossAbilities implements Listener {
     finish(false);
     return;
    }
-   if (anchorsAttack()) anchors.update(audience,ticks%10==0);
+   if (dischargeAt >= 0) {
+    weakPoint.update(audience,false,"HACHA ROTA · DESCARGA INTERRUMPIDA");
+    if (weakPoint.broken()>0) { interrupted(audience);return; }
+    if (ticks>=dischargeAt) {
+     axeImpact=lodgedAxe;
+     axeShock(audience);
+     for (Player player : audience) {
+      if (player.getLocation().distanceSquared(axeImpact)<=9 && boss.hasLineOfSight(player))
+       AbilityDamage.hit(player,boss,skill.damage()>0 ? skill.damage()*.65 : 14);
+     }
+     finish(true);
+     return;
+    }
+    show(audience,"¡GOLPEA EL HACHA PARA INTERRUMPIR!",Math.clamp(1-(dischargeAt-ticks)/40f,0,1),
+       net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
+    CinematicFX.ring(lodgedAxe,audience,3,ticks*.1,18,Color.YELLOW,Color.RED);
+    ticks+=5;
+    return;
+   }
+   if (anchorsAttack()) {
+    anchors.update(audience,ticks%10==0);
+    if (anchors.broken()>=2) { interrupted(audience);return; }
+   }
    if (comboAt >= 0) {
     if (ticks >= comboAt) {
      combo();
@@ -216,7 +240,16 @@ final class BossAbilities implements Listener {
      release();
      if (casts.get(boss.getUniqueId()) != this) return;
      boolean threwAxe = axeImpact != null;
-     if (threwAxe) axeLingerUntil=ticks+25;
+     if (threwAxe) {
+      axeLingerUntil=ticks+25;
+      if (definition.id().equals("gorath_quebrantador_de_mundos")) {
+       lodgedAxe=axeImpact.clone();
+       weakPoint.add(lodgedAxe.clone().add(0,.05,0),boss.getUniqueId());
+       dischargeAt=ticks+40;
+       ticks+=5;
+       return;
+      }
+     }
      axeImpact = null;
      pulse++;
      if (pulse >= profile.pulses()) {
@@ -393,9 +426,19 @@ final class BossAbilities implements Listener {
    }
   }
   void combo(){if(!valid())return;var plan=MobCombos.plan(boss.getType());SpellVisuals.release(boss,definition,marks);CombatVisuals.signatureRing(center,definition,profile.radius()*.55,24);center.getWorld().playSound(center,Sound.ENTITY_PLAYER_ATTACK_CRIT,.8f,.7f);for(Player player:players()){if(player.getLocation().distanceSquared(center)>profile.radius()*profile.radius()||Math.abs(player.getY()-center.getY())>4||!boss.hasLineOfSight(player))continue;double dx=player.getX()-center.getX(),dz=player.getZ()-center.getZ();if(!BossAbilityCatalog.hits(BossAbilityCatalog.Pattern.CROSS,dx,dz,0,1,profile.radius(),angle+Math.PI/4))continue;var attack=boss.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);double base=attack==null?definition.tier().damage:attack.getValue();if(AbilityDamage.hit(player,boss,MobCombos.damage(base,BossStages.phase(boss)))){BossEffects.applyFrom(boss,player,BossEffects.effect(PotionEffectType.getByName(plan.effect()),60,0));if(plan.flame())player.setFireTicks(Math.max(player.getFireTicks(),40));if(boss.getType()==EntityType.SPIDER||boss.getType()==EntityType.CAVE_SPIDER)BossEffects.applyFrom(boss,player,BossEffects.effect(PotionEffectType.SLOWNESS,40,1));}}}
+  void interrupted(List<Player> audience) {
+   finish(true);
+   recovery.put(boss.getUniqueId(),System.currentTimeMillis()+4000);
+   for (Player player : audience) {
+    BossWarnings.send(player,Component.text("ATAQUE INTERRUMPIDO · ¡CONTRAATACA!",NamedTextColor.GREEN));
+    player.playSound(boss.getLocation(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,.8f,1.15f);
+   }
+  }
+
   void finish(boolean completed) {
    if (!casts.remove(boss.getUniqueId(), this)) return;
    anchors.close();
+   weakPoint.close();
    presentation.close();
    if (completed && boss.isValid() && !boss.isDead()) {
     recovery.put(boss.getUniqueId(), System.currentTimeMillis() + skill.recovery() * 50L);

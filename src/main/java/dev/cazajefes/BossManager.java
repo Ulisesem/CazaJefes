@@ -142,6 +142,7 @@ public final class BossManager implements Listener {
       PersistentDataContainer data=boss.getPersistentDataContainer();
       BossCatalog.Definition definition=BossCatalog.get(data.get(typeKey,PersistentDataType.STRING));
       if (definition==null) return;
+      ArenaBoundary.pin(boss,boss.getLocation());
       try {
          UUID id=UUID.fromString(data.get(encounterKey,PersistentDataType.STRING));
          data.set(typeKey,PersistentDataType.STRING,definition.id()); boss.customName(bossDisplay(definition));
@@ -257,6 +258,7 @@ public final class BossManager implements Listener {
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          AnimalBossSizing.apply(var5,var4);MiniBossSizing.apply(var5,var4);
          if(!((CazaJefesPlugin)plugin).safety.place(var5)){plugin.getLogger().warning("Sin espacio seguro para "+var4.id()+" en "+var2.getWorld().getName()+" "+var2.getBlockX()+","+var2.getBlockY()+","+var2.getBlockZ());var5.remove();return null;}
+         ArenaBoundary.pin(var5,var5.getLocation());
          this.encounters.put(var19, new BossManager.Encounter(var19, var4, var5.getLocation(), var5, var3));
          long var22 = this.plugin.getConfig().getLong("bosses.attack-interval-ticks", 50L);
          this.startBossSystems(var19, var5, var4, var22);
@@ -1125,7 +1127,7 @@ public final class BossManager implements Listener {
          for (int i = 0; i < HordeRules.SIZE; i++) {
             double angle = i * Math.PI * 2 / HordeRules.SIZE + attacks;
             var portal = center.clone().add(Math.cos(angle) * radius, .2, Math.sin(angle) * radius);
-            if (!portal.isChunkLoaded()) {
+            if (!portal.isChunkLoaded() || !ArenaBoundary.allows(boss,portal)) {
                pendingHordes.remove(boss.getUniqueId());
                return;
             }
@@ -1156,7 +1158,7 @@ public final class BossManager implements Listener {
 
       private void spawnHorde(CazaJefesPlugin owner, Player target, EntityType[] types, String flavor,
                               String parent, List<Location> portals, List<CombatScripts.Role> roles) {
-         List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<portals.size();i++){Location point=portals.get(i);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid())throw new IllegalArgumentException("No hay espacio libre para la horda");unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
+         List<LivingEntity> batch=new ArrayList<>();try{for(int i=0;i<portals.size();i++){Location point=portals.get(i);Entity entity=point.getWorld().spawnEntity(point,types[i%types.length]);if(!(entity instanceof LivingEntity unit)||!entity.isValid()){entity.remove();throw new IllegalArgumentException("Aparición cancelada");}batch.add(unit);var data=unit.getPersistentDataContainer();data.set(minionKey,PersistentDataType.BYTE,(byte)1);data.set(new NamespacedKey(plugin,"minion_parent"),PersistentDataType.STRING,parent);data.set(new NamespacedKey(plugin,"minion_kind"),PersistentDataType.STRING,flavor);strengthenMinion(unit,flavor);if(!unit.isValid() || !ArenaBoundary.allows(boss,unit.getLocation()))throw new IllegalArgumentException("No hay espacio libre para la horda");ArenaBoundary.pin(unit,boss.getLocation());unit.setPersistent(false);unit.setRemoveWhenFarAway(true);if(unit instanceof Mob mob)mob.setTarget(target);if(unit instanceof Bee bee){bee.setAnger(24000);bee.setHasStung(false);}if(unit instanceof Piglin piglin)piglin.setImmuneToZombification(true);unit.customName(Component.text((flavor.equals("healer")?"Conjurador de Vida · ":"Custodio · ")+definition.name(),definition.tier().color));unit.setCustomNameVisible(true);}
          }catch(IllegalArgumentException blocked){for(var unit:batch)unit.remove();return;}
          for(int i=0;i<batch.size();i++){
             var unit=batch.get(i);

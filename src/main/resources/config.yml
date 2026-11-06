@@ -18,6 +18,8 @@ active-eggs: []
 
 # Target acquisition: 24 blocks + line of sight; phase thresholds: 65% / 30%.
 combat:
+  # IDs existentes de WorldGuard, por ejemplo [arena_gorath].
+  worldguard-arenas: []
   pillager-retaliation-hits: 5
   # Creative damage/loot tests require cazajefes.admin; survival targeting is unchanged.
   allow-creative-admin-tests: true

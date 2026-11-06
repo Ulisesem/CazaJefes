@@ -1315,6 +1315,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          this.deny(var1);
       } else {
          this.plugin.reloadConfig();
+         ArenaBoundary.load((CazaJefesPlugin)this.plugin);
          CombatScripts.load((CazaJefesPlugin)this.plugin);
          ((CazaJefesPlugin)this.plugin).recipeSettings.reload();
          this.items.reloadRares();

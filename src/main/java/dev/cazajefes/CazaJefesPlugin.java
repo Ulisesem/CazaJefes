@@ -31,7 +31,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    private HuntTracker tracker;
 
    public void onEnable() {
-      this.saveDefaultConfig();BossWarnings.start(this);
+      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);BossWarnings.start(this);
       ConfigMigration.run(this);
       BossCatalog.installCustom(JsonBosses.load(this));
       CombatScripts.load(this);
