@@ -27,12 +27,14 @@ import org.bukkit.persistence.PersistentDataType;
 final class CustomEncounter implements BossEnvironment {
     private final CazaJefesPlugin plugin;
     private final dev.cazajefes.ai.BossManager loop;
+    private final BossDisplacement displacement;
     private final BossVisuals visuals=new PacketBossVisuals();
     private final Map<String,BossProfile> profiles=new HashMap<>();
     private final Map<UUID,BossStages> stages=new HashMap<>();
 
     CustomEncounter(CazaJefesPlugin plugin){
         this.plugin=plugin;
+        this.displacement=new BossDisplacement(plugin);
         for(var definition:BossCatalog.all()){
             profiles.put(definition.id(),read(definition));
         }
@@ -61,6 +63,7 @@ final class CustomEncounter implements BossEnvironment {
     void remove(UUID uuid){
         loop.remove(uuid);
         stages.remove(uuid);
+        displacement.remove(uuid);
     }
 
     boolean owns(LivingEntity entity){return loop.owns(entity.getUniqueId());}
@@ -70,7 +73,14 @@ final class CustomEncounter implements BossEnvironment {
         return boss!=null&&boss.state()==dev.cazajefes.ai.BossState.ATTACKING;
     }
 
-    void stop(){loop.stop();stages.clear();}
+    boolean push(org.bukkit.entity.Entity entity,org.bukkit.util.Vector velocity){
+        if(!(loop.get(entity.getUniqueId()) instanceof KinematicBoss boss))return false;
+        displacement.remove(entity.getUniqueId());
+        boss.push(velocity);
+        return true;
+    }
+
+    void stop(){loop.stop();stages.clear();displacement.clear();}
 
     @Override public Player acquire(CustomBoss boss){
         double range=boss.profile().detectionRange();
@@ -156,6 +166,15 @@ final class CustomEncounter implements BossEnvironment {
     @Override public void heartbeat(CustomBoss boss){
         var tracker=stages.get(boss.body().getUniqueId());
         if(tracker!=null)tracker.update();
+        var body=boss.body();
+        var definition=BossCatalog.get(body.getPersistentDataContainer().get(
+            new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
+        if(definition!=null&&!body.isInvulnerable()
+            &&displacement.tick(body,definition,BossStages.phase(body),System.currentTimeMillis(),
+                boss.state()==dev.cazajefes.ai.BossState.ATTACKING||boss.state()==dev.cazajefes.ai.BossState.STUNNED
+                    &&!displacement.busy(body.getUniqueId()))){
+            boss.stun(6);
+        }
         if(boss.body().isInWater())boss.body().setRemainingAir(boss.body().getMaximumAir());
     }
 

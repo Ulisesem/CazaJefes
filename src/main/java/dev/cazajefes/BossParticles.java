@@ -20,6 +20,8 @@ record BossParticles(Shape shape,Particle particle,Color color,Color accent,doub
     private static final List<Shape> CRATE_STYLES = List.of(Shape.HELIX, Shape.SPIRAL, Shape.SPHERE,
         Shape.HEART, Shape.PULSAR, Shape.BEACON, Shape.TORNADO, Shape.VORTEX, Shape.SIMPLE);
 
+    boolean crateVisual() { return shape == Shape.CRATE || CRATE_STYLES.contains(shape); }
+
     static Shape crateStyle(String bossId) {
         // Stable across restarts and identical for every viewer of the same boss.
         int seed = bossId.hashCode();

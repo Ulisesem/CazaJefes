@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 
 public final class KinematicBoss extends AbstractCustomBoss {
     private double fall;
+    private Vector impulse;
     private boolean hasEnteredWater,grounded;
     private int idleTicks;
 
@@ -14,8 +15,41 @@ public final class KinematicBoss extends AbstractCustomBoss {
         super(body,profile,environment);
     }
 
+    public void push(Vector velocity){
+        impulse=velocity.clone();
+        grounded=false;
+        stun(16);
+    }
+
+    private void applyImpulse(){
+        Location next=body().getLocation();
+        int steps=Math.max(1,(int)Math.ceil(impulse.length()/.25));
+        Vector step=impulse.clone().multiply(1.0/steps);
+        for(int i=0;i<steps;i++){
+            Location vertical=next.clone().add(0,step.getY(),0);
+            if(clear(vertical))next=vertical;
+            else {
+                impulse.setY(0);
+                step.setY(0);
+            }
+            Location lateral=next.clone().add(step.getX(),0,step.getZ());
+            if(clear(lateral))next=lateral;
+            else {
+                impulse.setX(0).setZ(0);
+                step.setX(0).setZ(0);
+            }
+        }
+        body().teleport(next);
+        impulse.setX(impulse.getX()*.82).setZ(impulse.getZ()*.82);
+        if(Math.abs(impulse.getY())<.001&&impulse.lengthSquared()<.004){
+            impulse=null;
+            fall=0;
+        }else impulse.setY(Math.max(-.9,impulse.getY()-.15));
+    }
+
     @Override protected void move(Player target,boolean approach){
         if(body().getVelocity().lengthSquared()>.0001)body().setVelocity(new Vector());
+        if(impulse!=null){applyImpulse();return;}
         if(target==null&&grounded&&++idleTicks%10!=0)return;
         Location origin=body().getLocation();
         Vector direction=target==null?new Vector():target.getEyeLocation().toVector().subtract(body().getEyeLocation().toVector());

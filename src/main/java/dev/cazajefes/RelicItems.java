@@ -333,8 +333,8 @@ public final class RelicItems implements Listener {
                         case "greaterburst":
                            double var25 = (var3.equals("burst") ? 3 : 5) + var23 * 2;
 
-                           var targets=var4.getNearbyEntities(var25,var25,var25).stream().filter(entity->entity instanceof LivingEntity living&&!living.isDead()&&!entity.equals(var4)&&var4.hasLineOfSight(entity)&&entity.getLocation().distanceSquared(var4.getLocation())<=var25*var25&&(!(entity instanceof Player player)||BurstVisuals.movable(player.isOp())&&RareCombat.enemy(var4,player))).sorted(java.util.Comparator.comparingDouble(entity->entity.getLocation().distanceSquared(var4.getLocation()))).limit(var3.equals("burst")?1:16).toList();
-                           for(Entity entity:targets){Vector away=entity.getLocation().toVector().subtract(var4.getLocation().toVector()).setY(0);if(away.lengthSquared()<.01)away=var4.getLocation().getDirection().setY(0);if(away.lengthSquared()<.01)away=new Vector(1,0,0);Vector impulse=away.normalize().multiply((var3.equals("burst")?1:1.25)+var23*.35).setY(.65+var23*.18);if(entity instanceof Player target)((CazaJefesPlugin)plugin).burstLaunch.launch(target,impulse,false);else entity.setVelocity(impulse);}
+                           ((CazaJefesPlugin)plugin).burstLaunch.wave(var4,var25,
+                              (var3.equals("burst")?1:1.25)+var23*.35,.65+var23*.18,false);
 
                            BurstVisuals.showBook(plugin,var4);
                            break;

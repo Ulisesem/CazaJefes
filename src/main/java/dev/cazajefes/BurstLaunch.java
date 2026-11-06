@@ -1,10 +1,36 @@
 package dev.cazajefes;
 import java.util.*;
-import org.bukkit.entity.Player;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.*;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.*;
 import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
 final class BurstLaunch implements Listener {
+ private static final NamespacedKey PARENT=new NamespacedKey("cazajefes","minion_parent");
+ private static final NamespacedKey ENCOUNTER=new NamespacedKey("cazajefes","encounter_id");
+
+ void wave(LivingEntity caster,double radius,double lateral,double vertical,boolean lift) {
+  Location center=caster.getLocation();
+  boolean bossCast=!(caster instanceof Player);
+  String encounter=caster.getPersistentDataContainer().get(ENCOUNTER,PersistentDataType.STRING);
+  for(Entity entity:center.getWorld().getNearbyEntities(center,radius,radius,radius)){
+   if(entity.equals(caster)||!entity.isValid()||entity.isDead()||entity instanceof Display
+      ||entity instanceof Interaction||entity instanceof ArmorStand stand&&stand.isMarker())continue;
+   Location at=entity.getLocation();
+   if(at.distanceSquared(center)>radius*radius||!ArenaBoundary.allows(caster,at))continue;
+   if(encounter!=null&&encounter.equals(entity.getPersistentDataContainer().get(PARENT,PersistentDataType.STRING)))continue;
+   if(entity instanceof Player target&&(!CombatGuard.eligible(target)||target.isOp()
+      ||!bossCast&&!center.getWorld().getPVP()))continue;
+   Vector away=at.toVector().subtract(center.toVector()).setY(0);
+   if(away.lengthSquared()<.01)away=center.getDirection().setY(0);
+   if(away.lengthSquared()<.01)away=new Vector(1,0,0);
+   Vector velocity=away.normalize().multiply(lateral).setY(vertical);
+   if(entity instanceof Player target)launch(target,velocity,lift);
+   else if(!plugin.customEncounter.push(entity,velocity))entity.setVelocity(velocity);
+  }
+ }
  private static final class Trace {long at;double requested,observed;boolean cancelled,applied,retried,lifting,potionApplied,allowFlight,flying;Player target;org.bukkit.GameMode mode;String status="en espera";}
  private final CazaJefesPlugin plugin;private final Map<UUID,Trace> traces=new HashMap<>();
  BurstLaunch(CazaJefesPlugin plugin){this.plugin=plugin;}

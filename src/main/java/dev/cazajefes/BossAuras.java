@@ -14,7 +14,14 @@ final class BossAuras implements Listener {
  private static final NamespacedKey QUALITY=new NamespacedKey("cazajefes","aura_quality");
  private final Map<UUID,Active> active=new LinkedHashMap<>();private final AuraBudget budget=new AuraBudget();private final BukkitTask task;private final CazaJefesPlugin plugin;private final int period;private double angle;private long frame;private int nextPlayer;
  BossAuras(CazaJefesPlugin plugin){this.plugin=plugin;period=AuraPolicy.interval(plugin.getConfig().getInt("particles.auras.interval-ticks",10));task=plugin.getServer().getScheduler().runTaskTimer(plugin,this::tick,1,FOLLOW_TICKS);}
- void track(LivingEntity boss,BossCatalog.Definition definition){var style=BossParticles.aura(definition);if(style.shape()!=BossParticles.Shape.OFF)active.put(boss.getUniqueId(),new Active(boss,definition,style));}
+ void track(LivingEntity boss,BossCatalog.Definition definition){
+  var style=BossParticles.aura(definition);
+  if(!definition.custom().options().aura()||style.shape()==BossParticles.Shape.OFF){
+   active.remove(boss.getUniqueId());
+   return;
+  }
+  active.put(boss.getUniqueId(),new Active(boss,definition,style));
+ }
  private AuraQuality quality(Player player){AuraQuality value=AuraQuality.parse(player.getPersistentDataContainer().get(QUALITY,PersistentDataType.STRING));if(value!=null)return value;value=AuraQuality.parse(plugin.getConfig().getString("particles.auras.default-quality","media"));return value==null?AuraQuality.MEDIUM:value;}
  private void tick(){
   active.values().removeIf(e->!e.entity().isValid()||e.entity().isDead());

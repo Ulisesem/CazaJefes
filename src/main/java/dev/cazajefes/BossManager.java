@@ -282,8 +282,8 @@ public final class BossManager implements Listener {
          BossEquipment.apply(var2,var3);
          ThrownAxeHand.restore(var2,plugin);
          owner.customEncounter.attach(var2,var3);
-         if(var3.custom().options().aura())owner.auras.track(var2,var3);
       }
+      owner.auras.track(var2,var3);
       if (!this.healthBars.containsKey(var1)) {
          BossBar var8 = Bukkit.createBossBar("", this.barColor(var3.tier()), BarStyle.SEGMENTED_12, new BarFlag[0]);
          var8.setVisible(true);
