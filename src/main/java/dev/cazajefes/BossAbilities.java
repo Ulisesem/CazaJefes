@@ -93,9 +93,12 @@ final class BossAbilities implements Listener {
   final AttackPresentation presentation = new AttackPresentation(plugin);
   List<Location> zone = List.of();
   Vector beamDirection;
+  Location axeImpact;
+  final VoidAnchors anchors = new VoidAnchors();
+  List<BeamPath.Segment> beamPath = List.of();
   final BossStyle style;
   boolean modeled;
-  int ticks, pulse, comboAt = -1, endAt = -1;
+  int ticks, pulse, comboAt = -1, endAt = -1, axeLingerUntil;
 
   Cast(LivingEntity boss, BossCatalog.Definition definition, Player target, CombatScripts.Skill skill) {
    this.boss = boss;
@@ -161,13 +164,14 @@ final class BossAbilities implements Listener {
     finish(false);
     return;
    }
+   if (anchorsAttack()) anchors.update(audience,ticks%10==0);
    if (comboAt >= 0) {
     if (ticks >= comboAt) {
      combo();
      finish(true);
      return;
     }
-    presentation.clearProp();
+    if (ticks>=axeLingerUntil) presentation.clearProp();
     show(audience, "COMBINACIÓN · " + MobCombos.plan(boss.getType()).name(), 1 - (comboAt - ticks) / 60f,
        net.kyori.adventure.bossbar.BossBar.Color.WHITE);
     preview(audience);
@@ -175,18 +179,25 @@ final class BossAbilities implements Listener {
     boolean preparing = ticks < prepare;
     if (preparing) aim();
     show(audience, profile.pattern() == BossAbilityCatalog.Pattern.CONE && style == BossStyle.EXECUTIONER
-       ? preparing ? "ALZA EL HACHA" : "SAL DEL ABANICO ROJO"
-       : profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN && !preparing ? "¡SAL DE LAS CASILLAS ROJAS!"
+       ? preparing ? "ALZA EL HACHA" : "SAL DEL ABANICO DE PARTÍCULAS"
+       : anchorsAttack() && !preparing ? "ROMPE UNA RUNA · BUSCA EL CÍRCULO VERDE"
+       : profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN && !preparing ? "¡SAL DE LAS CASILLAS MARCADAS!"
        : preparing ? "PREPARACIÓN" : ultimate ? "DEFINITIVO · ¡ESQUIVA!" : "ZONA DE PELIGRO",
        ticks / (float) charge, ultimate ? net.kyori.adventure.bossbar.BossBar.Color.PURPLE
           : net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
     if (ticks == 0) modeled = plugin.cinematics.play(boss, definition, BossStyle.Beat.PREPARE, audience, skill.sounds());
-    if (!modeled) presentation.prop(boss, style, ticks / (float) charge, false);
+    if (!modeled && (axeImpact == null || ticks < charge - 10)) presentation.prop(boss, style, ticks / (float) charge, false);
     if (ticks == prepare || ticks == charge - 10) {
      cue(audience, Sound.BLOCK_NOTE_BLOCK_PLING, .65f + ticks / 50f);
     }
-    if (ticks == prepare) setZone(false);
-    if (ticks == charge - 10) fallingMeteor();
+    if (ticks == prepare) {
+     if (anchorsAttack()) anchors.start(center,boss.getUniqueId());
+     setZone(false);
+    }
+    if (ticks == charge - 10) {
+     fallingMeteor();
+     if (axeImpact != null) presentation.thrownAxe(boss.getEyeLocation(),axeImpact);
+    }
     if (skill.particles()) SpellVisuals.charge(boss, definition, ticks);
     preview(audience);
    } else {
@@ -196,13 +207,17 @@ final class BossAbilities implements Listener {
         net.kyori.adventure.bossbar.BossBar.Color.RED);
      boss.swingMainHand();
      boolean modelImpact = plugin.cinematics.play(boss, definition, BossStyle.Beat.IMPACT, audience, skill.sounds());
-     if (!modelImpact) presentation.prop(boss, style, 1, true);
+     if (!modelImpact && axeImpact == null) presentation.prop(boss, style, 1, true);
      if (skill.particles()) {
       CinematicFX.impact(boss, style, audience);
       if (profile.pattern() == BossAbilityCatalog.Pattern.CONE) axeWave(audience);
      }
+     if (axeImpact != null) axeShock(audience);
      release();
      if (casts.get(boss.getUniqueId()) != this) return;
+     boolean threwAxe = axeImpact != null;
+     if (threwAxe) axeLingerUntil=ticks+25;
+     axeImpact = null;
      pulse++;
      if (pulse >= profile.pulses()) {
       if (!skill.combo()) { endAt = ticks + 5; ticks += 5; return; }
@@ -215,7 +230,10 @@ final class BossAbilities implements Listener {
      if (sinceCharge % skill.interval() == 5) presentation.clearProp();
      if (sinceCharge % skill.interval() == 10 && profile.pattern() == BossAbilityCatalog.Pattern.CONE)
       show(audience,"SIGUIENTE CORTE · CAMBIA DE LADO",.5f,net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
-     if (sinceCharge % skill.interval() == skill.interval() - 10) fallingMeteor();
+     if (sinceCharge % skill.interval() == skill.interval() - 10) {
+      fallingMeteor();
+      if (axeImpact != null) presentation.thrownAxe(boss.getEyeLocation(),axeImpact);
+     }
      preview(audience);
     }
    }
@@ -234,16 +252,11 @@ final class BossAbilities implements Listener {
    if (skill.sounds()) for (Player player : audience) player.playSound(center, sound, .65f, pitch);
   }
 
-  private double beamRange() {
-   double max = profile.radius() + 5;
-   var collision = beamOrigin.getWorld().rayTraceBlocks(beamOrigin, beamDirection, max, FluidCollisionMode.NEVER, true);
-   return collision == null ? max : collision.getHitPosition().distance(beamOrigin.toVector());
-  }
-
-  private boolean beamHits(Player player, double distance) {
-   if (distance <= 0) return false;
-   var hitbox = player.getBoundingBox().expand(.28);
-   return hitbox.contains(beamOrigin.toVector()) || hitbox.rayTrace(beamOrigin.toVector(), beamDirection, distance) != null;
+  private boolean reflected() { return profile.pattern() == BossAbilityCatalog.Pattern.REFLECTION; }
+  private boolean isBeam() { return reflected() || profile.pattern() == BossAbilityCatalog.Pattern.BEAM; }
+  private boolean anchorsAttack() { return profile.pattern() == BossAbilityCatalog.Pattern.ANCHORS; }
+  private List<BeamPath.Segment> trace() {
+   return BeamPath.trace(beamOrigin,beamDirection,profile.radius()+5,reflected());
   }
 
   boolean hits(Location point, int step) {
@@ -260,12 +273,12 @@ final class BossAbilities implements Listener {
   private void setZone(boolean combo) {
    List<Location> points = new ArrayList<>();
    double radius = profile.radius();
-   if (!combo && !skill.dodgeable()) {
+   if (!combo && !skill.dodgeable() && !isBeam()) {
     if (target.getWorld() == center.getWorld()) points.add(target.getLocation().add(0,.12,0));
-   } else if (!combo && profile.pattern() == BossAbilityCatalog.Pattern.BEAM) {
-    double range = beamRange();
-    for (double step = .5; step <= range; step += .65) {
-     points.add(beamOrigin.clone().add(beamDirection.clone().multiply(step)));
+   } else if (!combo && isBeam()) {
+    beamPath = trace();
+    for (var leg : beamPath) {
+     for (double step=.25;step<=leg.length();step+=.48) points.add(leg.start().clone().add(leg.direction().clone().multiply(step)));
     }
    } else {
     Location origin = !combo && profile.pattern() == BossAbilityCatalog.Pattern.METEORS
@@ -278,17 +291,56 @@ final class BossAbilities implements Listener {
     }
    }
    zone = points;
-   presentation.mark(zone, combo ? Material.WHITE_STAINED_GLASS
-      : ultimate ? Material.PURPLE_STAINED_GLASS : Material.RED_STAINED_GLASS);
+   presentation.clearDisplays();
+   if (!combo && style == BossStyle.EXECUTIONER && profile.pattern() == BossAbilityCatalog.Pattern.CONE
+       && pulse == profile.pulses()-1 && target.getWorld().equals(center.getWorld()) && boss.hasLineOfSight(target)) {
+    Location aim = target.getLocation();
+    if (aim.distanceSquared(center) <= profile.radius()*profile.radius() && aim.isChunkLoaded()) {
+     var floor = aim.getWorld().rayTraceBlocks(aim.clone().add(0,.35,0),new Vector(0,-1,0),4,FluidCollisionMode.NEVER,true);
+     if (floor != null) axeImpact = floor.getHitPosition().toLocation(aim.getWorld());
+    }
+   }
   }
 
   private void preview(List<Player> audience) {
-   if (!skill.particles()) return;
-   int count = Math.min(36, zone.size());
-   var dust = new Particle.DustOptions(comboAt >= 0 ? Color.WHITE : ultimate ? Color.PURPLE : Color.RED, .95f);
-   for (int index = 0; index < count; index++) {
-    Location point = zone.get(index * zone.size() / count);
-    for (Player player : audience) CosmeticFX.to(player, Particle.DUST, point, 1, 0, 0, 0, 0, dust);
+   if (axeImpact != null) {
+    CinematicFX.ring(axeImpact,audience,3,0,18,Color.RED,Color.YELLOW);
+    if (ticks%10==0) for (Player player : audience) BossWarnings.send(player,
+       Component.text("HACHA ARROJADA · SAL DEL CÍRCULO",NamedTextColor.GOLD));
+   }
+   if (zone.isEmpty()) return;
+   boolean rain = comboAt < 0 && profile.pattern() == BossAbilityCatalog.Pattern.OBSIDIAN;
+   Color base = comboAt >= 0 ? Color.WHITE : ultimate ? Color.PURPLE : Color.RED;
+   var dust = new Particle.DustTransition(base,comboAt >= 0 ? Color.AQUA : Color.ORANGE,1.35f);
+   if (rain) {
+    for (var point : ObsidianRain.centers(pulse)) for (int i=0;i<3;i++) {
+     double offset=i*1.6-1.6;
+     for (int side : new int[]{-1,1}) {
+      var horizontal=center.clone().add(point.x()+offset,.17,point.z()+side*2.43);
+      var vertical=center.clone().add(point.x()+side*2.43,.17,point.z()+offset);
+      for (Player viewer : audience) {
+       CosmeticFX.to(viewer,Particle.DUST_COLOR_TRANSITION,horizontal,1,0,0,0,0,dust);
+       CosmeticFX.to(viewer,Particle.DUST_COLOR_TRANSITION,vertical,1,0,0,0,0,dust);
+      }
+     }
+    }
+   }
+   int count=Math.min(rain ? 16 : 48,zone.size());
+   for (int index=0;index<count;index++) {
+    Location point=zone.get((index*zone.size()/count+ticks/5)%zone.size());
+    for (Player player : audience) CosmeticFX.to(player,Particle.DUST_COLOR_TRANSITION,point,1,0,0,0,0,dust);
+   }
+  }
+
+  private void axeShock(List<Player> audience) {
+   axeImpact.getWorld().strikeLightningEffect(axeImpact);
+   CinematicFX.ring(axeImpact,audience,3,0,20,Color.WHITE,Color.ORANGE);
+   CosmeticFX.emit(Particle.ELECTRIC_SPARK,axeImpact.clone().add(0,1.3,0),12,.45,1,.45,.03);
+   CosmeticFX.emit(Particle.BLOCK,axeImpact.clone().add(0,.2,0),20,1.2,.18,1.2,.02,
+      Material.CRACKED_DEEPSLATE_TILES.createBlockData());
+   if (skill.sounds()) for (Player player : audience) {
+    player.playSound(axeImpact,Sound.ENTITY_LIGHTNING_BOLT_IMPACT,.65f,1.25f);
+    player.playSound(axeImpact,Sound.BLOCK_ANVIL_LAND,.55f,.7f);
    }
   }
 
@@ -314,32 +366,36 @@ final class BossAbilities implements Listener {
     plugin.bosses().summonConfiguredHorde(boss, definition, target);
    }
    if (skill.particles()) CombatVisuals.special(boss,definition);
-   boolean beam = profile.pattern() == BossAbilityCatalog.Pattern.BEAM;
-   double range = beam ? beamRange() : 0;
-   if (skill.particles() && beam) {
-    for (double step = .5; step < range; step += .6) {
-     CosmeticFX.emit(Particle.END_ROD, beamOrigin.clone().add(beamDirection.clone().multiply(step)), 1);
-    }
-   } else if (skill.particles()) {
-    int samples = Math.min(16, zone.size());
-    for (int index=0; index<samples; index++) CosmeticFX.emit(Particle.CRIT, zone.get(index * zone.size() / samples), 2);
+   boolean beam = isBeam();
+   if (beam && !BeamPath.same(beamPath, trace())) return;
+   if (skill.particles()) {
+    int samples = Math.min(beam ? 40 : 16, zone.size());
+    for (int index=0; index<samples; index++) CosmeticFX.emit(beam ? Particle.END_ROD : Particle.CRIT,
+       zone.get(index * zone.size() / samples), 1);
    }
    for(Player player:players()){
-    boolean inPattern = skill.dodgeable()
-       ? beam ? beamHits(player,range) : hits(player.getLocation(),pulse)
+    boolean inPattern = skill.dodgeable() || isBeam()
+       ? beam ? BeamPath.hits(beamPath,player.getBoundingBox().expand(.24)) : hits(player.getLocation(),pulse)
        : player.equals(target) && player.getLocation().distanceSquared(center) <= profile.radius() * profile.radius();
-    if(!inPattern||player.getLocation().distanceSquared(boss.getLocation())>576||!boss.hasLineOfSight(player))continue;
+    boolean struckByAxe = axeImpact != null && player.getLocation().distanceSquared(axeImpact) <= 9;
+    if(!(inPattern||struckByAxe)||player.getLocation().distanceSquared(boss.getLocation())>576||(!reflected()&&!boss.hasLineOfSight(player))||anchors.shelters(player.getLocation()))continue;
     if(profile.pattern()==BossAbilityCatalog.Pattern.VORTEX&&pulse<profile.pulses()-1){Vector pull=center.toVector().subtract(player.getLocation().toVector());if(pull.lengthSquared()>.1)player.setVelocity(pull.normalize().multiply(.4).setY(.1));}
     var attack=boss.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
     double baseline=attack==null?definition.tier().damage:Math.max(definition.tier().damage,attack.getValue());
     double damage = skill.damage() < 0 ? CombatPower.special(baseline,definition.tier().ordinal(),BossStages.phase(boss),ultimate) : skill.damage();
-    boolean damaged = damage > 0 && AbilityDamage.hit(player,boss,damage);
+    boolean damaged = damage > 0 && AbilityDamage.hit(player,boss,damage,reflected());
+    if (damaged && struckByAxe && !player.isDead()) {
+     Vector away = player.getLocation().toVector().subtract(axeImpact.toVector()).setY(0);
+     if (away.lengthSquared() < .01) away.setX(1);
+     player.setVelocity(away.normalize().multiply(.65).setY(.27));
+    }
     if(damaged&&!player.isDead()&&CombatGuard.eligible(player))BossEffects.applyFrom(boss,player,BossEffects.effect(profile.effect().potion(),ultimate?80:40,0));
    }
   }
   void combo(){if(!valid())return;var plan=MobCombos.plan(boss.getType());SpellVisuals.release(boss,definition,marks);CombatVisuals.signatureRing(center,definition,profile.radius()*.55,24);center.getWorld().playSound(center,Sound.ENTITY_PLAYER_ATTACK_CRIT,.8f,.7f);for(Player player:players()){if(player.getLocation().distanceSquared(center)>profile.radius()*profile.radius()||Math.abs(player.getY()-center.getY())>4||!boss.hasLineOfSight(player))continue;double dx=player.getX()-center.getX(),dz=player.getZ()-center.getZ();if(!BossAbilityCatalog.hits(BossAbilityCatalog.Pattern.CROSS,dx,dz,0,1,profile.radius(),angle+Math.PI/4))continue;var attack=boss.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);double base=attack==null?definition.tier().damage:attack.getValue();if(AbilityDamage.hit(player,boss,MobCombos.damage(base,BossStages.phase(boss)))){BossEffects.applyFrom(boss,player,BossEffects.effect(PotionEffectType.getByName(plan.effect()),60,0));if(plan.flame())player.setFireTicks(Math.max(player.getFireTicks(),40));if(boss.getType()==EntityType.SPIDER||boss.getType()==EntityType.CAVE_SPIDER)BossEffects.applyFrom(boss,player,BossEffects.effect(PotionEffectType.SLOWNESS,40,1));}}}
   void finish(boolean completed) {
    if (!casts.remove(boss.getUniqueId(), this)) return;
+   anchors.close();
    presentation.close();
    if (completed && boss.isValid() && !boss.isDead()) {
     recovery.put(boss.getUniqueId(), System.currentTimeMillis() + skill.recovery() * 50L);
@@ -355,6 +411,6 @@ final class BossAbilities implements Listener {
   }
  }
  @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());transformations.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
- @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());transformations.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
- void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();transformations.clear();tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
+ @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){if(entity instanceof Mob mob && tracked.containsKey(entity.getUniqueId()))RepositionGoal.remove(mob);plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());transformations.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
+ void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();transformations.clear();for(var active:tracked.values())if(active.boss() instanceof Mob mob)RepositionGoal.remove(mob);tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
 }

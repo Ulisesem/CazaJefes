@@ -1,7 +1,7 @@
 package dev.cazajefes;
 import java.util.*;
 final class BossAbilityCatalog {
- enum Pattern {RINGS,CROSS,CONE,SPIRAL,METEORS,VORTEX,LANES,CHECKER,GEYSERS,NOVA,RUSH,CAGE,BEAM,OBSIDIAN}
+ enum Pattern {RINGS,CROSS,CONE,SPIRAL,METEORS,VORTEX,LANES,CHECKER,GEYSERS,NOVA,RUSH,CAGE,BEAM,OBSIDIAN,REFLECTION,ANCHORS}
  enum Debuff {SLOWNESS,POISON,WEAKNESS,WITHER,BLINDNESS,HUNGER,LEVITATION,DARKNESS;
   org.bukkit.potion.PotionEffectType potion(){return switch(this){case SLOWNESS->org.bukkit.potion.PotionEffectType.SLOWNESS;case POISON->org.bukkit.potion.PotionEffectType.POISON;case WEAKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case WITHER->org.bukkit.potion.PotionEffectType.WITHER;case BLINDNESS,DARKNESS->org.bukkit.potion.PotionEffectType.WEAKNESS;case HUNGER->org.bukkit.potion.PotionEffectType.HUNGER;case LEVITATION->org.bukkit.potion.PotionEffectType.LEVITATION;};}
  }
@@ -28,7 +28,8 @@ final class BossAbilityCatalog {
    case NOVA->d>2+Math.sin(pulse)*.6;
    case RUSH->Math.abs(b)<1.3&&a>=-1;
    case OBSIDIAN->ObsidianRain.hits(x,z,pulse);
-   case BEAM->false; // Beam uses a three-dimensional ray.
+   case BEAM,REFLECTION->false;
+   case ANCHORS->d<=radius; // Beam uses a three-dimensional ray.
    case CAGE->Math.abs(d-(radius-pulse*1.6))<1;
   };
  }

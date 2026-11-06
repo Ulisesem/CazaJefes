@@ -10,7 +10,11 @@ final class StageAttackRules {
   var base=BossAbilityCatalog.ultimate(boss);if(phase>=3&&slot==1)return base;
   String[] names=phase==1?new String[]{"Anillo de Ruptura","Corte del Umbral","Barrido del Guardián"}:phase==2?new String[]{"Espiral de Asedio","Runas de Fractura","Vórtice del Ocaso","Rayo del Vacío"}:new String[]{"Lluvia del Cataclismo"};
   var patterns=phase==1?new BossAbilityCatalog.Pattern[]{BossAbilityCatalog.Pattern.RINGS,BossAbilityCatalog.Pattern.CROSS,BossAbilityCatalog.Pattern.CONE}:phase==2?new BossAbilityCatalog.Pattern[]{BossAbilityCatalog.Pattern.SPIRAL,BossAbilityCatalog.Pattern.GEYSERS,BossAbilityCatalog.Pattern.VORTEX,BossAbilityCatalog.Pattern.BEAM}:new BossAbilityCatalog.Pattern[]{BossAbilityCatalog.Pattern.METEORS};
-  int i=Math.floorMod(slot,names.length);return new BossAbilityCatalog.Ultimate(SpellVisuals.mage(boss.entityType())?SpellVisuals.name(phase,i):names[i],patterns[i],base.effect(),phase==1?9:phase==2?11:12,phase==1?(i==2?3:1):2,base.angle());
+  int i=Math.floorMod(slot,names.length);
+  BossStyle style=BossStyle.of(boss.entityType());
+  if (phase==3 && style==BossStyle.ARCANE) return new BossAbilityCatalog.Ultimate("Anclas del Vacío",BossAbilityCatalog.Pattern.ANCHORS,base.effect(),10,1,0);
+  if (phase==2 && i==3 && (style==BossStyle.ARCANE || style==BossStyle.VOID)) return new BossAbilityCatalog.Ultimate("Rayo de Rebote",BossAbilityCatalog.Pattern.REFLECTION,base.effect(),15,2,0);
+  return new BossAbilityCatalog.Ultimate(SpellVisuals.mage(boss.entityType())?SpellVisuals.name(phase,i):names[i],patterns[i],base.effect(),phase==1?9:phase==2?11:12,phase==1?(i==2?3:1):2,base.angle());
  }
  static final class Rotation {
   int phase,index;long next;long[] ready;

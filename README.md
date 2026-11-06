@@ -1,3 +1,7 @@
+# CazaJefes 1.33.0 · Impacto de la Grieta
+
+Avisos con partículas, hachas arrojadizas, rayos reflejados y anclas rompibles. [Cambios y configuración](docs/CAMBIOS-1.33.0.md).
+
 # CazaJefes 1.32.0 · Guardia de Obsidiana
 
 Lluvia de Obsidiana de 20 × 20, ataques de mayor alcance y modelado 3D. [Cambios y configuración](docs/CAMBIOS-1.32.0.md).
