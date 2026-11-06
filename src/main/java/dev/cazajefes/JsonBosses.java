@@ -22,7 +22,7 @@ final class JsonBosses {
    private static final int MAX_BYTES = 16 * 1024;
    private static final int MAX_FILES = 128;
 
-   record Settings(double health, double damage, double scale, BossAbilityCatalog.Ultimate ultimate, String portrait) {}
+   record Settings(double health, double damage, double scale, BossAbilityCatalog.Ultimate ultimate, String portrait, String meteorTexture) {}
 
    private JsonBosses() {}
 
@@ -42,7 +42,7 @@ final class JsonBosses {
          reader.beginArray();
          while (reader.hasNext()) {
             var fields = readFields(reader, Set.of("id", "name", "tier", "entity", "mini", "description",
-               "health", "damage", "scale", "ultimate", "portrait"), true);
+               "health", "damage", "scale", "ultimate", "portrait", "meteorTexture"), true);
             String id = requiredText(fields, "id", 64);
             validateId(id);
             EntityType entity = option(fields, "entity", null, EntityType.class);
@@ -55,7 +55,7 @@ final class JsonBosses {
             var ultimate = readUltimate(ultimateFields(fields), null);
             var settings = new Settings(number(fields, "health", null, 1, 100000),
                number(fields, "damage", null, 0, 1000), number(fields, "scale", null, 0.1, 10),
-               ultimate, portrait(fields));
+               ultimate, portrait(fields), meteor(fields, null));
             var definition = new BossCatalog.Definition(id, requiredText(fields, "name", 64), tier, entity, mini,
                optionalText(fields, "description", BossLore.describe(entity, mini), 180), settings);
             if (result.putIfAbsent(id, definition) != null) throw new IllegalArgumentException("ID duplicado: " + id);
@@ -95,8 +95,50 @@ final class JsonBosses {
       }
    }
 
+   private static Map<String, BossCatalog.Definition> separated(JavaPlugin plugin, Map<String,BossCatalog.Definition> legacy) {
+      var result = new LinkedHashMap<String,BossCatalog.Definition>();
+      var gson = new com.google.gson.GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+      for (var boss : legacy.values()) {
+         String category = boss.mini() ? "mini" : boss.tier().name().toLowerCase(java.util.Locale.ROOT);
+         Path file = plugin.getDataFolder().toPath().resolve("bosses").resolve(category).resolve(boss.id() + ".json");
+         var selected = boss;
+         try {
+            if (Files.notExists(file)) {
+               Files.createDirectories(file.getParent());
+               var row = new com.google.gson.JsonObject();
+               row.addProperty("id",boss.id()); row.addProperty("name",boss.name()); row.addProperty("description",boss.description());
+               row.addProperty("tier",boss.tier().name()); row.addProperty("entity",boss.entityType().name()); row.addProperty("mini",boss.mini());
+               row.addProperty("health",boss.custom().health()); row.addProperty("damage",boss.custom().damage()); row.addProperty("scale",boss.custom().scale());
+               row.add("ultimate",gson.toJsonTree(boss.custom().ultimate()));
+               if (boss.custom().portrait()!=null) row.addProperty("portrait",boss.custom().portrait());
+               if (boss.custom().meteorTexture()!=null) row.addProperty("meteorTexture",boss.custom().meteorTexture());
+               Files.writeString(file,gson.toJson(row)+"\n",java.nio.file.StandardOpenOption.CREATE_NEW);
+            }
+            if (Files.size(file)>MAX_BYTES) throw new IllegalArgumentException("máximo 16 KiB");
+            var entries = readCatalog(new StringReader("[" + Files.readString(file) + "]"));
+            var candidate = entries.get(boss.id());
+            if (entries.size()!=1 || candidate==null || candidate.tier()!=boss.tier()
+                || candidate.entityType()!=boss.entityType() || candidate.mini()!=boss.mini()) {
+               throw new IllegalArgumentException("ID, especie y categoría deben coincidir con el archivo original");
+            }
+            selected = candidate;
+         } catch (IOException | IllegalArgumentException | IllegalStateException error) {
+            plugin.getLogger().warning("bosses/" + category + "/" + file.getFileName() + ": " + error.getMessage());
+         }
+         result.put(boss.id(),selected);
+      }
+      return result;
+   }
+
+   private static String meteor(Map<String,Object> fields,String fallback) {
+      if(!fields.containsKey("meteorTexture")) return fallback;
+      String texture=requiredText(fields,"meteorTexture",8192);
+      BossPortraits.textureHash(texture);
+      return texture;
+   }
+
    static Map<String, BossCatalog.Definition> load(JavaPlugin plugin) {
-      var originals = loadOriginals(plugin);
+      var originals = separated(plugin, loadOriginals(plugin));
       Path directory = plugin.getDataFolder().toPath().resolve("mobs");
       Map<String, BossCatalog.Definition> custom = new LinkedHashMap<>();
       try {
@@ -139,7 +181,7 @@ final class JsonBosses {
       try (JsonReader reader = new JsonReader(new StringReader(json))) {
          reader.setStrictness(Strictness.STRICT);
          var fields = readFields(reader,
-            Set.of("id", "template", "name", "description", "health", "damage", "scale", "ultimate", "portrait"), true);
+            Set.of("id", "template", "name", "description", "health", "damage", "scale", "ultimate", "portrait", "meteorTexture"), true);
          if (reader.peek() != JsonToken.END_DOCUMENT) throw new IllegalArgumentException("se esperaba un solo objeto JSON");
          String id = requiredText(fields, "id", 48);
          validateId(id);
@@ -150,7 +192,7 @@ final class JsonBosses {
          var profile = readUltimate(ultimateFields(fields), template.custom().ultimate());
          var settings = new Settings(number(fields, "health", null, 1, 1024),
             number(fields, "damage", null, 0, 120), number(fields, "scale", null, 0.25, 4), profile,
-            fields.containsKey("portrait") ? portrait(fields) : template.custom().portrait());
+            fields.containsKey("portrait") ? portrait(fields) : template.custom().portrait(), meteor(fields, template.custom().meteorTexture()));
          return new BossCatalog.Definition(id, requiredText(fields, "name", 48), template.tier(),
             template.entityType(), template.mini(), optionalText(fields, "description", template.description(), 140), settings);
       } catch (IllegalStateException failure) {

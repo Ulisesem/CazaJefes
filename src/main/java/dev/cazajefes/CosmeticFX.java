@@ -1,4 +1,6 @@
 package dev.cazajefes;
+
+import dev.cazajefes.integration.PacketBridge;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 /** Shared bounded audience for combat cosmetics; gameplay never depends on this budget. */
@@ -15,10 +17,10 @@ final class CosmeticFX {
  static void warning(Player player,Location at,Particle.DustTransition color){
   if(player.getWorld().equals(at.getWorld())&&player.getLocation().distanceSquared(at)<=1024
       &&allowWarning(player.getUniqueId(),System.currentTimeMillis())) {
-   player.spawnParticle(Particle.DUST_COLOR_TRANSITION,at,1,0,0,0,0,color,false);
+   PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,at,1,0,0,0,0,color);
   }
  }
- static <T> void to(Player p,Particle type,Location at,int count,double x,double y,double z,double speed,T data){if(!p.getWorld().equals(at.getWorld())||p.getLocation().distanceSquared(at)>1024||!allow(p.getUniqueId(),Math.max(1,count),System.currentTimeMillis()))return;p.spawnParticle(type,at,count,x,y,z,speed,data,false);}
+ static <T> void to(Player p,Particle type,Location at,int count,double x,double y,double z,double speed,T data){if(!p.getWorld().equals(at.getWorld())||p.getLocation().distanceSquared(at)>1024||!allow(p.getUniqueId(),Math.max(1,count),System.currentTimeMillis()))return;PacketBridge.particle(p,type,at,count,x,y,z,speed,data);}
  static <T> void emit(Particle type,Location at,int count,double x,double y,double z,double speed,T data){for(Player p:at.getWorld().getNearbyPlayers(at,32))to(p,type,at,count,x,y,z,speed,data);}
  static void emit(Particle type,Location at,int count,double x,double y,double z,double speed){emit(type,at,count,x,y,z,speed,null);}
  static void emit(Particle type,Location at,int count){emit(type,at,count,0,0,0,0,null);}

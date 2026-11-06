@@ -1,5 +1,7 @@
 package dev.cazajefes;
 
+import dev.cazajefes.integration.PacketBridge;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
@@ -18,6 +20,12 @@ final class ThrownAxeHand {
          || type==Material.BOW || type==Material.CROSSBOW || type==Material.TRIDENT || type==Material.MACE;
    }
 
+   static boolean usesPhysicalHand(LivingEntity boss) {
+      var equipment = boss.getEquipment();
+      return equipment != null && (isWeapon(equipment.getItemInMainHand().getType())
+         || boss.getPersistentDataContainer().has(SAVED,PersistentDataType.BYTE_ARRAY));
+   }
+
    static boolean prepare(LivingEntity boss) {
       var equipment=boss.getEquipment();
       if(equipment==null) return false;
@@ -27,13 +35,15 @@ final class ThrownAxeHand {
       if(!isWeapon(original.getType())) return false;
       data.set(SAVED,PersistentDataType.BYTE_ARRAY,original.serializeAsBytes());
       equipment.setItemInMainHand(new ItemStack(Material.NETHERITE_AXE),true);
+      PacketBridge.equipment(boss);
       return true;
    }
 
    static void launch(LivingEntity boss) {
       var equipment=boss.getEquipment();
       if(equipment!=null && boss.getPersistentDataContainer().has(SAVED,PersistentDataType.BYTE_ARRAY)) {
-         equipment.setItemInMainHand(null,true);
+         equipment.setItemInMainHand(new ItemStack(Material.AIR),true);
+         PacketBridge.equipment(boss);
       }
    }
 
@@ -44,7 +54,10 @@ final class ThrownAxeHand {
       var equipment=boss.getEquipment();
       if(equipment==null) return;
       try {
-         if(!boss.isDead()) equipment.setItemInMainHand(ItemStack.deserializeBytes(original),true);
+         if(!boss.isDead()) {
+            equipment.setItemInMainHand(ItemStack.deserializeBytes(original),true);
+            PacketBridge.equipment(boss);
+         }
       } catch(IllegalArgumentException invalid) {
          plugin.getLogger().warning("No se pudo restaurar el arma del jefe "+boss.getUniqueId());
       } finally {

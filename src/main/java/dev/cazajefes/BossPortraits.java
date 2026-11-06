@@ -34,6 +34,36 @@ final class BossPortraits {
       return tile;
    }
 
+   static String textureHash(String base64) {
+      try {
+         var root=com.google.gson.JsonParser.parseString(new String(java.util.Base64.getDecoder().decode(base64),StandardCharsets.UTF_8)).getAsJsonObject();
+         var url=root.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
+         var match=java.util.regex.Pattern.compile("https?://textures\\.minecraft\\.net/texture/([a-f0-9]{60,64})").matcher(url);
+         if(match.matches()) return match.group(1);
+      } catch (RuntimeException ignored) {
+         // Invalid payload is reported by the individual boss loader.
+      }
+      throw new IllegalArgumentException("meteorTexture requiere una textura Base64 de textures.minecraft.net");
+   }
+
+   static ItemStack meteorHead(BossCatalog.Definition boss) {
+      String hash=boss.custom().meteorTexture()==null?boss.custom().portrait():textureHash(boss.custom().meteorTexture());
+      if(hash==null) return new ItemStack(Material.PLAYER_HEAD);
+      var head=new ItemStack(Material.PLAYER_HEAD);
+      var meta=(SkullMeta)head.getItemMeta();
+      var profile=Bukkit.createPlayerProfile(UUID.nameUUIDFromBytes(hash.getBytes(StandardCharsets.UTF_8)));
+      var textures=profile.getTextures();
+      try {
+         textures.setSkin(URI.create("https://textures.minecraft.net/texture/"+hash).toURL());
+      } catch(java.net.MalformedURLException impossible) {
+         throw new IllegalStateException(impossible);
+      }
+      profile.setTextures(textures);
+      meta.setOwnerProfile(profile);
+      head.setItemMeta(meta);
+      return head;
+   }
+
    static Material nativeHead(EntityType species) {
       return switch (species) {
          case ZOMBIE, GIANT -> Material.ZOMBIE_HEAD;

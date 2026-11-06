@@ -1,4 +1,6 @@
 package dev.cazajefes;
+
+import dev.cazajefes.integration.PacketBridge;
 import org.bukkit.*;
 import org.bukkit.entity.LivingEntity;
 final class CombatVisuals {
@@ -55,9 +57,9 @@ final class CombatVisuals {
   return new Ambient(dots,trails,origin.clone().add(0,height+.3,0),identity.particle());
  }
  static void ambient(org.bukkit.entity.Player player,Ambient frame){
-  for(var dot:frame.dots())player.spawnParticle(Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data(),false);
-  for(var trail:frame.trails())player.spawnParticle(Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data(),false);
-  player.spawnParticle(frame.motif(),frame.crown(),1,.2,.15,.2,.005,null,false);
+  for(var dot:frame.dots())PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
+  for(var trail:frame.trails())PacketBridge.particle(player,Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data());
+  PacketBridge.particle(player,frame.motif(),frame.crown(),1,.2,.15,.2,.005,null);
  }
  static void special(LivingEntity entity,BossCatalog.Definition boss){signatureRing(entity.getLocation(),boss,1.6,24);CosmeticFX.emit(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}
  static void summon(Location point,BossCatalog.Definition boss){signatureRing(point,boss,.8,18);CosmeticFX.emit(motif(boss),point.clone().add(0,.7,0),16,.35,.5,.35,.02);}

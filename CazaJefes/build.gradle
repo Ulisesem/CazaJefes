@@ -1,0 +1,21 @@
+sourceSets {
+    main {
+        java.setSrcDirs([rootProject.file('src/main/java')])
+        resources.setSrcDirs([rootProject.file('src/main/resources')])
+    }
+    test {
+        java.setSrcDirs([rootProject.file('src/test/java')])
+        resources.setSrcDirs([rootProject.file('src/test/resources')])
+    }
+}
+dependencies {
+    implementation project(':api')
+    testImplementation "io.papermc.paper:paper-api:${rootProject.property('paperVersion')}"
+    testImplementation 'junit:junit:4.13.2'
+}
+tasks.named('jar') {
+    dependsOn ':api:classes'
+    from project(':api').sourceSets.main.output
+}
+
+tasks.named('test') { workingDir rootProject.projectDir }

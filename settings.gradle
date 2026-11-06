@@ -1,0 +1,2 @@
+rootProject.name = 'CazaJefesSuite'
+include 'CazaJefes', 'api', 'pluginExample'

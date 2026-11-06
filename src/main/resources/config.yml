@@ -18,6 +18,8 @@ active-eggs: []
 
 # Target acquisition: 24 blocks + line of sight; phase thresholds: 65% / 30%.
 combat:
+  pillager-rocket-charges: 9
+  death-break-cave-roof: true
   # IDs existentes de WorldGuard, por ejemplo [arena_gorath].
   worldguard-arenas: []
   pillager-retaliation-hits: 5
@@ -53,3 +55,6 @@ particles:
     max-bosses-per-player: 2
     max-sends-per-player-second: 160
     max-sends-per-frame: 1024
+
+messages:
+  attack: '<gold><bold><state></bold></gold> <dark_gray>·</dark_gray> <white><attack></white>'

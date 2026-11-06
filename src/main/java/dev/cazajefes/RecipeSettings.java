@@ -12,16 +12,35 @@ import org.bukkit.plugin.java.JavaPlugin;
 final class RecipeSettings {
     private final JavaPlugin plugin;
     private YamlConfiguration config;
+    private File file;
+    private boolean dirty;
     RecipeSettings(JavaPlugin plugin) { this.plugin = plugin; reload(); }
     void reload() {
-        File file = new File(plugin.getDataFolder(), "recipes.yml");
+        file = new File(plugin.getDataFolder(), "recipes.yml");
         if (!file.exists()) plugin.saveResource("recipes.yml", false);
         config = ConfigMigration.recipes((CazaJefesPlugin)plugin,file,YamlConfiguration.loadConfiguration(file));
     }
+    boolean enabled(String id) {
+        var path = "recipes." + id + ".enabled";
+        if (!config.contains(path)) {
+            config.set(path,true);
+            dirty=true;
+        }
+        return config.getBoolean(path,true);
+    }
+    void saveDiscovered() {
+        if (!dirty) return;
+        try {
+            config.save(file);
+            dirty=false;
+        } catch (java.io.IOException failure) {
+            plugin.getLogger().warning("No se pudo guardar el índice de recipes.yml: " + failure.getMessage());
+        }
+    }
     boolean apply(String id, String[] shape, Map<Character, RecipeChoice> choices) {
+        if (!enabled(id)) return false;
         ConfigurationSection section = config.getConfigurationSection("recipes." + id);
         if (section == null) return true;
-        if (!section.getBoolean("enabled", true)) return false;
         List<String> rows = section.getStringList("shape");
         if (!rows.isEmpty()) {
             if (rows.size() != 3 || rows.stream().anyMatch(s -> s.length() != 3))

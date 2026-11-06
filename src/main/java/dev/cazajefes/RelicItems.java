@@ -219,7 +219,7 @@ public final class RelicItems implements Listener {
    boolean armorCounter(Player player,String id){return armorRares.counter(player,id);}
    void stopArmorRares(){armorRares.stop();}
    boolean armorFuel(Player p,ItemStack item,String id){return consumePassiveSaturation(p,item,id);}
-   private void registerSpellUpgrades(){for(int count=2;count<=8;count++){var key=new NamespacedKey(plugin,"rare_spell_upgrade_"+count);plugin.getServer().removeRecipe(key);var recipe=new ShapelessRecipe(key,new ItemStack(Material.BOOK));recipe.addIngredient(count,Material.BOOK);plugin.getServer().addRecipe(recipe);}}
+   private void registerSpellUpgrades(){for(int count=2;count<=8;count++){String id="rare_spell_upgrade_"+count;if(!((CazaJefesPlugin)plugin).recipeSettings.enabled(id))continue;var key=new NamespacedKey(plugin,id);plugin.getServer().removeRecipe(key);var recipe=new ShapelessRecipe(key,new ItemStack(Material.BOOK));recipe.addIngredient(count,Material.BOOK);plugin.getServer().addRecipe(recipe);}}
    private boolean prepareSpellUpgrade(PrepareItemCraftEvent event){if(!(event.getRecipe() instanceof Keyed key)||!key.getKey().getNamespace().equals("cazajefes")||!key.getKey().getKey().startsWith("rare_spell_upgrade_"))return false;String id=null;List<Integer> levels=new ArrayList<>();for(ItemStack piece:event.getInventory().getMatrix()){if(piece==null||piece.getType().isAir())continue;if(!piece.hasItemMeta()){event.getInventory().setResult(null);return true;}String power=piece.getItemMeta().getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING);if(power==null||!spellIds().contains(power)||(id!=null&&!id.equals(power))){event.getInventory().setResult(null);return true;}id=power;levels.add(piece.getItemMeta().getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1));}int total=id==null?0:RareDefinitions.upgradedLevel(id,levels);event.getInventory().setResult(total>0?rareBook(id,total):null);return true;}
    @EventHandler(priority=EventPriority.HIGHEST)public void validateSuppliedIngredients(PrepareItemCraftEvent event){if(!(event.getRecipe() instanceof ShapedRecipe recipe)||!recipe.getKey().getNamespace().equals("cazajefes"))return;String id=recipe.getKey().getKey();if(!id.startsWith("crear_esencia_rare_")&&!id.startsWith("crear_libro_rare_"))return;for(ItemStack piece:event.getInventory().getMatrix())if(customId(piece)!=null&&recipe.getChoiceMap().values().stream().noneMatch(choice->choice instanceof ExactChoice&&choice.test(piece))){event.getInventory().setResult(null);return;}}
    private void tickArmorProperties(){
@@ -1291,6 +1291,7 @@ public final class RelicItems implements Listener {
 
       for (int var35 = 1; var35 <= 3; var35++) {
          String var36 = var35 == 1 ? "rare_essence_attach" : "rare_essence_attach_" + var35;
+         if (!((CazaJefesPlugin)plugin).recipeSettings.enabled(var36)) continue;
          NamespacedKey var37 = new NamespacedKey(this.plugin, var36);
          if (this.plugin.getServer().getRecipe(var37) == null) {
             ItemStack var38 = new ItemStack(Material.PAPER);
@@ -1311,6 +1312,7 @@ public final class RelicItems implements Listener {
       addRecipe("sello_resonancia_primigenia",awakeningSeal(),new String[]{"KPK","NSN","FTF"},Map.of('K',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)),'P',new ExactChoice(primordialEssence()),'N',bossCoreChoice(),'S',new MaterialChoice(Material.NETHER_STAR),'F',new ExactChoice(fragment(1)),'T',new ExactChoice(tribute("Cazador"))));
       for(String material:RangedRareCatalog.MATERIALS)addRecipe("ranged_material_"+material,rangedMaterial(material),new String[]{" R ","CEC"," F "},Map.of('R',new MaterialChoice(RangedRareCatalog.materialIcon(material)),'C',bossCoreChoice(),'E',new ExactChoice(essence()),'F',new ExactChoice(fragment(1))));
       registerSpellUpgrades();registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
+      ((CazaJefesPlugin)plugin).recipeSettings.saveDiscovered();
    }
 
    private int rareCatalystVariant(String var1) {
