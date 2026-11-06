@@ -8,12 +8,16 @@ import java.util.HashSet;
 import java.util.List;
 
 public record BossProfile(double speed,double gravity,double detectionRange,int globalCooldown,
-                          boolean aquatic,List<BossAttack> attacks) {
+                          boolean aquatic,CombatStyle.Tactics tactics,List<BossAttack> attacks) {
     public BossProfile {
         attacks=List.copyOf(attacks);
     }
 
     public static BossProfile read(JsonObject json,double baseDamage,boolean aquatic) {
+        return read(json,baseDamage,aquatic,aquatic?CombatStyle.AQUATIC:CombatStyle.BRAWLER);
+    }
+
+    public static BossProfile read(JsonObject json,double baseDamage,boolean aquatic,CombatStyle defaultStyle) {
         if(json==null)json=defaults(baseDamage,aquatic);
         double speed=number(json,"speed",.29,.02,1);
         double gravity=number(json,"gravity",.08,0,.35);
@@ -48,7 +52,16 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                 });
             }
         }
-        return new BossProfile(speed,gravity,range,gcd,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,entries);
+        var config=json.has("tactics")?json.getAsJsonObject("tactics"):new JsonObject();
+        String styleName=text(config,"style","AUTO");
+        var style=styleName.equalsIgnoreCase("AUTO")?defaultStyle
+            :CombatStyle.valueOf(styleName.toUpperCase(java.util.Locale.ROOT));
+        double far=number(config,"preferredMax",Math.min(style.far,range),.5,range);
+        double near=number(config,"preferredMin",Math.min(style.near,far),0,far);
+        double orbit=number(config,"orbitSpeed",style.orbit,0,1);
+        boolean mobile=config.has("mobileWindup")?config.get("mobileWindup").getAsBoolean():style.mobileWindup;
+        var tactics=new CombatStyle.Tactics(style,near,far,orbit,mobile);
+        return new BossProfile(speed,gravity,range,gcd,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries);
     }
 
     public static JsonObject defaults(double baseDamage,boolean aquatic){

@@ -59,7 +59,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             }else if(motion!=null&&motion.tick()){
                 finish();
             }
-            move(target,motion!=null);
+            move(target,motion!=null||pending!=null&&profile.tactics().mobileWindup());
         }else if(!environment.validTarget(this,target)){
             target=null;
             state=BossState.IDLE;
@@ -76,7 +76,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 releaseAt=tick+choice.warningTicks();
                 state=BossState.ATTACKING;
                 environment.warning(this,target,choice,choice.warningTicks());
-                move(target,false);
+                move(target,profile.tactics().mobileWindup());
             }
         }
         if(!closed)view.move(body.getLocation());
