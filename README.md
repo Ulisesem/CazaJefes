@@ -1,3 +1,7 @@
+# CazaJefes 1.35.1 · Auras individuales y daño de jefes
+
+Auras individuales, cubos de magma y ajuste del daño recibido. [Cambios y configuración](docs/CAMBIOS-1.35.1.md).
+
 # CazaJefes 1.35.0 · Auras de combate
 
 Auras por familia, avisos prioritarios y un nuevo cierre visual de combate. [Cambios y configuración](docs/CAMBIOS-1.35.0.md).

@@ -28,4 +28,16 @@ public class AuraPerformanceTest {
          assertTrue(CosmeticFX.allowWarning(player,1000));
       } finally { CosmeticFX.clear(); }
    }
+ @Test public void bossSignaturesAndMagmaShapesUseTheSamePointBudget(){
+  var shapes=new java.util.HashSet<java.util.List<AuraShape.Point>>();
+  for(var boss:BossCatalog.all()){
+   var dots=AuraShape.themed(BossStyle.of(boss.entityType()),3,4,.3,24,3,boss.id().hashCode());
+   assertEquals(24,dots.size());
+   assertTrue("Duplicate visual shape: "+boss.id(),shapes.add(dots));
+  }
+  for(int i=0;i<4;i++){
+   var dots=AuraShape.magma(i,3,4,.3,24,3);
+   assertEquals(24,dots.size());assertTrue(shapes.add(dots));
+  }
+ }
 }

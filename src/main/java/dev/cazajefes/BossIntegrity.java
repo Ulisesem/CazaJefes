@@ -11,12 +11,15 @@ final class BossIntegrity implements Listener {
  static boolean boss(Entity e){return e.getPersistentDataContainer().has(BOSS,PersistentDataType.BYTE);}
  static void restore(LivingEntity living){
   living.setFireTicks(0);
-  if(!(living instanceof Slime slime)||slime.getPersistentDataContainer().has(STABLE,PersistentDataType.BYTE))return;
+  if(!(living instanceof Slime slime))return;
+  var armor=slime.getAttribute(Attribute.ARMOR);
+  if(armor!=null)armor.setBaseValue(0);
+  if(slime.getPersistentDataContainer().has(STABLE,PersistentDataType.BYTE))return;
   var max=slime.getAttribute(Attribute.MAX_HEALTH);double health=slime.getHealth(),limit=max.getBaseValue();
   // setSize resets native health/armor/damage. Restore custom values, never refill health.
-  var armor=slime.getAttribute(Attribute.ARMOR);var damage=slime.getAttribute(Attribute.ATTACK_DAMAGE);
-  double a=armor==null?0:armor.getBaseValue(),d=damage==null?0:damage.getBaseValue();
-  SlimeHealth.resizePreserving(health,()->{if(slime.getSize()!=4)slime.setSize(4);},()->{max.setBaseValue(limit);if(armor!=null)armor.setBaseValue(a);if(damage!=null)damage.setBaseValue(d);},max::getValue,slime::setHealth);slime.getPersistentDataContainer().set(STABLE,PersistentDataType.BYTE,(byte)1);
+  var damage=slime.getAttribute(Attribute.ATTACK_DAMAGE);
+  double d=damage==null?0:damage.getBaseValue();
+  SlimeHealth.resizePreserving(health,()->{if(slime.getSize()!=4)slime.setSize(4);},()->{max.setBaseValue(limit);if(armor!=null)armor.setBaseValue(0);if(damage!=null)damage.setBaseValue(d);},max::getValue,slime::setHealth);slime.getPersistentDataContainer().set(STABLE,PersistentDataType.BYTE,(byte)1);
  }
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void debuff(EntityPotionEffectEvent e){if(boss(e.getEntity())&&e.getNewEffect()!=null&&BossEffects.blockedOnBoss(e.getNewEffect().getType().getKey().getKey()))e.setCancelled(true);}
  @EventHandler public void quit(org.bukkit.event.player.PlayerQuitEvent e){CosmeticFX.forget(e.getPlayer().getUniqueId());}

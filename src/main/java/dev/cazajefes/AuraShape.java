@@ -12,6 +12,10 @@ final class AuraShape {
  }
 
  static List<Point> themed(BossStyle style,double width,double height,double angle,int count,int phase) {
+  return themed(style,width,height,angle,count,phase,0);
+ }
+
+ static List<Point> themed(BossStyle style,double width,double height,double angle,int count,int phase,int identity) {
   if(count<=0)return List.of();
   int total=Math.min(72,count);
   var out=new ArrayList<Point>(total);
@@ -46,7 +50,52 @@ final class AuraShape {
      r*=.86+.18*Math.cos(theta*3+angle);
     }
    }
+   if(identity!=0){
+    int petals=3+Math.floorMod(identity,5);
+    double offset=((identity>>>8)&255)*Math.PI/128;
+    double wave=Math.cos(theta*petals+offset);
+    r*=1+.14*wave;
+    y+=.075*h*Math.sin(theta*(2+((identity>>>16)&3))+offset);
+   }
    out.add(new Point(Math.cos(theta)*r,Math.max(.12,y),Math.sin(theta)*r,accent));
+  }
+  return out;
+ }
+ static List<Point> magma(int pattern,double width,double height,double angle,int count,int phase){
+  int total=Math.clamp(count,0,72);
+  var out=new ArrayList<Point>(total);
+  double radius=Math.clamp(width*.5+.55,1,6);
+  double h=Math.clamp(height,1,8);
+  for(int i=0;i<total;i++){
+   double fraction=i/(double)total;
+   double theta=angle+2*Math.PI*fraction;
+   double r=radius,y=.18;
+   switch(pattern){
+    case 1 -> {
+     int band=i%2;
+     theta=(band==0?angle:-angle)+2*Math.PI*(i/2)/Math.ceil(total*.5);
+     r*=.86+.14*Math.cos(theta*6);
+     y+=band*h*.42;
+    }
+    case 2 -> {
+     int jet=i%4;
+     double rise=(i/4+.5)/Math.ceil(total/4.0);
+     theta=angle*.4+jet*Math.PI/2+.4*rise;
+     r*=1-.22*rise;
+     y+=h*rise*(.7+.28*Math.sin(angle+jet));
+    }
+    case 3 -> {
+     theta=angle*1.6+fraction*4*Math.PI+(i%2)*Math.PI;
+     r*=.83+.12*Math.sin(theta*2);
+     y+=h*(.12+.8*fraction);
+    }
+    default -> {
+     r*=.91+.1*Math.cos(theta*5);
+     y+=h*(.08+.16*Math.pow(Math.sin(theta*2),4));
+    }
+   }
+   if(phase==3){r*=1.08;y+=h*.08*Math.sin(theta*3);}
+   out.add(new Point(Math.cos(theta)*r,Math.max(.12,y),Math.sin(theta)*r,i%3==0));
   }
   return out;
  }

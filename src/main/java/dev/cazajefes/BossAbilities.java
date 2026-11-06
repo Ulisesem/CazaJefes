@@ -14,20 +14,11 @@ import net.kyori.adventure.text.format.*;
 final class BossAbilities implements Listener {
  static final long SPECIAL_COOLDOWN=10000,ULTIMATE_COOLDOWN=15000;
  private record Tracked(LivingEntity boss,BossCatalog.Definition definition){}
- private final Map<UUID,Long> recovery=new HashMap<>(), transformations=new HashMap<>();
- boolean transforming(LivingEntity boss) {
-  UUID id = boss.getUniqueId();
-  Long end = transformations.get(id);
-  if (end == null) return false;
-  if (end > System.currentTimeMillis()) return true;
-  transformations.remove(id);
-  return false;
- }
+ private final Map<UUID,Long> recovery=new HashMap<>();
  void transition(LivingEntity boss, BossCatalog.Definition definition, int phase) {
   relocating(boss);
   UUID id = boss.getUniqueId();
   long end = System.currentTimeMillis() + 1000;
-  transformations.put(id, end);
   recovery.put(id, end);
   if (boss instanceof Mob mob) {
    mob.getPathfinder().stopPathfinding();
@@ -463,7 +454,7 @@ final class BossAbilities implements Listener {
    cancel();
   }
  }
- @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());transformations.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
- @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){if(entity instanceof Mob mob && tracked.containsKey(entity.getUniqueId()))RepositionGoal.remove(mob);plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());transformations.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
- void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();transformations.clear();for(var active:tracked.values())if(active.boss() instanceof Mob mob)RepositionGoal.remove(mob);tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
+ @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
+ @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){if(entity instanceof Mob mob && tracked.containsKey(entity.getUniqueId()))RepositionGoal.remove(mob);plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
+ void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();for(var active:tracked.values())if(active.boss() instanceof Mob mob)RepositionGoal.remove(mob);tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
 }

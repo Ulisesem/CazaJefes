@@ -10,14 +10,34 @@ final class CombatVisuals {
 
 
  static Color signature(BossCatalog.Definition boss){int hash=boss.id().hashCode();return Color.fromRGB(80+((hash>>>16)&127),80+((hash>>>8)&127),80+(hash&127));}
- static Particle motif(BossCatalog.Definition boss){return BossStyle.of(boss.entityType()).particle;}
+ private record AuraIdentity(Color primary,Color accent,Particle particle,int magma,int seed){}
+ private static AuraIdentity identity(BossCatalog.Definition boss){
+  int seed=boss.id().hashCode();
+  BossStyle style=BossStyle.of(boss.entityType());
+  return switch(boss.id()){
+   case "sapo_de_fuego" -> new AuraIdentity(Color.fromRGB(255,84,12),Color.fromRGB(255,212,90),Particle.FLAME,0,seed);
+   case "magmoryx_corazon_de_basalto" -> new AuraIdentity(Color.fromRGB(88,70,95),Color.fromRGB(255,111,57),Particle.ASH,1,seed);
+   case "pyroth_latido_del_volcan" -> new AuraIdentity(Color.fromRGB(240,44,12),Color.fromRGB(255,219,113),Particle.SMALL_FLAME,2,seed);
+   case "calderyx_corazon_del_nucleo" -> new AuraIdentity(Color.fromRGB(190,34,83),Color.fromRGB(255,160,42),Particle.LAVA,3,seed);
+   default -> new AuraIdentity(blend(style.primary,signature(boss)),blend(style.accent,signature(boss)),style.particle,-1,seed);
+  };
+ }
+ private static Color blend(Color family,Color signature){
+  return Color.fromRGB((family.getRed()*2+signature.getRed())/3,
+      (family.getGreen()*2+signature.getGreen())/3,(family.getBlue()*2+signature.getBlue())/3);
+ }
+ static Particle motif(BossCatalog.Definition boss){return identity(boss).particle();}
  record AuraDot(Location location,Particle.DustTransition data){}
  record Ambient(java.util.List<AuraDot> dots,Location crown,Particle motif){}
  static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,double angle,int points){
   var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();var style=BossStyle.of(boss.entityType());int phase=BossStages.phase(entity);
-  var primary=new Particle.DustTransition(style.primary,style.accent,phase==3?1.45f:1.1f);
-  var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:style.accent,style.primary,1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
-  for(var point:AuraShape.themed(style,width,height,angle,points,phase))dots.add(new AuraDot(origin.clone().add(point.x(),point.y(),point.z()),point.accent()?accent:primary));return new Ambient(dots,origin.clone().add(0,height+.3,0),motif(boss));
+  AuraIdentity identity=identity(boss);
+  var primary=new Particle.DustTransition(identity.primary(),identity.accent(),phase==3?1.45f:1.1f);
+  var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:identity.accent(),identity.primary(),1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
+  var shape=identity.magma()>=0?AuraShape.magma(identity.magma(),width,height,angle,points,phase)
+      :AuraShape.themed(style,width,height,angle,points,phase,identity.seed());
+  for(var point:shape)dots.add(new AuraDot(origin.clone().add(point.x(),point.y(),point.z()),point.accent()?accent:primary));
+  return new Ambient(dots,origin.clone().add(0,height+.3,0),identity.particle());
  }
  static void ambient(org.bukkit.entity.Player player,Ambient frame){for(var dot:frame.dots())player.spawnParticle(Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data(),false);player.spawnParticle(frame.motif(),frame.crown(),1,.2,.15,.2,.005,null,false);}
  static void special(LivingEntity entity,BossCatalog.Definition boss){signatureRing(entity.getLocation(),boss,1.6,24);CosmeticFX.emit(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}
@@ -25,11 +45,11 @@ final class CombatVisuals {
  static void signatureRing(Location point,BossCatalog.Definition boss,double radius,int count){for(int i=0;i<count;i++){double angle=i*Math.PI*2/count;CosmeticFX.emit(Particle.DUST,point.clone().add(Math.cos(angle)*radius,.2,Math.sin(angle)*radius),1,0,0,0,0,new Particle.DustOptions(signature(boss),1.3f));}}
 
  static void awakening(Location at,BossCatalog.Definition definition) {
-  BossStyle style=BossStyle.of(definition.entityType());
+  AuraIdentity identity=identity(definition);
   var audience=CinematicFX.audience(at,28);
-  CinematicFX.ring(at,audience,1.5,0,14,style.primary,style.accent);
-  CinematicFX.ring(at,audience,2.4,Math.PI/6,16,style.accent,style.primary);
-  CosmeticFX.emit(style.particle,at.clone().add(0,.7,0),14,.65,.65,.65,.045);
+  CinematicFX.ring(at,audience,1.5,0,14,identity.primary(),identity.accent());
+  CinematicFX.ring(at,audience,2.4,Math.PI/6,16,identity.accent(),identity.primary());
+  CosmeticFX.emit(identity.particle(),at.clone().add(0,.7,0),14,.65,.65,.65,.045);
  }
  static void defeat(Location chest,BossStyle style,int tick,int end) {
   double progress=Math.clamp(tick/(double)end,0,1);

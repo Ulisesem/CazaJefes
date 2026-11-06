@@ -26,6 +26,17 @@ public class SafeDamageTest {
  @Test public void absorptionCannotConsumeMoreThanAvailable(){var event=event(10,0,0,-8,new int[]{0});SafeDamage.scale(event,2);assertEquals(-8,event.getDamage(DamageModifier.ABSORPTION),0);assertEquals(12,event.getFinalDamage(),0);}
  @Test public void floorAdjustsSnapshotWithoutInvokingCallbacks(){int[] calls={0};var event=event(10,-8,-1.8,0,calls);SafeDamage.floor(event);assertEquals(1,event.getFinalDamage(),.000001);assertEquals(0,calls[0]);}
  @Test public void lastHalfHeartCanBeFinishedWithoutIgnoringBlocksOrCancellation(){for(double health:new double[]{.000001,.1,.5,1}){var hit=event(1,-.8,-.19,0,new int[]{0});SafeDamage.finishLowHealth(hit,health);assertTrue(hit.getFinalDamage()>health);}var zero=event(1,-1,0,0,new int[]{0});SafeDamage.finishLowHealth(zero,.1);assertEquals(0,zero.getFinalDamage(),0);var cancelled=event(1,-.8,-.19,0,new int[]{0});cancelled.setCancelled(true);SafeDamage.finishLowHealth(cancelled,.1);assertEquals(.01,cancelled.getFinalDamage(),.000001);}
+ @Test public void bossFloorRecoversExcessArmorWithoutBypassingCooldown(){
+  var hit=event(875.063,-100,-805.284724,0,new int[1]);
+  SafeDamage.normalize(hit);SafeDamage.bossFloor(hit);
+  assertEquals(1,hit.getFinalDamage(),.000001);
+  var cooldown=event(875.063,0,0,0,new int[1]);
+  cooldown.setDamage(DamageModifier.INVULNERABILITY_REDUCTION,-875.063);
+  SafeDamage.bossFloor(cooldown);assertEquals(0,cooldown.getFinalDamage(),0);
+  var absorbed=event(10,-8,-1.8,-2,new int[1]);
+  SafeDamage.normalize(absorbed);SafeDamage.bossFloor(absorbed);
+  assertEquals(0,absorbed.getFinalDamage(),.000001);
+ }
  @Test public void finalBlastIgnoresNotchAbsorptionButHonorsCancellation(){var e=event(7,-3,-3,0,new int[]{0});BossDeathVisuals.fixedBlastDamage(e,6.5);assertEquals(6.5,e.getFinalDamage(),0);var shield=event(7,-3,-3,-4,new int[]{0});BossDeathVisuals.fixedBlastDamage(shield,6.5);assertEquals(6.5,shield.getFinalDamage(),0);var cancelled=event(7,-3,-3,0,new int[]{0});cancelled.setCancelled(true);BossDeathVisuals.fixedBlastDamage(cancelled,6.5);assertEquals(1,cancelled.getFinalDamage(),0);}
  @Test public void animalMinionCapCannotHealOrPermitOneShot(){var event=event(1000,-20,-20,-8,new int[]{0});AnimalMinions.capHit(event,120);assertEquals(48,event.getFinalDamage(),.00001);assertTrue(event.getFinalDamage()>0);event.setCancelled(true);double before=event.getFinalDamage();AnimalMinions.capHit(event,10);assertEquals(before,event.getFinalDamage(),0);}
 }
