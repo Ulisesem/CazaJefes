@@ -60,6 +60,26 @@ public class AuraPerformanceTest {
   assertTrue(Math.hypot(first.x(),first.z())<Math.hypot(last.x(),last.z()));
   assertTrue(BossParticles.read(null,BossParticles.Shape.OFF).geometry(2,2,0,36).isEmpty());
  }
+ @Test public void crateStylesCoverTheCatalogWithinTheParticleBudget() {
+  var styles = java.util.EnumSet.noneOf(BossParticles.Shape.class);
+  for (var boss : BossCatalog.all()) {
+   var shape = BossParticles.crateStyle(boss.id());
+   styles.add(shape);
+   assertEquals(shape, BossParticles.crateStyle(boss.id()));
+  }
+  assertEquals(9, styles.size());
+  for (var style : styles) {
+   var config = BossParticles.read(null, style);
+   for (int budget : new int[]{1, 3, 7, 15, 36}) {
+    var frame = config.geometry(2, 3, .3, budget);
+    assertEquals(budget, frame.size());
+    for (var point : frame) {
+     assertTrue(Math.hypot(point.x(), point.z()) <= 2.00001);
+     assertTrue(point.y() >= .15 && point.y() <= 3.17);
+    }
+   }
+  }
+ }
  @Test public void followingFramesShareTheRefillWithoutGoingDark(){
   assertEquals(15,BossAuras.pointsForFrame(160,1,1,36,160));
   assertEquals(7,BossAuras.pointsForFrame(160,1,2,36,160));
