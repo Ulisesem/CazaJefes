@@ -168,8 +168,10 @@ final class CombatScripts {
 
    private static Skill nativeSkill(String id, int phase, BossCatalog.Definition boss) {
       int slot = nativeIndex(id);
-      return new Skill(id, boss == null ? null : StageAttackRules.profile(boss,phase,slot),
-         StageAttackRules.groundCooldown(phase,slot),20,30,20,60,-1,true,true,true,false,false,true);
+      var profile=boss == null ? null : StageAttackRules.profile(boss,phase,slot);
+      boolean anchors=profile!=null && profile.pattern()==BossAbilityCatalog.Pattern.ANCHORS;
+      return new Skill(id,profile,StageAttackRules.groundCooldown(phase,slot),20,anchors?70:30,
+         20,60,-1,true,true,!anchors,false,false,true);
    }
 
    private static Skill ultimatePlaceholder() {

@@ -23,7 +23,6 @@ import java.util.Set;
 /** Temporary attack cues. Damage stays in the encounter, even when the visual budget is full. */
 final class AttackPresentation {
    private static final int GLOBAL_DISPLAYS = 144;
-   private static final int CAST_DISPLAYS = 18;
    private static int activeDisplays;
    private final Plugin plugin;
    private final BossBar bar = BossBar.bossBar(Component.empty(), 0, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
@@ -55,27 +54,40 @@ final class AttackPresentation {
       }
    }
 
-   void mark(List<Location> points, Material material) {
-      clearDisplays();
-      int count = Math.min(CAST_DISPLAYS, points.size());
-      for (int index = 0; index < count && activeDisplays < GLOBAL_DISPLAYS; index++) {
-         Location point = points.get(index * points.size() / count);
-         add(point, material, false);
-      }
-   }
-
    void meteor(Location impact) {
       add(impact.clone().add(0, 6, 0), Material.MAGMA_BLOCK, true);
-   }
-
-   void obsidianTiles(List<Location> centers) {
-      clearDisplays();
-      for (Location point : centers) add(point, Material.RED_STAINED_GLASS, false, 0, 4.88f);
    }
 
    void obsidian(Location impact) {
       add(impact.clone().add(0, 9, 0), Material.OBSIDIAN, true, 9, .95f);
       add(impact.clone().add(.29, 9.28, -.13), Material.CRYING_OBSIDIAN, true, 9, .52f);
+   }
+
+   void thrownAxe(Location start, Location impact) {
+      if (viewers.isEmpty() || activeDisplays >= GLOBAL_DISPLAYS || !impact.isChunkLoaded()) return;
+      clearProp();
+      var item = start.getWorld().spawn(start,ItemDisplay.class,display -> {
+         display.setVisibleByDefault(false);
+         display.setPersistent(false);
+         display.setItemStack(new ItemStack(Material.NETHERITE_AXE));
+         display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
+         display.setBrightness(new Display.Brightness(15,15));
+         display.setTeleportDuration(9);
+         display.setInterpolationDuration(9);
+         display.setTransformation(new Transformation(new Vector3f(),new AxisAngle4f(.7f,0,0,1),
+            new Vector3f(2.1f),new AxisAngle4f()));
+      });
+      if (!item.isValid()) return;
+      prop = item;
+      activeDisplays++;
+      for (Player viewer : viewers) viewer.showEntity(plugin,item);
+      plugin.getServer().getScheduler().runTask(plugin,() -> {
+         if (!item.isValid()) return;
+         item.setInterpolationDelay(0);
+         item.setTransformation(new Transformation(new Vector3f(),new AxisAngle4f(-.55f,0,0,1),
+            new Vector3f(2.1f),new AxisAngle4f()));
+         item.teleport(impact.clone().add(0,.32,0));
+      });
    }
 
    private void add(Location at, Material material, boolean falling) {

@@ -16,6 +16,10 @@ final class BossTactics {
   Vector forward=delta.normalize();int beat=ticks/5;var move=TacticsRules.move(ranged,distance,beat,phase);if(definition.mini()&&!ranged)move=distance>3?TacticsRules.Move.RUSH:TacticsRules.Move.APPROACH;if(!ranged&&target.isBlocking()&&distance<5)move=TacticsRules.Move.FLANK;Vector direction=forward.clone();
   if(move==TacticsRules.Move.RETREAT)direction.multiply(-1);else if(move==TacticsRules.Move.FLANK){int side=((definition.id().hashCode()+(beat/3))&1)==0?1:-1;direction=new Vector(-forward.getZ()*side,0,forward.getX()*side).add(forward.clone().multiply(distance>4?.45:-.15)).normalize();}
   Location waypoint=origin.clone().add(direction.clone().multiply(2));
+  if(boss instanceof Mob mob && (move==TacticsRules.Move.FLANK || move==TacticsRules.Move.RETREAT)){
+   mob.setTarget(target);
+   if(RepositionGoal.request(mob,waypoint))return;
+  }
   long now=System.currentTimeMillis();if(boss instanceof Mob mob&&now>=nextPath){mob.setTarget(target);mob.getPathfinder().moveTo(move==TacticsRules.Move.APPROACH?target.getLocation():waypoint,fox?1.05:1.2);nextPath=now+500;}
   if(!CombatHitbox.visible(target,boss))return;
   Block ahead=origin.clone().add(direction.clone().multiply(.9)).getBlock();boolean water=origin.getBlock().isLiquid();boolean obstacle=!ahead.isPassable();
