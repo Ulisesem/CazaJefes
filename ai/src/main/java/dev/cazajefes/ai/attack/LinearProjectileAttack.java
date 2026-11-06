@@ -41,7 +41,7 @@ public final class LinearProjectileAttack extends BossAttack {
                 if(collision!=null){
                     var hit=collision.getHitPosition().toLocation(position.getWorld());
                     if(collision.getHitEntity() instanceof LivingEntity victim)boss.environment().damage(boss,victim,damage());
-                    boss.environment().visuals().explosion(hit);
+                    boss.environment().impact(boss,LinearProjectileAttack.this,hit);
                     return true;
                 }
                 position=next;

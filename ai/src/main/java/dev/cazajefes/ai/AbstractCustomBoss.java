@@ -54,6 +54,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 var attack=pending;
                 pending=null;
                 ready.put(attack.id(),tick+attack.cooldown());
+                environment.release(this,attack);
                 motion=attack.execute(this,target);
             }else if(motion!=null&&motion.tick()){
                 finish();

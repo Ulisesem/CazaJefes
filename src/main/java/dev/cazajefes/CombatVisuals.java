@@ -31,33 +31,40 @@ final class CombatVisuals {
  static Particle motif(BossCatalog.Definition boss){return identity(boss).particle();}
  record AuraDot(Location location,Particle.DustTransition data){}
  record AuraTrail(Location origin, Particle.Trail data){}
- record Ambient(java.util.List<AuraDot> dots, java.util.List<AuraTrail> trails, Location crown,Particle motif){}
- static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,double angle,int points){
+ record Ambient(java.util.List<AuraDot> dots, java.util.List<AuraTrail> trails, Location crown,Particle motif,Particle particle){}
+ static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,BossParticles config,double angle,int points){
   var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();var style=CreatureAura.of(boss.entityType());int phase=BossStages.phase(entity);
   AuraIdentity identity=identity(boss);
-  var primary=new Particle.DustTransition(identity.primary(),identity.accent(),phase==3?1.45f:1.1f);
-  var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:identity.accent(),identity.primary(),1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
-  var shape=identity.magma()>=0?AuraShape.magma(identity.magma(),width,height,angle,points,phase)
-      :style.points(width,height,origin.getYaw(),angle,points,phase,identity.seed());
+  Color firstColor=config.color()==null?identity.primary():config.color();
+  Color secondColor=config.accent()==null?identity.accent():config.accent();
+  var primary=new Particle.DustTransition(firstColor,secondColor,phase==3?1.45f:1.1f);
+  var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:secondColor,firstColor,1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
+  var shape=config.shape()==BossParticles.Shape.AUTO
+      ?identity.magma()>=0?AuraShape.magma(identity.magma(),width,height,angle,Math.min(points,config.points()),phase)
+        :style.points(width,height,origin.getYaw(),angle,Math.min(points,config.points()),phase,identity.seed())
+      :config.geometry(Math.clamp(width*.5+.55,.8,6),Math.clamp(height,.6,9),angle+(identity.seed()&255)*.02,points);
   java.util.List<AuraTrail> trails=new java.util.ArrayList<>(2);
   int first=shape.isEmpty()?0:Math.floorMod((int)(angle*3),shape.size());
   for(int i=0;i<shape.size();i++){
    var point=shape.get(i);
    var start=origin.clone().add(point.x(),point.y(),point.z());
    // Replace dust points with client-animated highlights inside the existing budget.
-   if(points>=24&&(i==first||i==(first+shape.size()/2)%shape.size())){
+   if(config.particle()==null&&shape.size()>=24&&(i==first||i==(first+shape.size()/2)%shape.size())){
     int stride=style==CreatureAura.WIND||style==CreatureAura.WINGS||style==CreatureAura.NIGHT_FLIGHT||style==CreatureAura.EMBER_FLIGHT?4:2;
     var next=shape.get((i+stride)%shape.size());
     var end=origin.clone().add(next.x(),next.y(),next.z());
-    trails.add(new AuraTrail(start,new Particle.Trail(end,point.accent()?identity.accent():identity.primary(),phase==3?12:9)));
+    trails.add(new AuraTrail(start,new Particle.Trail(end,point.accent()?secondColor:firstColor,phase==3?12:9)));
    }else{
     dots.add(new AuraDot(start,point.accent()?accent:primary));
    }
   }
-  return new Ambient(dots,trails,origin.clone().add(0,height+.3,0),identity.particle());
+  return new Ambient(dots,trails,origin.clone().add(0,height+.3,0),identity.particle(),config.particle());
  }
  static void ambient(org.bukkit.entity.Player player,Ambient frame){
-  for(var dot:frame.dots())PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
+  for(var dot:frame.dots()){
+   if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
+   else PacketBridge.particle(player,frame.particle(),dot.location(),1,0,0,0,0,null);
+  }
   for(var trail:frame.trails())PacketBridge.particle(player,Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data());
   PacketBridge.particle(player,frame.motif(),frame.crown(),1,.2,.15,.2,.005,null);
  }

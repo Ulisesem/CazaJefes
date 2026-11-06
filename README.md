@@ -1,4 +1,6 @@
-# CazaJefes 1.37.0 · testRefactor
+# CazaJefes 1.37.1 · testRefactor
+
+[Auras y partículas por jefe y ataque](docs/AURAS-1371.md)
 
 [Motor de IA, ataques y JSON](docs/IA-1370.md)
 

@@ -46,4 +46,18 @@ public class AuraPerformanceTest {
   assertEquals(org.bukkit.Particle.GLOW,CreatureAura.of(org.bukkit.entity.EntityType.GLOW_SQUID).particle);
   for(var boss:BossCatalog.all())assertEquals(Void.class,CreatureAura.of(boss.entityType()).particle.getDataType());
  }
+ @Test public void crateAuraRespectsBudgetAndPulsesExpand(){
+  var json=com.google.gson.JsonParser.parseString("{\"points\":30,\"radius\":4,\"height\":3}").getAsJsonObject();
+  var crate=BossParticles.read(json,BossParticles.Shape.CRATE);
+  var frame=crate.geometry(2,2,.2,12);
+  assertEquals(12,frame.size());
+  assertEquals(.16,frame.getFirst().y(),.00001);
+  assertTrue(frame.getLast().y()>2.5);
+  var pulse=BossParticles.read(json,BossParticles.Shape.PULSE);
+  var first=pulse.geometry(2,2,-Math.PI/2,12).getFirst();
+  var last=pulse.geometry(2,2,Math.PI/2,12).getFirst();
+  assertEquals(4,Math.hypot(last.x(),last.z()),.00001);
+  assertTrue(Math.hypot(first.x(),first.z())<Math.hypot(last.x(),last.z()));
+  assertTrue(BossParticles.read(null,BossParticles.Shape.OFF).geometry(2,2,0,36).isEmpty());
+ }
 }

@@ -89,7 +89,7 @@ public final class MeteoriteAoEAttack extends BossAttack {
 
     private void impact(CustomBoss boss,Location center){
         if(!boss.environment().mayMove(boss,center))return;
-        boss.environment().visuals().explosion(center);
+        boss.environment().impact(boss,this,center);
         double range=radius();
         if(!Geometry.loaded(center,range))return;
         var origin=center.toVector();
