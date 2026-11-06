@@ -35,6 +35,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    private HuntTracker tracker;
    private ConfiguredText text;
    Languages languages;
+   CustomEncounter customEncounter;
    ConfiguredText text() { return text; }
 
    public void onEnable() {
@@ -73,6 +74,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       mages=new MageCombat(this);getServer().getPluginManager().registerEvents(mages,this);
       hordeSpecials=new HordeSpecials(this);getServer().getPluginManager().registerEvents(hordeSpecials,this);
       safety=new EncounterSafety(this);getServer().getPluginManager().registerEvents(safety,this);
+      customEncounter = new CustomEncounter(this);
       this.bossManager = new BossManager(this, this.itemKey, this.relicItems);
       this.getServer().getPluginManager().registerEvents(this.bossManager, this);
       this.getServer().getPluginManager().registerEvents(this.relicItems, this);
@@ -114,6 +116,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(customEncounter!=null)customEncounter.stop();
       if(jailRares!=null)jailRares.stop();if(rangedRares!=null)rangedRares.stop();if(rareCombat!=null)rareCombat.stop();BossEffects.clear();BossWarnings.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();

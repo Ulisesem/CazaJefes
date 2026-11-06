@@ -1,0 +1,177 @@
+package dev.cazajefes;
+
+import com.google.gson.JsonElement;
+import dev.cazajefes.ai.BossAttack;
+import dev.cazajefes.ai.BossEnvironment;
+import dev.cazajefes.ai.BossProfile;
+import dev.cazajefes.ai.CustomBoss;
+import dev.cazajefes.ai.KinematicBoss;
+import dev.cazajefes.ai.visual.BossVisuals;
+import dev.cazajefes.ai.visual.PacketBossVisuals;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+
+final class CustomEncounter implements BossEnvironment {
+    private final CazaJefesPlugin plugin;
+    private final dev.cazajefes.ai.BossManager loop;
+    private final BossVisuals visuals=new PacketBossVisuals();
+    private final Map<String,BossProfile> profiles=new HashMap<>();
+    private final Map<UUID,BossStages> stages=new HashMap<>();
+
+    CustomEncounter(CazaJefesPlugin plugin){
+        this.plugin=plugin;
+        for(var definition:BossCatalog.all()){
+            profiles.put(definition.id(),read(definition));
+        }
+        loop=new dev.cazajefes.ai.BossManager(plugin);
+    }
+
+    private BossProfile read(BossCatalog.Definition definition){
+        boolean aquatic=AquaticCombat.aquatic(definition.entityType());
+        try{
+            return BossProfile.read(definition.custom().ai(),definition.custom().damage(),aquatic);
+        }catch(RuntimeException invalid){
+            plugin.getLogger().warning("IA "+definition.id()+": "+invalid.getMessage()+". Se usan sus ataques base.");
+            return BossProfile.read(null,definition.custom().damage(),aquatic);
+        }
+    }
+
+    BossProfile profile(BossCatalog.Definition definition){return profiles.computeIfAbsent(definition.id(),id->read(definition));}
+
+    void attach(LivingEntity body,BossCatalog.Definition definition){
+        remove(body.getUniqueId());
+        equip(body,definition);
+        stages.put(body.getUniqueId(),new BossStages(body,definition,plugin.languages));
+        loop.add(new KinematicBoss(body,profile(definition),this));
+    }
+
+    void remove(UUID uuid){
+        loop.remove(uuid);
+        stages.remove(uuid);
+    }
+
+    boolean owns(LivingEntity entity){return loop.owns(entity.getUniqueId());}
+
+    boolean attacking(LivingEntity entity){
+        var boss=loop.get(entity.getUniqueId());
+        return boss!=null&&boss.state()==dev.cazajefes.ai.BossState.ATTACKING;
+    }
+
+    void stop(){loop.stop();stages.clear();}
+
+    @Override public Player acquire(CustomBoss boss){
+        double range=boss.profile().detectionRange();
+        if(boss.profile().aquatic()&&boss.body().isInWater()){
+            var swimmer=ThreatTable.pick(boss.body(),range,player->AquaticCombat.water(player.getLocation()));
+            if(swimmer!=null)return swimmer;
+        }
+        return ThreatTable.pick(boss.body(),range,player->true);
+    }
+
+    @Override public boolean validTarget(CustomBoss boss,Player player){
+        double range=boss.profile().detectionRange();
+        return player!=null&&CombatGuard.eligible(player)&&player.getWorld()==boss.body().getWorld()
+            &&player.getLocation().distanceSquared(boss.body().getLocation())<=range*range
+            &&ArenaBoundary.allows(boss.body(),player.getLocation());
+    }
+
+    @Override public boolean mayMove(CustomBoss boss,Location destination){
+        return destination.getWorld()==boss.body().getWorld()&&destination.getWorld().getWorldBorder().isInside(destination)
+            &&ArenaBoundary.allows(boss.body(),destination);
+    }
+
+    @Override public boolean mayHit(CustomBoss boss,LivingEntity victim){
+        var data=victim.getPersistentDataContainer();
+        return victim.isValid()&&!victim.isDead()&&!victim.isInvulnerable()&&victim!=boss.body()
+            &&!BossIntegrity.boss(victim)&&!data.has(new NamespacedKey("cazajefes","boss_minion"),PersistentDataType.BYTE)
+            &&!data.has(new NamespacedKey("cazajefes","death_visual"),PersistentDataType.BYTE)
+            &&(!(victim instanceof Player player)||CombatGuard.eligible(player))
+            &&ArenaBoundary.allows(boss.body(),victim.getLocation());
+    }
+
+    @Override public void damage(CustomBoss boss,LivingEntity victim,double damage){
+        if(damage<=0||!mayHit(boss,victim))return;
+        if(victim instanceof Player player)AbilityDamage.hit(player,boss.body(),damage,true);
+        else victim.damage(damage,boss.body());
+    }
+
+    @Override public void warning(CustomBoss boss,Player target,BossAttack attack,int ticks){
+        var at=boss.body().getLocation();
+        var definition=BossCatalog.get(boss.body().getPersistentDataContainer().get(
+            new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
+        for(Player viewer:at.getWorld().getNearbyPlayers(at,32)){
+            if(!ArenaBoundary.allows(boss.body(),viewer.getLocation()))continue;
+            String id=definition==null?attack.id():definition.id()+"."+attack.id();
+            String name=plugin.languages.attack(viewer,id,attack.name());
+            BossWarnings.send(viewer,Component.text("⚠ "+plugin.languages.text(viewer,"attack.loading","CARGANDO")
+                +" · "+name+" · "+String.format(Locale.ROOT,"%.1f",ticks/20.0)+" s",NamedTextColor.GOLD));
+        }
+    }
+
+    @Override public void heartbeat(CustomBoss boss){
+        var tracker=stages.get(boss.body().getUniqueId());
+        if(tracker!=null)tracker.update();
+        if(boss.body().isInWater())boss.body().setRemainingAir(boss.body().getMaximumAir());
+    }
+
+    @Override public BossVisuals visuals(){return visuals;}
+
+    private void equip(LivingEntity body,BossCatalog.Definition definition){
+        var config=definition.custom().ai();
+        if(config==null||!config.has("equipment")||body.getEquipment()==null)return;
+        var items=new java.util.EnumMap<EquipmentSlot,ItemStack>(EquipmentSlot.class);
+        try{
+            for(var entry:config.getAsJsonObject("equipment").entrySet()){
+                EquipmentSlot slot=switch(entry.getKey()){
+                    case "mainHand" -> EquipmentSlot.HAND;
+                    case "offHand" -> EquipmentSlot.OFF_HAND;
+                    case "helmet" -> EquipmentSlot.HEAD;
+                    case "chestplate" -> EquipmentSlot.CHEST;
+                    case "leggings" -> EquipmentSlot.LEGS;
+                    case "boots" -> EquipmentSlot.FEET;
+                    default -> throw new IllegalArgumentException("ranura inválida: "+entry.getKey());
+                };
+                items.put(slot,item(entry.getValue()));
+            }
+        }catch(RuntimeException invalid){
+            plugin.getLogger().warning("Equipo IA "+definition.id()+": "+invalid.getMessage());
+            return;
+        }
+        items.forEach((slot,item)->{
+            body.getEquipment().setItem(slot,item,true);
+            body.getEquipment().setDropChance(slot,0);
+        });
+    }
+
+    private static ItemStack item(JsonElement value){
+        var detail=value.isJsonObject()?value.getAsJsonObject():null;
+        var material=Material.matchMaterial(detail==null?value.getAsString():detail.get("material").getAsString());
+        if(material==null||(!material.isItem()&&!material.isAir()))throw new IllegalArgumentException("material inválido");
+        var stack=new ItemStack(material);
+        if(detail==null||material.isAir())return stack;
+        var meta=stack.getItemMeta();
+        if(detail.has("unbreakable"))meta.setUnbreakable(detail.get("unbreakable").getAsBoolean());
+        if(detail.has("enchantments"))for(var enchant:detail.getAsJsonObject("enchantments").entrySet()){
+            var key=NamespacedKey.fromString(enchant.getKey());
+            var type=key==null?null:Registry.ENCHANTMENT.get(key);
+            int level=enchant.getValue().getAsInt();
+            if(type==null||level<1||level>100)throw new IllegalArgumentException("encantamiento inválido: "+enchant.getKey());
+            meta.addEnchant(type,level,true);
+        }
+        stack.setItemMeta(meta);
+        return stack;
+    }
+}

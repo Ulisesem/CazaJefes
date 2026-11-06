@@ -37,3 +37,8 @@ jobs:
           name: CazaJefes-pluginExample
           path: pluginExample/build/libs/*.jar
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CazaJefes-ai
+          path: ai/build/libs/*.jar
+          if-no-files-found: error

@@ -23,11 +23,11 @@ final class BossAuras implements Listener {
   long now=System.nanoTime()/1000000L;Map<FrameKey,CombatVisuals.Ambient> cache=new HashMap<>();List<Active> live=new ArrayList<>(active.values());int start=Math.floorMod(nextPlayer,players.size()),visited=0;
   for(;visited<players.size()&&remaining>=AuraQuality.LOW.sends();visited++){
    Player player=players.get((start+visited)%players.size());if(!player.isOnline()||player.isDead())continue;AuraQuality requested=quality(player);if(requested==AuraQuality.OFF||frame%requested.every!=0)continue;
-   var selected=AuraPolicy.nearest(live,e->e.entity().getWorld().equals(player.getWorld())&&player.canSee(e.entity())?e.entity().getLocation().distanceSquared(player.getLocation()):Double.POSITIVE_INFINITY,limit,radius*radius);
+   var selected=AuraPolicy.nearest(live,e->e.entity().getWorld().equals(player.getWorld())&&(player.canSee(e.entity())||plugin.customEncounter.owns(e.entity()))?e.entity().getLocation().distanceSquared(player.getLocation()):Double.POSITIVE_INFINITY,limit,radius*radius);
    int available=Math.min(remaining,budget.available(player.getUniqueId(),now,rate));
    for(var entry:selected){
     double distance=entry.entity().getLocation().distanceSquared(player.getLocation());
-    boolean casting=plugin.abilities.casting(entry.entity());
+    boolean casting=plugin.customEncounter.attacking(entry.entity());
     AuraQuality detail=detail(requested,distance,casting);
     if(frame%detail.every!=0)continue;
     AuraQuality fitted=AuraQuality.fit(detail,available);if(fitted==AuraQuality.OFF)break;int cost=fitted.sends();if(!budget.spend(player.getUniqueId(),cost,now,rate))break;var key=new FrameKey(entry.entity().getUniqueId(),fitted);var geometry=cache.computeIfAbsent(key,k->CombatVisuals.ambient(entry.entity(),entry.definition(),angle,fitted.points));CombatVisuals.ambient(player,geometry);remaining-=cost;available-=cost;}

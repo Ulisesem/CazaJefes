@@ -10,11 +10,13 @@ sourceSets {
 }
 dependencies {
     implementation project(':api')
+    implementation project(':ai')
     testImplementation "io.papermc.paper:paper-api:${rootProject.property('paperVersion')}"
     testImplementation 'junit:junit:4.13.2'
 }
 tasks.named('jar') {
-    dependsOn ':api:classes'
+    dependsOn ':api:classes', ':ai:classes'
+    from project(':ai').sourceSets.main.output
     from project(':api').sourceSets.main.output
 }
 

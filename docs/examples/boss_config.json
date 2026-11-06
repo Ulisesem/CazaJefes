@@ -1,0 +1,60 @@
+{
+  "id": "sapo_de_fuego",
+  "name": "Sapo de Fuego",
+  "description": "Custodio de las calderas.",
+  "tier": "RARE",
+  "entity": "MAGMA_CUBE",
+  "mini": false,
+  "health": 350,
+  "damage": 32,
+  "scale": 1.6,
+  "ultimate": {
+    "name": "Erupción del Sapo Carmesí",
+    "pattern": "RINGS",
+    "effect": "WEAKNESS",
+    "radius": 6,
+    "pulses": 2,
+    "angle": 0
+  },
+  "combat": {
+    "aura": true,
+    "loot": true
+  },
+  "ai": {
+    "speed": 0.32,
+    "gravity": 0.08,
+    "detectionRange": 32,
+    "globalCooldownTicks": 35,
+    "aquatic": false,
+    "equipment": {},
+    "attacks": [
+      {
+        "id": "descarga",
+        "name": "Aguijón Incandescente",
+        "type": "LINEAR_PROJECTILE",
+        "category": "MIXED",
+        "weight": 5,
+        "cooldownTicks": 100,
+        "warningTicks": 25,
+        "radius": 0.35,
+        "damage": 20,
+        "speed": 1.7,
+        "lifetimeTicks": 32
+      },
+      {
+        "id": "meteoro",
+        "name": "Piedra del Calvero",
+        "type": "METEORITE_AOE",
+        "category": "MID_RANGE",
+        "weight": 2,
+        "cooldownTicks": 200,
+        "warningTicks": 35,
+        "radius": 4.5,
+        "damage": 36,
+        "height": 11,
+        "speed": 0.8,
+        "material": "MAGMA_BLOCK"
+      }
+    ]
+  }
+}

@@ -51,7 +51,8 @@
     "bestiary.category.EPIC": "Epic",
     "bestiary.category.LEGENDARY": "Legendary",
     "bestiary.category.MYTHIC": "Mythic",
-    "bestiary.category.ABYSSAL": "Abyssal"
+    "bestiary.category.ABYSSAL": "Abyssal",
+    "bestiary.aiAttacks": "BOSS ATTACKS"
   },
   "bosses": {},
   "attacks": {}

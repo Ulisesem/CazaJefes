@@ -22,7 +22,7 @@ final class JsonBosses {
    private static final int MAX_BYTES = 16 * 1024;
    private static final int MAX_FILES = 128;
 
-   record Settings(double health, double damage, double scale, BossAbilityCatalog.Ultimate ultimate, String portrait, String meteorTexture, BossOptions options) {}
+   record Settings(double health, double damage, double scale, BossAbilityCatalog.Ultimate ultimate, String portrait, String meteorTexture, BossOptions options, com.google.gson.JsonObject ai) {}
 
    private JsonBosses() {}
 
@@ -42,7 +42,7 @@ final class JsonBosses {
          reader.beginArray();
          while (reader.hasNext()) {
             var fields = readFields(reader, Set.of("id", "name", "tier", "entity", "mini", "description",
-               "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat"), true);
+               "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat", "ai"), true);
             String id = requiredText(fields, "id", 64);
             validateId(id);
             EntityType entity = option(fields, "entity", null, EntityType.class);
@@ -55,7 +55,7 @@ final class JsonBosses {
             var ultimate = readUltimate(ultimateFields(fields), null);
             var settings = new Settings(number(fields, "health", null, 1, 100000),
                number(fields, "damage", null, 0, 1000), number(fields, "scale", null, 0.1, 10),
-               ultimate, portrait(fields), meteor(fields, null), options(fields, BossOptions.DEFAULT));
+               ultimate, portrait(fields), meteor(fields, null), options(fields, BossOptions.DEFAULT), ai(fields,null));
             var definition = new BossCatalog.Definition(id, requiredText(fields, "name", 64), tier, entity, mini,
                optionalText(fields, "description", BossLore.describe(entity, mini), 180), settings);
             if (result.putIfAbsent(id, definition) != null) throw new IllegalArgumentException("ID duplicado: " + id);
@@ -113,14 +113,29 @@ final class JsonBosses {
                if (boss.custom().portrait()!=null) row.addProperty("portrait",boss.custom().portrait());
                if (boss.custom().meteorTexture()!=null) row.addProperty("meteorTexture",boss.custom().meteorTexture());
                row.add("combat",boss.custom().options().json().deepCopy());
+               row.add("ai",boss.custom().ai()==null?aiDefaults(boss):boss.custom().ai().deepCopy());
                Files.writeString(file,gson.toJson(row)+"\n",java.nio.file.StandardOpenOption.CREATE_NEW);
             }
             if (Files.size(file)>MAX_BYTES) throw new IllegalArgumentException("máximo 16 KiB");
-            var entries = readCatalog(new StringReader("[" + Files.readString(file) + "]"));
+            String content=Files.readString(file);
+            var entries = readCatalog(new StringReader("[" + content + "]"));
             var candidate = entries.get(boss.id());
-            if (entries.size()!=1 || candidate==null || candidate.tier()!=boss.tier()
-                || candidate.entityType()!=boss.entityType() || candidate.mini()!=boss.mini()) {
-               throw new IllegalArgumentException("ID, especie y categoría deben coincidir con el archivo original");
+            if (entries.size()!=1 || candidate==null || candidate.tier()!=boss.tier() || candidate.mini()!=boss.mini()) {
+               throw new IllegalArgumentException("ID y categoría deben coincidir con el archivo original");
+            }
+            if(candidate.custom().ai()==null){
+               var document=com.google.gson.JsonParser.parseString(content).getAsJsonObject();
+               document.add("ai",aiDefaults(candidate));
+               String upgraded=gson.toJson(document)+"\n";
+               candidate=readCatalog(new StringReader("["+upgraded+"]")).get(candidate.id());
+               Path temporary=Files.createTempFile(file.getParent(),".ai-", ".tmp");
+               try{
+                  Files.writeString(temporary,upgraded);
+                  try{Files.move(temporary,file,java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+                  catch(java.nio.file.AtomicMoveNotSupportedException unsupported){
+                     Files.move(temporary,file,java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                  }
+               }finally{Files.deleteIfExists(temporary);}
             }
             selected = candidate;
          } catch (IOException | IllegalArgumentException | IllegalStateException error) {
@@ -129,6 +144,19 @@ final class JsonBosses {
          result.put(boss.id(),selected);
       }
       return result;
+   }
+
+   private static com.google.gson.JsonObject aiDefaults(BossCatalog.Definition boss){
+      var json=dev.cazajefes.ai.BossProfile.defaults(boss.custom().damage(),AquaticCombat.aquatic(boss.entityType()));
+      if(boss.custom().meteorTexture()!=null)for(var attack:json.getAsJsonArray("attacks")){
+         var row=attack.getAsJsonObject();
+         if(row.get("type").getAsString().equals("METEORITE_AOE"))row.addProperty("texture",boss.custom().meteorTexture());
+      }
+      return json;
+   }
+
+   private static com.google.gson.JsonObject ai(Map<String,Object> fields,com.google.gson.JsonObject fallback){
+      return fields.get("ai") instanceof com.google.gson.JsonObject object ? object : fallback;
    }
 
    private static BossOptions options(Map<String,Object> fields,BossOptions fallback) {
@@ -186,7 +214,7 @@ final class JsonBosses {
       try (JsonReader reader = new JsonReader(new StringReader(json))) {
          reader.setStrictness(Strictness.STRICT);
          var fields = readFields(reader,
-            Set.of("id", "template", "name", "description", "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat"), true);
+            Set.of("id", "template", "name", "description", "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat", "ai"), true);
          if (reader.peek() != JsonToken.END_DOCUMENT) throw new IllegalArgumentException("se esperaba un solo objeto JSON");
          String id = requiredText(fields, "id", 48);
          validateId(id);
@@ -197,7 +225,7 @@ final class JsonBosses {
          var profile = readUltimate(ultimateFields(fields), template.custom().ultimate());
          var settings = new Settings(number(fields, "health", null, 1, 1024),
             number(fields, "damage", null, 0, 120), number(fields, "scale", null, 0.25, 4), profile,
-            fields.containsKey("portrait") ? portrait(fields) : template.custom().portrait(), meteor(fields, template.custom().meteorTexture()), options(fields,template.custom().options()));
+            fields.containsKey("portrait") ? portrait(fields) : template.custom().portrait(), meteor(fields, template.custom().meteorTexture()), options(fields,template.custom().options()), ai(fields,template.custom().ai()));
          return new BossCatalog.Definition(id, requiredText(fields, "name", 48), template.tier(),
             template.entityType(), template.mini(), optionalText(fields, "description", template.description(), 140), settings);
       } catch (IllegalStateException failure) {
@@ -238,9 +266,9 @@ final class JsonBosses {
             throw new IllegalArgumentException("campo desconocido o repetido: " + field);
          }
          Object value;
-         if (root && field.equals("combat")) {
+         if (root && (field.equals("combat")||field.equals("ai"))) {
             var combat=com.google.gson.JsonParser.parseReader(reader);
-            if(!combat.isJsonObject())throw new IllegalArgumentException("combat debe ser un objeto JSON");
+            if(!combat.isJsonObject())throw new IllegalArgumentException(field+" debe ser un objeto JSON");
             value=combat.getAsJsonObject();
          } else if (root && field.equals("ultimate")) {
             value = readFields(reader, Set.of("name", "pattern", "effect", "radius", "pulses", "angle"), false);

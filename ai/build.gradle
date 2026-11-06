@@ -1,0 +1,12 @@
+repositories { maven { url = 'https://repo.codemc.io/repository/maven-releases/' } }
+dependencies {
+    def localPacketEvents = providers.gradleProperty('packetEventsJar')
+    if (localPacketEvents.present) {
+        compileOnly files(localPacketEvents.get())
+    } else {
+        compileOnly 'com.github.retrooper:packetevents-spigot:2.11.0'
+    }
+    implementation 'com.google.code.gson:gson:2.11.0'
+    testImplementation "io.papermc.paper:paper-api:${rootProject.property('paperVersion')}"
+    testImplementation 'junit:junit:4.13.2'
+}
