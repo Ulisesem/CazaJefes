@@ -1,3 +1,7 @@
+# CazaJefes 1.35.0 · Auras de combate
+
+Auras por familia, avisos prioritarios y un nuevo cierre visual de combate. [Cambios y configuración](docs/CAMBIOS-1.35.0.md).
+
 # CazaJefes 1.34.1 · Hacha en mano
 
 El arma del jefe cambia al preparar, lanzar y recuperar el hacha. [Cambios y configuración](docs/CAMBIOS-1.34.1.md).

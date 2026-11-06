@@ -263,7 +263,7 @@ public final class BossManager implements Listener {
          long var22 = this.plugin.getConfig().getLong("bosses.attack-interval-ticks", 50L);
          this.startBossSystems(var19, var5, var4, var22);
          var5.getWorld().playSound(var5.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.5F, 0.65F);
-         CosmeticFX.emit(Particle.REVERSE_PORTAL, var5.getLocation().add(0.0, 1.0, 0.0), 80, 1.2, 1.5, 1.2, 0.1);
+         CombatVisuals.awakening(var5.getLocation(),var4);
          return var5;
       }
       return null;

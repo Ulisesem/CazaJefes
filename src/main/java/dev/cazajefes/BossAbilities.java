@@ -34,7 +34,8 @@ final class BossAbilities implements Listener {
    mob.setTarget(null);
   }
   Location at = boss.getLocation();
-  CombatVisuals.signatureRing(at, definition, Math.max(2, boss.getWidth()), 20);
+  if (phase==3) CombatVisuals.awakening(at,definition);
+  else CombatVisuals.signatureRing(at, definition, Math.max(2, boss.getWidth()), 20);
   var participants = BossParticipation.participants(boss);
   for (Player player : boss.getWorld().getNearbyPlayers(at, 24)) {
    if (!CombatGuard.eligible(player)) continue;
@@ -355,8 +356,8 @@ final class BossAbilities implements Listener {
       var horizontal=center.clone().add(point.x()+offset,.17,point.z()+side*2.43);
       var vertical=center.clone().add(point.x()+side*2.43,.17,point.z()+offset);
       for (Player viewer : audience) {
-       CosmeticFX.to(viewer,Particle.DUST_COLOR_TRANSITION,horizontal,1,0,0,0,0,dust);
-       CosmeticFX.to(viewer,Particle.DUST_COLOR_TRANSITION,vertical,1,0,0,0,0,dust);
+       CosmeticFX.warning(viewer,horizontal,dust);
+       CosmeticFX.warning(viewer,vertical,dust);
       }
      }
     }
@@ -364,7 +365,7 @@ final class BossAbilities implements Listener {
    int count=Math.min(rain ? 16 : 48,zone.size());
    for (int index=0;index<count;index++) {
     Location point=zone.get((index*zone.size()/count+ticks/5)%zone.size());
-    for (Player player : audience) CosmeticFX.to(player,Particle.DUST_COLOR_TRANSITION,point,1,0,0,0,0,dust);
+    for (Player player : audience) CosmeticFX.warning(player,point,dust);
    }
   }
 
