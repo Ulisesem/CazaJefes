@@ -27,20 +27,20 @@ final class LightningRetaliation implements Listener {
   if(!(event.getFinalDamage()>0))return;
   double charge=BattleRules.charge(charges.getOrDefault(key,0D),event.getFinalDamage());charges.put(key,charge);
   long now=System.currentTimeMillis();double threshold=plugin.getConfig().getDouble("combat.phase3-lightning.threshold-damage",40);
-  if(!BattleRules.retaliates(phase,true,charge,threshold,now,nextStrike.getOrDefault(player.getUniqueId(),0L)))return;
-  charges.remove(key);nextStrike.put(player.getUniqueId(),now+Math.max(1,Math.min(60,plugin.getConfig().getLong("combat.phase3-lightning.cooldown-seconds",4)))*1000);
+  if(!BattleRules.retaliates(phase,true,charge,threshold,now,nextStrike.getOrDefault(boss.getUniqueId(),0L))||!plugin.abilities.reserveWarning(boss,plugin.abilities.warningTicks(boss)))return;
+  charges.remove(key);nextStrike.put(boss.getUniqueId(),now+Math.max(1,Math.min(60,plugin.getConfig().getLong("combat.phase3-lightning.cooldown-seconds",4)))*1000);
   double damage=BattleRules.lightningDamage(charge,plugin.getConfig().getDouble("combat.phase3-lightning.max-damage",30));
-  if(!BossWarnings.active(player))player.sendActionBar(Component.text("⚡ ¡Tu daño ha despertado la tormenta del boss!",NamedTextColor.RED));
-  plugin.getServer().getScheduler().runTask(plugin,()->{
+  BossWarnings.send(player,Component.text("⚡ TORMENTA DE REPRESALIA · ¡Apártate!",NamedTextColor.RED));
+  plugin.getServer().getScheduler().runTaskLater(plugin,()->{
    if(!plugin.getConfig().getBoolean("combat.phase3-lightning.enabled",true)||!boss.isValid()||boss.isDead()||boss.isInvulnerable()||!CombatGuard.eligible(player)||!player.getWorld().equals(boss.getWorld())
        ||player.getLocation().distanceSquared(boss.getLocation())>576||!boss.hasLineOfSight(player)||PhaseRules.phase(boss.getHealth()/Math.max(1,boss.getMaxHealth()))!=3)return;
    player.getWorld().strikeLightningEffect(player.getLocation());
    Boolean previous=ACTIVE.get();ACTIVE.set(true);int oldImmunity=player.getNoDamageTicks();
    try{player.setNoDamageTicks(0);player.damage(damage,DamageSource.builder(DamageType.LIGHTNING_BOLT).withCausingEntity(boss).withDirectEntity(boss).withDamageLocation(player.getLocation()).build());}
    finally{if(!player.isDead()&&player.getNoDamageTicks()==0)player.setNoDamageTicks(oldImmunity);if(previous==null)ACTIVE.remove();else ACTIVE.set(previous);}
-  });
+  },plugin.abilities.warningTicks(boss));
  }
- @EventHandler(priority=EventPriority.MONITOR)public void death(EntityDeathEvent event){UUID id=event.getEntity().getUniqueId();charges.keySet().removeIf(k->k.boss.equals(id));}
- @EventHandler public void quit(PlayerQuitEvent event){UUID id=event.getPlayer().getUniqueId();charges.keySet().removeIf(k->k.player.equals(id));nextStrike.remove(id);}
- @EventHandler public void unload(ChunkUnloadEvent event){for(Entity e:event.getChunk().getEntities())if(boss(e)){UUID id=e.getUniqueId();charges.keySet().removeIf(k->k.boss.equals(id));}}
+ @EventHandler(priority=EventPriority.MONITOR)public void death(EntityDeathEvent event){UUID id=event.getEntity().getUniqueId();charges.keySet().removeIf(k->k.boss.equals(id));nextStrike.remove(id);}
+ @EventHandler public void quit(PlayerQuitEvent event){UUID id=event.getPlayer().getUniqueId();charges.keySet().removeIf(k->k.player.equals(id));}
+ @EventHandler public void unload(ChunkUnloadEvent event){for(Entity e:event.getChunk().getEntities())if(boss(e)){UUID id=e.getUniqueId();charges.keySet().removeIf(k->k.boss.equals(id));nextStrike.remove(id);}}
 }

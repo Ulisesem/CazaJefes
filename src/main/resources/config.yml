@@ -1,4 +1,4 @@
-schema-version: 2
+schema-version: 3
 bosses:
   attack-interval-ticks: 10
   gorath_quebrantador_de_mundos:
@@ -18,7 +18,7 @@ active-eggs: []
 
 # Target acquisition: 24 blocks + line of sight; phase thresholds: 65% / 30%.
 combat:
-  pillager-rocket-charges: 9
+  pillager-rocket-charges: 6
   death-break-cave-roof: true
   # IDs existentes de WorldGuard, por ejemplo [arena_gorath].
   worldguard-arenas: []

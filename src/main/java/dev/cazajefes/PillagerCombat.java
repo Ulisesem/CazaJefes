@@ -110,7 +110,7 @@ final class PillagerCombat implements Listener {
                 state.hits.consume();
                 if (player == null) state.nextVolley=now+PillagerRules.COOLDOWN;
                 else if (state.rocketMode) {
-                    state.rocketTotal=PillagerRules.rocketCharges(plugin.getConfig().getInt("combat.pillager-rocket-charges",9));
+                    state.rocketTotal=state.definition.custom().options().rocketCharges(plugin.getConfig().getInt("combat.pillager-rocket-charges",6));
                     state.rocketRemaining=state.rocketTotal;
                     state.nextRocket=now;
                 } else {
@@ -123,7 +123,7 @@ final class PillagerCombat implements Listener {
             if (now >= state.nextVolley && state.hits.charged(now)) {
                 state.rocketMode=state.nextRockets;
                 state.nextRockets=!state.nextRockets;
-                state.chargeUntil = now + PillagerRules.CHARGE;
+                state.chargeUntil = now + Math.max(PillagerRules.CHARGE,state.definition.custom().options().warningTicks()*50L);
                 boss.setChargingAttack(true);
                 boss.getPathfinder().stopPathfinding();
                 BossWarnings.send(player, Component.text("⚠ CARGANDO · " + (state.rocketMode?ROCKET_NAME:NAME), NamedTextColor.GOLD));

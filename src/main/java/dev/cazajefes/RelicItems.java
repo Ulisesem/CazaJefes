@@ -964,7 +964,7 @@ public final class RelicItems implements Listener {
          if (stack!=null) { stack.setAmount(reward.amount()); var4.add(prepareBossDrop(stack)); }
       }
       String rangedMaterial=RangedRareCatalog.drop(var2.entityType());if(rangedMaterial!=null&&Math.random()<(var2.mini()?.12:.25))var4.add(rangedMaterial(rangedMaterial));
-      if(LootRules.heartEligible(var2.mini(),Math.random(),plugin.getConfig().getDouble("loot.boss-heart-chance",0.01)))var4.add(bossHeart(var2));
+      if(LootRules.heartEligible(var2.mini(),Math.random(),var2.custom().options().heartChance(plugin.getConfig().getDouble("loot.boss-heart-chance",0.01))))var4.add(bossHeart(var2));
       List<ItemStack> merged=new ArrayList<>();for(ItemStack stack:var4){ItemStack same=merged.stream().filter(existing->existing.isSimilar(stack)).findFirst().orElse(null);if(same==null)merged.add(stack);else same.setAmount(same.getAmount()+stack.getAmount());}var4.clear();var4.addAll(merged);
       int var13 = var4.stream().mapToInt(ItemStack::getAmount).sum();
       Component summary=Component.empty();

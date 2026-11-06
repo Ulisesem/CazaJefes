@@ -6,10 +6,18 @@ final class ConfigMigration {
  static void run(CazaJefesPlugin plugin){
   File config=new File(plugin.getDataFolder(),"config.yml");
   YamlConfiguration raw=YamlConfiguration.loadConfiguration(config);
-  if(raw.getInt("schema-version",0)>=2)return;
+  int schema=raw.getInt("schema-version",0);
+  if(schema<2){
   try{if(config.exists())Files.copy(config.toPath(),new File(plugin.getDataFolder(),"config-before-1.1.0.yml").toPath(),StandardCopyOption.REPLACE_EXISTING);}
   catch(IOException e){throw new IllegalStateException("No se pudo respaldar config.yml; se cancela la migración",e);}
-  plugin.getConfig().set("schema-version",2);plugin.saveConfig();
+   plugin.getConfig().set("schema-version",2);plugin.saveConfig();
+  }
+  if(schema<3){
+   String key="combat.pillager-rocket-charges";
+   if(raw.getInt(key,9)==9)plugin.getConfig().set(key,6);
+   plugin.getConfig().set("schema-version",3);
+   plugin.saveConfig();
+  }
  }
  static YamlConfiguration recipes(CazaJefesPlugin plugin,File file,YamlConfiguration config){
   if(config.getInt("schema-version",0)>=3)return config;

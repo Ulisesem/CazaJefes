@@ -12,7 +12,16 @@ final class ShulkerCombat implements Listener {
  private final CazaJefesPlugin plugin;private final NamespacedKey bossKey,bulletKey;private final Map<UUID,Long> nextVolley=new HashMap<>(),nextBlink=new HashMap<>();private final Set<UUID> shots=new HashSet<>();private boolean firing;private final Map<UUID,PillagerRules.Hits> pressure=new HashMap<>();
  ShulkerCombat(CazaJefesPlugin p){plugin=p;bossKey=new NamespacedKey(p,BossKeys.BOSS);bulletKey=new NamespacedKey(p,"venom_bullet");}
  private boolean boss(Entity e){return e instanceof Shulker&&e.getPersistentDataContainer().has(bossKey,PersistentDataType.BYTE);}
- void tick(LivingEntity entity,Player target,int phase){if(!(entity instanceof Shulker shulker)||!shulker.hasLineOfSight(target))return;shulker.setPeek(1);if(shots.size()+VOLLEY_SIZE>128)return;long now=System.currentTimeMillis();if(now<nextVolley.getOrDefault(entity.getUniqueId(),0L))return;nextVolley.put(entity.getUniqueId(),now+(phase==3?10000:12000));BossWarnings.send(target,net.kyori.adventure.text.Component.text("ÓRBITA DEL UMBRAL · Veinte orbes al acecho",net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD));
+ void tick(LivingEntity entity,Player target,int phase){if(!(entity instanceof Shulker shulker)||!shulker.hasLineOfSight(target))return;shulker.setPeek(1);if(shots.size()+VOLLEY_SIZE>128)return;long now=System.currentTimeMillis();if(now<nextVolley.getOrDefault(entity.getUniqueId(),0L)||!plugin.abilities.reserveWarning(entity,plugin.abilities.warningTicks(entity)))return;nextVolley.put(entity.getUniqueId(),now+(phase==3?10000:12000));BossWarnings.send(target,net.kyori.adventure.text.Component.text("ÓRBITA DEL UMBRAL · Veinte orbes al acecho",net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD));
+  plugin.getServer().getScheduler().runTaskLater(plugin,()->{
+   if(!entity.isValid()||entity.isDead()||entity.isInvulnerable()||!CombatGuard.eligible(target)
+       ||entity.getWorld()!=target.getWorld()||entity.getLocation().distanceSquared(target.getLocation())>576
+       ||!ArenaBoundary.allows(entity,target.getLocation())||!shulker.hasLineOfSight(target)||shots.size()+VOLLEY_SIZE>128)return;
+   release(shulker,target);
+  },plugin.abilities.warningTicks(entity));
+ }
+ private void release(Shulker shulker,Player target){
+  LivingEntity entity=shulker;
   // Only one live volley per boss. Native shots are suppressed below.
   for(Entity e:entity.getWorld().getNearbyEntities(entity.getLocation(),40,24,40))if(e instanceof ShulkerBullet b&&b.getShooter()==entity&&b.getPersistentDataContainer().has(bulletKey,PersistentDataType.BYTE)){shots.remove(b.getUniqueId());b.remove();}
   firing=true;try{for(int i=0;i<VOLLEY_SIZE;i++){double a=2*Math.PI*i/VOLLEY_SIZE;Location point=shulker.getEyeLocation().add(Math.cos(a)*.7,.2,Math.sin(a)*.7);ShulkerBullet bullet=entity.getWorld().spawn(point,ShulkerBullet.class,b->{b.setShooter(shulker);b.setTarget(target);b.getPersistentDataContainer().set(bulletKey,PersistentDataType.BYTE,(byte)1);});shots.add(bullet.getUniqueId());plugin.getServer().getScheduler().runTaskLater(plugin,()->{shots.remove(bullet.getUniqueId());if(bullet.isValid())bullet.remove();},160L);}}finally{firing=false;}
