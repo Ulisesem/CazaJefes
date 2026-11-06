@@ -80,6 +80,13 @@ public class AuraPerformanceTest {
    }
   }
  }
+ @Test public void auraRadiusFitsSmallAndLargeBossBodies(){
+  for(double width:new double[]{.35,1.4,4,12}){
+   double radius=CombatVisuals.auraRadius(width);
+   assertTrue(radius>width/2);
+   assertTrue(radius<width+.3);
+  }
+ }
  @Test public void followingFramesShareTheRefillWithoutGoingDark(){
   assertEquals(15,BossAuras.pointsForFrame(160,1,1,36,160));
   assertEquals(7,BossAuras.pointsForFrame(160,1,2,36,160));
