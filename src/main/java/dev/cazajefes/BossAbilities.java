@@ -54,6 +54,10 @@ final class BossAbilities implements Listener {
  BossAbilities(CazaJefesPlugin plugin){this.plugin=plugin;gaze=new AbyssalGaze(plugin);plugin.getServer().getPluginManager().registerEvents(gaze,plugin);displacement=new BossDisplacement(plugin);readyKey=new NamespacedKey(plugin,"ultimate_ready_at");burstTimer=plugin.getServer().getScheduler().runTaskTimer(plugin,this::tickBursts,5,5);}
  void track(LivingEntity boss,BossCatalog.Definition definition){tracked.put(boss.getUniqueId(),new Tracked(boss,definition));}
  private void tickBursts(){long now=System.currentTimeMillis();for(var it=tracked.entrySet().iterator();it.hasNext();){var entry=it.next();var active=entry.getValue();var boss=active.boss();if(!boss.isValid()||boss.isDead()){plugin.species.remove(entry.getKey());gaze.remove(entry.getKey());displacement.remove(entry.getKey());plugin.cinematics.remove(entry.getKey());ThreatTable.remove(entry.getKey());it.remove();continue;}if(!boss.isInvulnerable()){if(plugin.species.tick(boss,now,!occupied(boss)&&!plugin.pillagers.charging(boss.getUniqueId())&&!plugin.archers.charging(boss.getUniqueId())&&!plugin.mages.busy(boss.getUniqueId())))continue;boolean blocked=plugin.pendingHordes.contains(boss.getUniqueId())||(plugin.safety!=null&&plugin.safety.claiming(boss))||recovering(boss)||busy(boss)||displacement.busy(boss.getUniqueId())||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId());if(!gaze.tick(boss,active.definition(),BossStages.phase(boss),now,blocked))displacement.tick(boss,active.definition(),BossStages.phase(boss),now,plugin.pendingHordes.contains(boss.getUniqueId())||(plugin.safety!=null&&plugin.safety.claiming(boss))||recovering(boss)||busy(boss)||plugin.pillagers.charging(boss.getUniqueId())||plugin.archers.charging(boss.getUniqueId())||plugin.mages.busy(boss.getUniqueId()));}}}
+ boolean centralGaze(LivingEntity boss,BossCatalog.Definition definition,int phase,long now,boolean blocked){
+  return gaze.tick(boss,definition,phase,now,blocked);
+ }
+ void clearCentral(UUID id){gaze.remove(id);rotations.remove(id);recovery.remove(id);}
  boolean retaliate(LivingEntity boss,long now){return !occupied(boss)&&displacement.retaliate(boss.getUniqueId(),now);}
  void relocating(LivingEntity boss){Cast cast=casts.get(boss.getUniqueId());if(cast!=null)cast.finish(false);displacement.remove(boss.getUniqueId());gaze.remove(boss.getUniqueId());}
  boolean contactAllowed(LivingEntity boss){return !occupied(boss);}
@@ -74,6 +78,29 @@ final class BossAbilities implements Listener {
  void special(LivingEntity boss,BossCatalog.Definition definition,Player target,int variant) {
   if(!occupied(boss)) tick(boss,definition,target,BossStages.phase(boss));
  }
+ dev.cazajefes.ai.AttackMotion signature(LivingEntity boss,BossCatalog.Definition definition,Player target,int phase,String requested){
+  if(occupied(boss)||boss.isInvulnerable())return null;
+  long now=System.currentTimeMillis();
+  boolean ultimateReady=ready(phase,now,boss.getPersistentDataContainer().getOrDefault(readyKey,PersistentDataType.LONG,0L),false);
+  var skill=rotations.computeIfAbsent(boss.getUniqueId(),id->new CombatScripts.Rotation())
+      .next(CombatScripts.rotation(definition,phase),phase,now,ultimateReady,requested);
+  if(skill==null)return null;
+  if(skill.ultimate())boss.getPersistentDataContainer().set(readyKey,PersistentDataType.LONG,now+skill.cooldown()+3000);
+  Cast cast=new Cast(boss,definition,target,skill);
+  cast.central=true;
+  casts.put(boss.getUniqueId(),cast);
+  return new dev.cazajefes.ai.AttackMotion(){
+   int tick;
+   @Override public boolean mobile(){return false;}
+   @Override public boolean tick(){
+    if(casts.get(boss.getUniqueId())!=cast)return true;
+    if(tick++%5==0)cast.run();
+    return casts.get(boss.getUniqueId())!=cast;
+   }
+   @Override public void close(){cast.finish(false);}
+  };
+ }
+
  private void begin(LivingEntity boss,BossCatalog.Definition definition,Player target,CombatScripts.Skill skill){
   if(!boss.isValid()||boss.isDead()||boss.isInvulnerable()||!CombatGuard.eligible(target))return;
   if(skill.ultimate())boss.getPersistentDataContainer().set(readyKey,PersistentDataType.LONG,System.currentTimeMillis()+skill.cooldown()+3000);
@@ -99,7 +126,7 @@ final class BossAbilities implements Listener {
   final VoidAnchors anchors = new VoidAnchors();
   List<BeamPath.Segment> beamPath = List.of();
   final BossStyle style;
-  boolean modeled;
+  boolean modeled,central;
   int ticks, pulse, comboAt = -1, endAt = -1, axeLingerUntil;
 
   Cast(LivingEntity boss, BossCatalog.Definition definition, Player target, CombatScripts.Skill skill) {
@@ -157,7 +184,7 @@ final class BossAbilities implements Listener {
     return;
    }
    if (dischargeAt < 0 && endAt >= 0 && ticks >= endAt) { finish(true); return; }
-   if (boss instanceof Mob mob) {
+   if (!central && boss instanceof Mob mob) {
     mob.getPathfinder().stopPathfinding();
     if (mob.getTarget() != null) mob.setTarget(null);
    }
@@ -472,7 +499,7 @@ final class BossAbilities implements Listener {
    if (!completed) plugin.cinematics.remove(boss.getUniqueId());
    if (ultimate && boss.isValid()) boss.getPersistentDataContainer().set(readyKey, PersistentDataType.LONG,
       System.currentTimeMillis() + skill.cooldown());
-   cancel();
+   if(!central)cancel();
   }
  }
  @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}

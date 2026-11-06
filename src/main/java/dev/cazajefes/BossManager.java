@@ -255,6 +255,7 @@ public final class BossManager implements Listener {
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          AnimalBossSizing.apply(var5,var4);MiniBossSizing.apply(var5,var4);
+         fitBossBody(var5,var4);
          if(!((CazaJefesPlugin)plugin).safety.place(var5)){plugin.getLogger().warning("Sin espacio seguro para "+var4.id()+" en "+var2.getWorld().getName()+" "+var2.getBlockX()+","+var2.getBlockY()+","+var2.getBlockZ());var5.remove();return null;}
          ArenaBoundary.pin(var5,var5.getLocation());
          this.encounters.put(var19, new BossManager.Encounter(var19, var4, var5.getLocation(), var5, var3));
@@ -278,10 +279,14 @@ public final class BossManager implements Listener {
          BossIntegrity.restore(var2);
          AnimalBossSizing.apply(var2,var3);
          MiniBossSizing.apply(var2,var3);
+         fitBossBody(var2,var3);
          var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
          BossEquipment.apply(var2,var3);
          ThrownAxeHand.restore(var2,plugin);
          owner.customEncounter.attach(var2,var3);
+         plugin.getServer().getScheduler().runTask(plugin,()->{
+            if(var2.isValid()&&!var2.isDead())fitBossBody(var2,var3);
+         });
       }
       owner.auras.track(var2,var3);
       if (!this.healthBars.containsKey(var1)) {
@@ -623,15 +628,17 @@ public final class BossManager implements Listener {
       }
    }
 
-   private void setScale(LivingEntity var1, double var2) {
-      Attribute var4 = (Attribute)Registry.ATTRIBUTE.get(NamespacedKey.minecraft("scale"));
-      if (var4 == null) {
-         var4 = (Attribute)Registry.ATTRIBUTE.get(NamespacedKey.minecraft("generic.scale"));
-      }
+   private static void fitBossBody(LivingEntity boss,BossCatalog.Definition definition){
+      var scale=boss.getAttribute(Attribute.SCALE);
+      if(scale==null||!definition.custom().options().compactBody())return;
+      var bounds=boss.getBoundingBox();
+      double width=Math.max(bounds.getWidthX(),bounds.getWidthZ());
+      double reduction=Math.min(1,Math.min(1.7/Math.max(.1,width),2.85/Math.max(.1,bounds.getHeight())));
+      if(reduction<1)scale.setBaseValue(Math.max(.1,scale.getBaseValue()*reduction));
+   }
 
-      if (var4 != null) {
-         this.setAttribute(var1, var4, var2);
-      }
+   private void setScale(LivingEntity boss,double scale) {
+      this.setAttribute(boss,Attribute.SCALE,scale);
    }
 
    private void restoreEggs() {

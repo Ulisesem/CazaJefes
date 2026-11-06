@@ -14,6 +14,8 @@ record BossOptions(JsonObject json) {
 
     boolean fearless(){return bool("fearless",true);}
     boolean loot(){return bool("loot",true);}
+    boolean legacyAttacks(){return bool("legacyAttacks",true);}
+    boolean compactBody(){return bool("compactBody",true);}
     boolean caveBreach(){return bool("caveBreach",true);}
     boolean aura(){return bool("aura",true);}
     long attackInterval(long fallback){return (long)number("attackIntervalTicks",fallback,5,40);}

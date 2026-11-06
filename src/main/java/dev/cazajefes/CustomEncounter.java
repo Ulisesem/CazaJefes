@@ -47,7 +47,7 @@ final class CustomEncounter implements BossEnvironment {
         boolean aquatic=AquaticCombat.aquatic(definition.entityType());
         var style=defaultStyle(definition.entityType(),aquatic);
         try{
-            return BossProfile.read(definition.custom().ai(),definition.custom().damage(),aquatic,style);
+            return BossProfile.read(BossFamilyAttacks.withDefaults(definition,aquatic),definition.custom().damage(),aquatic,style);
         }catch(RuntimeException invalid){
             plugin.getLogger().warning("IA "+definition.id()+": "+invalid.getMessage()+". Se usan sus ataques base.");
             return BossProfile.read(null,definition.custom().damage(),aquatic,style);
@@ -78,9 +78,13 @@ final class CustomEncounter implements BossEnvironment {
         stages.remove(uuid);
         displacement.remove(uuid);
         caves.release(uuid);
+        plugin.species.remove(uuid);
+        plugin.abilities.clearCentral(uuid);
     }
 
     boolean owns(LivingEntity entity){return loop.owns(entity.getUniqueId());}
+
+    dev.cazajefes.ai.CustomBoss active(UUID id){return loop.get(id);}
 
     boolean attacking(LivingEntity entity){
         var boss=loop.get(entity.getUniqueId());
@@ -177,12 +181,39 @@ final class CustomEncounter implements BossEnvironment {
         }
     }
 
+    @Override public boolean occupied(CustomBoss boss){
+        return boss.body().isInvulnerable()||plugin.abilities.occupied(boss.body())||displacement.busy(boss.body().getUniqueId());
+    }
+
+    @Override public dev.cazajefes.ai.AttackMotion signature(CustomBoss boss,Player target){
+        return signature(boss,target,null);
+    }
+
+    dev.cazajefes.ai.AttackMotion signature(CustomBoss boss,Player target,String requested){
+        var definition=definition(boss);
+        if(definition==null||!definition.custom().options().legacyAttacks()
+            ||target.getLocation().distanceSquared(boss.body().getLocation())>576)return null;
+        return plugin.abilities.signature(boss.body(),definition,target,BossStages.phase(boss.body()),requested);
+    }
+
     @Override public void heartbeat(CustomBoss boss){
         var tracker=stages.get(boss.body().getUniqueId());
         if(tracker!=null)tracker.update();
         var body=boss.body();
         var definition=BossCatalog.get(body.getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
+        if(definition!=null&&definition.custom().options().legacyAttacks()
+            &&plugin.species.tick(body,System.currentTimeMillis(),boss.state()!=dev.cazajefes.ai.BossState.ATTACKING
+                &&!occupied(boss),true)){
+            boss.stun(6);
+            return;
+        }
+        if(definition!=null&&!body.isInvulnerable()&&definition.custom().options().legacyAttacks()
+            &&plugin.abilities.centralGaze(body,definition,BossStages.phase(body),System.currentTimeMillis(),
+                boss.state()==dev.cazajefes.ai.BossState.ATTACKING||occupied(boss))){
+            boss.stun(6);
+            return;
+        }
         if(definition!=null&&!body.isInvulnerable()
             &&displacement.tick(body,definition,BossStages.phase(body),System.currentTimeMillis(),
                 boss.state()==dev.cazajefes.ai.BossState.ATTACKING||boss.state()==dev.cazajefes.ai.BossState.STUNNED
@@ -190,6 +221,21 @@ final class CustomEncounter implements BossEnvironment {
             boss.stun(6);
         }
         if(boss.body().isInWater())boss.body().setRemainingAir(boss.body().getMaximumAir());
+    }
+
+    @Override public int phase(CustomBoss boss){return BossStages.phase(boss.body());}
+
+    @Override public void projectileHit(CustomBoss boss,LivingEntity target,BossVisuals.Projectile kind){
+        if(kind!=BossVisuals.Projectile.SHULKER)return;
+        for(var type:java.util.List.of(org.bukkit.potion.PotionEffectType.POISON,org.bukkit.potion.PotionEffectType.WITHER,
+            org.bukkit.potion.PotionEffectType.LEVITATION)){
+            BossEffects.applyFrom(boss.body(),target,BossEffects.effect(type,80,0));
+        }
+    }
+
+    @Override public void lightning(CustomBoss boss,Location at){
+        CosmeticFX.emit(org.bukkit.Particle.ELECTRIC_SPARK,at.clone().add(0,1.4,0),22,.35,1.2,.35,.12);
+        at.getWorld().playSound(at,org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_IMPACT,.9f,1.15f);
     }
 
     @Override public boolean canSee(CustomBoss boss,Player target){
