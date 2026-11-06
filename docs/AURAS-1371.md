@@ -31,3 +31,5 @@ El nombre dentro de `attacks` coincide con el `id` en `ai.attacks`. Las etapas o
 El radio visual es independiente del daño. El aura conserva la distancia, la calidad personal y el cupo de envíos de CazaJefes. Los avisos conservan su propio cupo. Los pulsos de ataque usan como máximo tres fotogramas. No se crean entidades para dibujar estos efectos.
 
 Diseño propio basado en los [patrones de cajas de SkiesCrates](https://docs.skiesdev.com/skiescrates/particles/particle_effects/) y la idea de [nubes alrededor de NPCs de Citizens](https://wiki.citizensnpcs.co/Commands).
+
+En 1.37.2 el aura sigue la posición actual del jefe durante todo el encuentro. A menos de 16 bloques se actualiza cada 2 ticks en calidad alta, cada 4 en media y cada 6 en baja. Si el cupo es bajo se dibujan menos puntos. Durante la carga se reduce la densidad ambiental y se mantienen los avisos. Para comprobar que esté activada, usa `/ri particulas alta`, revisa `particles.auras.enabled` en `config.yml` y el ajuste `combat.aura` del jefe. `OFF` sigue disponible para quien prefiera ocultarla.

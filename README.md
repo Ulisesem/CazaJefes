@@ -1,4 +1,4 @@
-# CazaJefes 1.37.1 · testRefactor
+# CazaJefes 1.37.2 · testRefactor
 
 [Auras y partículas por jefe y ataque](docs/AURAS-1371.md)
 

@@ -37,7 +37,7 @@ final class CombatVisuals {
   AuraIdentity identity=identity(boss);
   Color firstColor=config.color()==null?identity.primary():config.color();
   Color secondColor=config.accent()==null?identity.accent():config.accent();
-  var primary=new Particle.DustTransition(firstColor,secondColor,phase==3?1.45f:1.1f);
+  var primary=new Particle.DustTransition(firstColor,secondColor,phase==3?1.55f:1.3f);
   var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:secondColor,firstColor,1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
   var shape=config.shape()==BossParticles.Shape.AUTO
       ?identity.magma()>=0?AuraShape.magma(identity.magma(),width,height,angle,Math.min(points,config.points()),phase)
