@@ -12,7 +12,19 @@ import org.bukkit.entity.Player;
 /** Bounded, entity-free effects around an awake boss or a point in its attack. */
 record BossParticles(Shape shape,Particle particle,Color color,Color accent,double radius,double height,
                      double speed,int points) {
-    enum Shape { AUTO, CRATE, RING, SPIRAL, PULSE, BEAM, CLOUD, OFF }
+    enum Shape {
+        AUTO, CRATE, RANDOM_CRATE, RING, SPIRAL, PULSE, BEAM, CLOUD, OFF,
+        HELIX, SPHERE, HEART, PULSAR, BEACON, TORNADO, VORTEX, SIMPLE
+    }
+
+    private static final List<Shape> CRATE_STYLES = List.of(Shape.HELIX, Shape.SPIRAL, Shape.SPHERE,
+        Shape.HEART, Shape.PULSAR, Shape.BEACON, Shape.TORNADO, Shape.VORTEX, Shape.SIMPLE);
+
+    static Shape crateStyle(String bossId) {
+        // Stable across restarts and identical for every viewer of the same boss.
+        int seed = bossId.hashCode();
+        return CRATE_STYLES.get(Math.floorMod(seed ^ (seed >>> 16), CRATE_STYLES.size()));
+    }
 
     static BossParticles read(JsonObject options,Shape fallback) {
         if(options==null)options=new JsonObject();
@@ -26,7 +38,10 @@ record BossParticles(Shape shape,Particle particle,Color color,Color accent,doub
     }
 
     static BossParticles aura(BossCatalog.Definition boss) {
-        return read(section(section(boss.custom().options().json(),"particles"),"aura"),Shape.CRATE);
+        var config = read(section(section(boss.custom().options().json(),"particles"),"aura"), Shape.RANDOM_CRATE);
+        if (config.shape() != Shape.RANDOM_CRATE) return config;
+        return new BossParticles(crateStyle(boss.id()), config.particle(), config.color(), config.accent(),
+            config.radius(), config.height(), config.speed(), config.points());
     }
 
     static BossParticles attack(BossCatalog.Definition boss,String id,String stage,Shape fallback) {
@@ -56,6 +71,51 @@ record BossParticles(Shape shape,Particle particle,Color color,Color accent,doub
                         theta=-time+4*Math.PI*strand;
                         y+=h*strand;
                     }
+                }
+                case HELIX -> {
+                    int split = (total + 1) / 2;
+                    boolean second = i >= split;
+                    double rise = (i % split + .5) / (second ? total - split : split);
+                    theta = time + 2 * Math.PI * rise + (second ? Math.PI : 0);
+                    y += h * rise;
+                }
+                case SPHERE -> {
+                    double latitude = 2 * t - 1;
+                    theta = time + i * 2.399963229728653;
+                    xz *= Math.sqrt(1 - latitude * latitude);
+                    y += h * t;
+                }
+                case HEART -> {
+                    double a = 2 * Math.PI * t;
+                    double horizontal = r * Math.pow(Math.sin(a), 3);
+                    double vertical = (13 * Math.cos(a) - 5 * Math.cos(2 * a)
+                        - 2 * Math.cos(3 * a) - Math.cos(4 * a) + 17) / 30;
+                    result.add(new AuraShape.Point(Math.cos(time) * horizontal, y + h * vertical,
+                        Math.sin(time) * horizontal, i % 3 == 0));
+                    continue;
+                }
+                case PULSAR -> {
+                    xz *= .7 + .3 * Math.sin(time + (i % 2) * Math.PI);
+                    y += h * (i % 2 == 0 ? .25 : .65);
+                }
+                case BEACON -> {
+                    theta = time + (i % 3) * 2 * Math.PI / 3;
+                    xz *= .7;
+                    y += h * t;
+                }
+                case TORNADO -> {
+                    theta = time + 4 * Math.PI * t;
+                    xz *= .45 + .55 * t;
+                    y += h * t;
+                }
+                case VORTEX -> {
+                    theta = -time + 4 * Math.PI * t;
+                    xz *= .5 + .5 * t;
+                    y += h * (.1 + .2 * (1 - t));
+                }
+                case SIMPLE -> {
+                    xz *= .85 + .15 * Math.sin(theta * 3);
+                    y += h * .12;
                 }
                 case SPIRAL -> {theta=time+4*Math.PI*t;y+=h*t;}
                 case PULSE -> xz*=.45+.55*(.5+.5*Math.sin(time));
