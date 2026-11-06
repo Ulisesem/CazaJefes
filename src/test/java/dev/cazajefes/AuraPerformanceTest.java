@@ -31,7 +31,7 @@ public class AuraPerformanceTest {
  @Test public void bossSignaturesAndMagmaShapesUseTheSamePointBudget(){
   var shapes=new java.util.HashSet<java.util.List<AuraShape.Point>>();
   for(var boss:BossCatalog.all()){
-   var dots=AuraShape.themed(BossStyle.of(boss.entityType()),3,4,.3,24,3,boss.id().hashCode());
+   var dots=CreatureAura.of(boss.entityType()).points(3,4,25,.3,24,3,boss.id().hashCode());
    assertEquals(24,dots.size());
    assertTrue("Duplicate visual shape: "+boss.id(),shapes.add(dots));
   }
@@ -39,5 +39,11 @@ public class AuraPerformanceTest {
    var dots=AuraShape.magma(i,3,4,.3,24,3);
    assertEquals(24,dots.size());assertTrue(shapes.add(dots));
   }
+ }
+ @Test public void characteristicCreaturesUseCompatibleDistinctParticles(){
+  assertEquals(org.bukkit.Particle.FALLING_HONEY,CreatureAura.of(org.bukkit.entity.EntityType.BEE).particle);
+  assertEquals(org.bukkit.Particle.SCULK_SOUL,CreatureAura.of(org.bukkit.entity.EntityType.WARDEN).particle);
+  assertEquals(org.bukkit.Particle.GLOW,CreatureAura.of(org.bukkit.entity.EntityType.GLOW_SQUID).particle);
+  for(var boss:BossCatalog.all())assertEquals(Void.class,CreatureAura.of(boss.entityType()).particle.getDataType());
  }
 }
