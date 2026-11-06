@@ -19,6 +19,17 @@ final class SafeDamage {
   double result=event.getFinalDamage();if(result<0&&Double.isFinite(result))event.setDamage(DamageModifier.BASE,base-result+Math.ulp(base));else if(!Double.isFinite(result))zero(event);
  }
  static void finishLowHealth(EntityDamageEvent event,double health){if(event.isCancelled())return;normalize(event);double result=event.getFinalDamage(),desired=DamageProgress.finishing(health,result);if(desired>result)event.setDamage(DamageModifier.BASE,event.getDamage()+desired-result);normalize(event);}
+ static void operatorStrike(EntityDamageEvent event,double health){
+  if(event.isCancelled()||!Double.isFinite(health)||health<=0||event.getDamage()<=0)return;
+  double cooldown=event.getDamage(DamageModifier.INVULNERABILITY_REDUCTION);
+  double blocking=event.getDamage(DamageModifier.BLOCKING);
+  if(cooldown<0||blocking<0)return;
+  double finalDamage=event.getFinalDamage();
+  double lethal=health+.01;
+  if(Double.isFinite(finalDamage)&&finalDamage<lethal){
+   event.setDamage(DamageModifier.BASE,event.getDamage()+lethal-finalDamage);
+  }
+ }
  // Armor and protection can consume the whole hit in a stale modifier snapshot.
  // Keep native cooldown, blocking and absorption in the calculation.
  static void bossFloor(EntityDamageEvent event){

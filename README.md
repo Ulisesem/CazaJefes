@@ -1,3 +1,7 @@
+# CazaJefes 1.35.2 · Prueba rápida con Fuerza 100
+
+Golpe directo letal para operadores con Fuerza 100 o superior. [Cambios y configuración](docs/CAMBIOS-1.35.2.md).
+
 # CazaJefes 1.35.1 · Auras individuales y daño de jefes
 
 Auras individuales, cubos de magma y ajuste del daño recibido. [Cambios y configuración](docs/CAMBIOS-1.35.1.md).
