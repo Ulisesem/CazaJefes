@@ -37,6 +37,30 @@ public class SafeDamageTest {
   SafeDamage.normalize(absorbed);SafeDamage.bossFloor(absorbed);
   assertEquals(0,absorbed.getFinalDamage(),.000001);
  }
+ @Test public void operatorsWithStrength100CanLandALethalDirectStrike(){
+  var attack=EntityDamageEvent.DamageCause.ENTITY_ATTACK;
+  assertTrue(BossDamageProgress.operatorStrike(true,true,attack,99));
+  assertTrue(BossDamageProgress.operatorStrike(true,true,attack,100));
+  assertFalse(BossDamageProgress.operatorStrike(false,true,attack,100));
+  assertFalse(BossDamageProgress.operatorStrike(true,true,attack,98));
+  assertFalse(BossDamageProgress.operatorStrike(true,false,attack,100));
+  assertFalse(BossDamageProgress.operatorStrike(true,true,EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK,100));
+  int[] callbacks={0};
+  var hit=event(875.063,-700,-175.063,0,callbacks);
+  SafeDamage.normalize(hit);
+  SafeDamage.operatorStrike(hit,1024);
+  SafeDamage.bossFloor(hit);
+  assertTrue(hit.getFinalDamage()>1024);
+  assertEquals(0,callbacks[0]);
+  var cooldown=event(875.063,0,0,0,callbacks);
+  cooldown.setDamage(DamageModifier.INVULNERABILITY_REDUCTION,-875.063);
+  SafeDamage.operatorStrike(cooldown,1024);
+  assertEquals(0,cooldown.getFinalDamage(),0);
+  hit.setCancelled(true);
+  double finalDamage=hit.getFinalDamage();
+  SafeDamage.operatorStrike(hit,2048);
+  assertEquals(finalDamage,hit.getFinalDamage(),0);
+ }
  @Test public void finalBlastIgnoresNotchAbsorptionButHonorsCancellation(){var e=event(7,-3,-3,0,new int[]{0});BossDeathVisuals.fixedBlastDamage(e,6.5);assertEquals(6.5,e.getFinalDamage(),0);var shield=event(7,-3,-3,-4,new int[]{0});BossDeathVisuals.fixedBlastDamage(shield,6.5);assertEquals(6.5,shield.getFinalDamage(),0);var cancelled=event(7,-3,-3,0,new int[]{0});cancelled.setCancelled(true);BossDeathVisuals.fixedBlastDamage(cancelled,6.5);assertEquals(1,cancelled.getFinalDamage(),0);}
  @Test public void animalMinionCapCannotHealOrPermitOneShot(){var event=event(1000,-20,-20,-8,new int[]{0});AnimalMinions.capHit(event,120);assertEquals(48,event.getFinalDamage(),.00001);assertTrue(event.getFinalDamage()>0);event.setCancelled(true);double before=event.getFinalDamage();AnimalMinions.capHit(event,10);assertEquals(before,event.getFinalDamage(),0);}
 }
