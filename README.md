@@ -1,3 +1,7 @@
+# CazaJefes 1.35.3 · Auras por criatura
+
+Auras y partículas diseñadas según la criatura de cada jefe. [Cambios y configuración](docs/CAMBIOS-1.35.3.md).
+
 # CazaJefes 1.35.2 · Prueba rápida con Fuerza 100
 
 Golpe directo letal para operadores con Fuerza 100 o superior. [Cambios y configuración](docs/CAMBIOS-1.35.2.md).
