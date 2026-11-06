@@ -27,9 +27,21 @@ final class JsonBosses {
    private JsonBosses() {}
 
    static Map<String, BossCatalog.Definition> builtIns() {
-      try (var input = JsonBosses.class.getResourceAsStream("/bosses.json")) {
-         if (input == null) throw new IOException("Falta bosses.json en el JAR");
-         return readCatalog(new InputStreamReader(input, StandardCharsets.UTF_8));
+      try (var index = JsonBosses.class.getResourceAsStream("/boss-catalog.txt")) {
+         if (index == null) throw new IOException("Falta el índice de jefes");
+         var result = new LinkedHashMap<String, BossCatalog.Definition>();
+         for (String path : new String(index.readAllBytes(), StandardCharsets.UTF_8).lines().toList()) {
+            try (var input = JsonBosses.class.getResourceAsStream("/" + path)) {
+               if (input == null) throw new IOException("Falta " + path);
+               var row = readCatalog(new StringReader("[" + new String(input.readAllBytes(), StandardCharsets.UTF_8) + "]"));
+               if (row.size() != 1) throw new IOException("Se esperaba un jefe en " + path);
+               for (var entry : row.entrySet()) {
+                  if (result.putIfAbsent(entry.getKey(), entry.getValue()) != null)
+                     throw new IOException("ID duplicado: " + entry.getKey());
+               }
+            }
+         }
+         return result;
       } catch (IOException failure) {
          throw new IllegalStateException("No se pudo cargar el catálogo incluido", failure);
       }
@@ -42,7 +54,7 @@ final class JsonBosses {
          reader.beginArray();
          while (reader.hasNext()) {
             var fields = readFields(reader, Set.of("id", "name", "tier", "entity", "mini", "description",
-               "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat", "ai"), true);
+               "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat", "ai", "combatRevision"), true);
             String id = requiredText(fields, "id", 64);
             validateId(id);
             EntityType entity = option(fields, "entity", null, EntityType.class);
@@ -71,7 +83,7 @@ final class JsonBosses {
       var original = BossCatalog.builtIns();
       Path file = plugin.getDataFolder().toPath().resolve("bosses.json");
       try {
-         if (Files.notExists(file)) plugin.saveResource("bosses.json", false);
+         if (Files.notExists(file)) return original;
          if (Files.size(file) > 512 * 1024) throw new IllegalArgumentException("máximo 512 KiB");
          Map<String, BossCatalog.Definition> edited;
          try (var reader = Files.newBufferedReader(file)) {
@@ -120,12 +132,39 @@ final class JsonBosses {
             String content=Files.readString(file);
             var entries = readCatalog(new StringReader("[" + content + "]"));
             var candidate = entries.get(boss.id());
-            if (entries.size()!=1 || candidate==null || candidate.tier()!=boss.tier() || candidate.mini()!=boss.mini()) {
-               throw new IllegalArgumentException("ID y categoría deben coincidir con el archivo original");
+            if (entries.size()!=1 || candidate==null) {
+               throw new IllegalArgumentException("El ID debe coincidir con el nombre del archivo");
             }
-            if(candidate.custom().ai()==null){
-               var document=com.google.gson.JsonParser.parseString(content).getAsJsonObject();
-               document.add("ai",aiDefaults(candidate));
+            var document=com.google.gson.JsonParser.parseString(content).getAsJsonObject();
+            if(!document.has("combatRevision")){
+               var config=candidate.custom().ai()==null?aiDefaults(candidate):candidate.custom().ai().deepCopy();
+               if(!config.has("detectionRange")||config.get("detectionRange").getAsDouble()==32)config.addProperty("detectionRange",60);
+               var defaults=aiDefaults(candidate).getAsJsonArray("attacks");
+               var attacks=config.has("attacks")?config.getAsJsonArray("attacks"):defaults.deepCopy();
+               for(String categoryName:java.util.List.of("SHORT_RANGE","MID_RANGE","LONG_RANGE")){
+                  if(attacks.size()>=24)break;
+                  boolean present=attacks.asList().stream().anyMatch(a->categoryName.equals(a.getAsJsonObject().get("category").getAsString()));
+                  if(!present)for(var attack:defaults){
+                     var spec=attack.getAsJsonObject();
+                     if(categoryName.equals(spec.get("category").getAsString())
+                         &&attacks.asList().stream().noneMatch(a->a.getAsJsonObject().get("id").equals(spec.get("id")))){
+                        attacks.add(spec.deepCopy());
+                        break;
+                     }
+                  }
+               }
+               for(var attack:attacks){
+                  var spec=attack.getAsJsonObject();
+                  if("METEORITE_AOE".equals(spec.get("type").getAsString())&&!spec.has("showerRadius")){
+                     spec.addProperty("showerRadius",20);
+                     spec.addProperty("durationTicks",200);
+                     spec.addProperty("intervalTicks",10);
+                  }
+               }
+               config.add("attacks",attacks);
+               dev.cazajefes.ai.BossProfile.read(config,candidate.custom().damage(),AquaticCombat.aquatic(candidate.entityType()));
+               document.add("ai",config);
+               document.addProperty("combatRevision",1);
                String upgraded=gson.toJson(document)+"\n";
                candidate=readCatalog(new StringReader("["+upgraded+"]")).get(candidate.id());
                Path temporary=Files.createTempFile(file.getParent(),".ai-", ".tmp");
@@ -138,7 +177,7 @@ final class JsonBosses {
                }finally{Files.deleteIfExists(temporary);}
             }
             selected = candidate;
-         } catch (IOException | IllegalArgumentException | IllegalStateException error) {
+         } catch (IOException | RuntimeException error) {
             plugin.getLogger().warning("bosses/" + category + "/" + file.getFileName() + ": " + error.getMessage());
          }
          result.put(boss.id(),selected);
@@ -214,7 +253,7 @@ final class JsonBosses {
       try (JsonReader reader = new JsonReader(new StringReader(json))) {
          reader.setStrictness(Strictness.STRICT);
          var fields = readFields(reader,
-            Set.of("id", "template", "name", "description", "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat", "ai"), true);
+            Set.of("id", "template", "name", "description", "health", "damage", "scale", "ultimate", "portrait", "meteorTexture", "combat", "ai", "combatRevision"), true);
          if (reader.peek() != JsonToken.END_DOCUMENT) throw new IllegalArgumentException("se esperaba un solo objeto JSON");
          String id = requiredText(fields, "id", 48);
          validateId(id);

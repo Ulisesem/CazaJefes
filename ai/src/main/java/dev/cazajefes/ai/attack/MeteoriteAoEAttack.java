@@ -24,10 +24,17 @@ public final class MeteoriteAoEAttack extends BossAttack {
     private final double height,speed;
     private final Material material;
     private final String skin;
+    private final double showerRadius;
+    private final int duration,interval;
 
     public MeteoriteAoEAttack(String id,String name,AttackCategory category,int weight,long cooldown,
-                              double radius,double damage,int warningTicks,double height,double speed,String material,String texture){
+                              double radius,double damage,int warningTicks,double height,double speed,String material,String texture,
+                              double showerRadius,int duration,int interval){
+
         super(id,name,category,weight,cooldown,radius,damage,warningTicks);
+        this.showerRadius=showerRadius;
+        this.duration=duration;
+        this.interval=interval;
         this.height=height;
         this.speed=speed;
         this.material=Material.matchMaterial(material);
@@ -59,7 +66,42 @@ public final class MeteoriteAoEAttack extends BossAttack {
     }
 
     @Override public AttackMotion execute(CustomBoss boss,Player target){
-        var aim=target.getLocation().add(0,.12,0);
+        var center=target.getLocation();
+        if(showerRadius==0)return fall(boss,center);
+        return new AttackMotion(){
+            final java.util.List<AttackMotion> falling=new java.util.ArrayList<>();
+            int age;
+
+            @Override public boolean tick(){
+                if(age<duration){
+                    if(age%10==0)boss.environment().groundWarning(boss,center,showerRadius,age);
+                    if(age%interval==0){
+                        var random=java.util.concurrent.ThreadLocalRandom.current();
+                        double angle=random.nextDouble(2*Math.PI);
+                        // sqrt keeps impact density uniform over the disk.
+                        double distance=showerRadius*Math.sqrt(random.nextDouble());
+                        var point=center.clone().add(Math.cos(angle)*distance,1.25,Math.sin(angle)*distance);
+                        if(Geometry.loaded(point,0)&&boss.environment().mayMove(boss,point)){
+                            var floor=point.getWorld().rayTraceBlocks(point,new Vector(0,-1,0),5,FluidCollisionMode.NEVER,true);
+                            if(floor!=null)falling.add(fall(boss,floor.getHitPosition().toLocation(point.getWorld()).add(0,.12,0)));
+                        }
+                    }
+                }
+                for(var iterator=falling.iterator();iterator.hasNext();){
+                    var meteor=iterator.next();
+                    if(meteor.tick()){meteor.close();iterator.remove();}
+                }
+                return ++age>=duration&&falling.isEmpty();
+            }
+
+            @Override public void close(){
+                falling.forEach(AttackMotion::close);
+                falling.clear();
+            }
+        };
+    }
+
+    private AttackMotion fall(CustomBoss boss,Location aim){
         if(!Geometry.loaded(aim,0)||!boss.environment().mayMove(boss,aim))return AttackMotion.complete();
         double rise=Math.min(height,aim.getWorld().getMaxHeight()-aim.getY()-1);
         if(rise<=.1)return AttackMotion.complete();

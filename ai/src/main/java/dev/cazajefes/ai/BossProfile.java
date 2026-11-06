@@ -17,7 +17,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         if(json==null)json=defaults(baseDamage,aquatic);
         double speed=number(json,"speed",.29,.02,1);
         double gravity=number(json,"gravity",.08,0,.35);
-        double range=number(json,"detectionRange",32,3,48);
+        double range=number(json,"detectionRange",60,3,60);
         int gcd=integer(json,"globalCooldownTicks",30,1,600);
         var entries=new ArrayList<BossAttack>();
         {
@@ -36,11 +36,14 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                 double radius=number(row,"radius",2,0,24);
                 double damage=number(row,"damage",Math.min(baseDamage,500),0,500);
                 entries.add(switch(text(row,"type","")){
+                    case "MELEE_SWEEP" -> new dev.cazajefes.ai.attack.MeleeSweep(id,name,category,weight,cooldown,radius,damage,warn);
                     case "LINEAR_PROJECTILE" -> new LinearProjectileAttack(id,name,category,weight,cooldown,
                         radius,damage,warn,number(row,"speed",1.4,.1,4),integer(row,"lifetimeTicks",30,1,100));
                     case "METEORITE_AOE" -> new MeteoriteAoEAttack(id,name,category,weight,cooldown,radius,damage,warn,
                         number(row,"height",10,2,24),number(row,"speed",.85,.1,3),
-                        text(row,"material","MAGMA_BLOCK"),text(row,"texture",""));
+                        text(row,"material","MAGMA_BLOCK"),text(row,"texture",""),
+                        number(row,"showerRadius",20,0,24),integer(row,"durationTicks",200,1,300),
+                        integer(row,"intervalTicks",10,5,60));
                     default -> throw new IllegalArgumentException("tipo de ataque desconocido: "+id);
                 });
             }
@@ -52,12 +55,13 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         var json=new JsonObject();
         json.addProperty("speed",aquatic?.32:.29);
         json.addProperty("gravity",.08);
-        json.addProperty("detectionRange",32);
+        json.addProperty("detectionRange",60);
         json.addProperty("globalCooldownTicks",30);
         json.addProperty("aquatic",aquatic);
         json.add("equipment",new JsonObject());
         var attacks=new com.google.gson.JsonArray();
-        var shot=defaultAttack("descarga","Descarga de la Grieta","LINEAR_PROJECTILE","MIXED",4,105,25,1.1,baseDamage*.65);
+        attacks.add(defaultAttack("golpe_cercano","Ruptura de Guardia","MELEE_SWEEP","SHORT_RANGE",6,48,12,3,baseDamage));
+        var shot=defaultAttack("descarga_media","Descarga de la Grieta","LINEAR_PROJECTILE","MID_RANGE",6,75,17,.45,baseDamage*.85);
         shot.addProperty("speed",1.65);
         shot.addProperty("lifetimeTicks",30);
         attacks.add(shot);
@@ -70,6 +74,9 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         far.addProperty("height",12);
         far.addProperty("speed",1);
         far.addProperty("material","MAGMA_BLOCK");
+        far.addProperty("showerRadius",20);
+        far.addProperty("durationTicks",200);
+        far.addProperty("intervalTicks",10);
         attacks.add(far);
         json.add("attacks",attacks);
         return json;

@@ -15,5 +15,7 @@ public interface BossEnvironment {
     default void release(CustomBoss boss,BossAttack attack) {}
     default void impact(CustomBoss boss,BossAttack attack,Location at) { visuals().explosion(at); }
     default void heartbeat(CustomBoss boss) {}
+    default void blocked(CustomBoss boss,Player target,Location attempted) {}
+    default void groundWarning(CustomBoss boss,Location center,double radius,int age) {}
     BossVisuals visuals();
 }

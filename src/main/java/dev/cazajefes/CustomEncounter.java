@@ -28,6 +28,7 @@ final class CustomEncounter implements BossEnvironment {
     private final CazaJefesPlugin plugin;
     private final dev.cazajefes.ai.BossManager loop;
     private final BossDisplacement displacement;
+    private final CavePassages caves;
     private final BossVisuals visuals=new PacketBossVisuals();
     private final Map<String,BossProfile> profiles=new HashMap<>();
     private final Map<UUID,BossStages> stages=new HashMap<>();
@@ -35,6 +36,7 @@ final class CustomEncounter implements BossEnvironment {
     CustomEncounter(CazaJefesPlugin plugin){
         this.plugin=plugin;
         this.displacement=new BossDisplacement(plugin);
+        this.caves=new CavePassages(plugin);
         for(var definition:BossCatalog.all()){
             profiles.put(definition.id(),read(definition));
         }
@@ -64,6 +66,7 @@ final class CustomEncounter implements BossEnvironment {
         loop.remove(uuid);
         stages.remove(uuid);
         displacement.remove(uuid);
+        caves.release(uuid);
     }
 
     boolean owns(LivingEntity entity){return loop.owns(entity.getUniqueId());}
@@ -80,7 +83,7 @@ final class CustomEncounter implements BossEnvironment {
         return true;
     }
 
-    void stop(){loop.stop();stages.clear();displacement.clear();}
+    void stop(){loop.stop();stages.clear();displacement.clear();caves.stop();}
 
     @Override public Player acquire(CustomBoss boss){
         double range=boss.profile().detectionRange();
@@ -176,6 +179,36 @@ final class CustomEncounter implements BossEnvironment {
             boss.stun(6);
         }
         if(boss.body().isInWater())boss.body().setRemainingAir(boss.body().getMaximumAir());
+    }
+
+    @Override public void blocked(CustomBoss boss,Player target,Location attempted){
+        var definition=definition(boss);
+        if(definition!=null&&definition.custom().options().caveBreach()
+            &&plugin.getConfig().getBoolean("combat.cave-breach",true))caves.open(boss.body(),attempted);
+    }
+
+    private BossCatalog.Definition definition(CustomBoss boss){
+        return BossCatalog.get(boss.body().getPersistentDataContainer().get(
+            new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
+    }
+
+    @Override public void groundWarning(CustomBoss boss,Location center,double radius,int age){
+        if(!center.isChunkLoaded())return;
+        var viewers=CinematicFX.audience(center,radius+20);
+        if(viewers.isEmpty())return;
+        var dust=new org.bukkit.Particle.DustTransition(org.bukkit.Color.ORANGE,org.bukkit.Color.RED,1.25f);
+        for(int i=0;i<56;i++){
+            double angle=age*.021+i*2.399963229728653;
+            double distance=i<24?radius:radius*Math.sqrt((i-23.5)/32);
+            var point=center.clone().add(Math.cos(angle)*distance,1.25,Math.sin(angle)*distance);
+            if(!point.isChunkLoaded()||!mayMove(boss,point))continue;
+            var floor=point.getWorld().rayTraceBlocks(point,new org.bukkit.util.Vector(0,-1,0),5,
+                org.bukkit.FluidCollisionMode.NEVER,true);
+            if(floor==null)continue;
+            var ground=floor.getHitPosition().toLocation(point.getWorld()).add(0,.12,0);
+            for(var viewer:viewers)if(ArenaBoundary.allows(boss.body(),viewer.getLocation()))
+                CosmeticFX.warning(viewer,ground,null,dust);
+        }
     }
 
     @Override public BossVisuals visuals(){return visuals;}

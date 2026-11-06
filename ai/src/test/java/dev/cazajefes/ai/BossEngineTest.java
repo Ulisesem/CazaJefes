@@ -41,12 +41,14 @@ public class BossEngineTest {
     @Test public void presetsCanRoundTripAndInvalidOptionsAreRejected(){
         var document=BossProfile.defaults(40,true);
         var attacks=document.getAsJsonArray("attacks");
-        assertEquals(3,attacks.size());
+        assertEquals(4,attacks.size());
         // The meteor's material is validated against the live Paper registry in the smoke test.
+        attacks.remove(3);
         attacks.remove(2);
         attacks.remove(1);
         var preset=BossProfile.read(document,40,true);
         assertTrue(preset.aquatic());
+        assertEquals(60,preset.detectionRange(),0);
         assertEquals(1,preset.attacks().size());
         assertEquals(30,preset.globalCooldown());
         var invalid=JsonParser.parseString("{\"globalCooldownTicks\":0}").getAsJsonObject();

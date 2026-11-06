@@ -59,14 +59,14 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             }else if(motion!=null&&motion.tick()){
                 finish();
             }
-            move(target,false);
+            move(target,motion!=null);
         }else if(!environment.validTarget(this,target)){
             target=null;
             state=BossState.IDLE;
             move(null,false);
         }else{
             double distance=body.getLocation().distance(target.getLocation());
-            BossAttack choice=tick<gcdUntil?null:DecisionMaker.choose(profile.attacks(),distance,tick,
+            BossAttack choice=tick<gcdUntil||!body.hasLineOfSight(target)?null:DecisionMaker.choose(profile.attacks(),distance,tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current());
             if(choice==null){
                 state=BossState.MOVING;

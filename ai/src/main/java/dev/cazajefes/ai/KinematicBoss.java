@@ -9,7 +9,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
     private double fall;
     private Vector impulse;
     private boolean hasEnteredWater,grounded;
-    private int idleTicks;
+    private int idleTicks,blockedTicks,strafe=1;
 
     public KinematicBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
         super(body,profile,environment);
@@ -58,8 +58,12 @@ public final class KinematicBoss extends AbstractCustomBoss {
         boolean swim=profile().aquatic()&&wet;
         double distance=direction.length();
         Vector horizontal=new Vector(direction.getX(),0,direction.getZ());
-        if(!approach||distance<2.1||horizontal.lengthSquared()<.0001)horizontal.zero();
-        else horizontal.normalize().multiply(profile().speed());
+        if(!approach||horizontal.lengthSquared()<.0001)horizontal.zero();
+        else {
+            horizontal.normalize().multiply(profile().speed());
+            if(distance<2.1&&body().hasLineOfSight(target))
+                horizontal.rotateAroundY(strafe*Math.PI/2).multiply(.55);
+        }
         fall=swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
         Location next=origin.clone();
@@ -73,12 +77,17 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }
         Location horizontalMove=next.clone().add(horizontal);
         if(horizontal.lengthSquared()>.0001){
-            if(clear(horizontalMove))next=horizontalMove;
+            if(clear(horizontalMove)){next=horizontalMove;blockedTicks=0;}
             else if(!swim&&clear(horizontalMove.clone().add(0,.56,0)))next=horizontalMove.add(0,.56,0);
             else {
                 var side=new Vector(-horizontal.getZ(),0,horizontal.getX());
-                if(clear(next.clone().add(side)))next.add(side);
-                else if(clear(next.clone().subtract(side)))next.subtract(side);
+                if(++blockedTicks%12==0&&target!=null&&!body().hasLineOfSight(target))
+                    environment().blocked(this,target,horizontalMove);
+                if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));
+                else if(clear(next.clone().subtract(side.clone().multiply(strafe)))){
+                    next.subtract(side.multiply(strafe));
+                    strafe=-strafe;
+                }
             }
         }
         if(distance>.01)next.setDirection(direction);
