@@ -1,4 +1,6 @@
-# CazaJefes 1.36.2 · testRefactor
+# CazaJefes 1.37.0 · testRefactor
+
+[Motor de IA, ataques y JSON](docs/IA-1370.md)
 
 [Compilación con Gradle, módulos y configuración](docs/TEST-REFACTOR.md)
 

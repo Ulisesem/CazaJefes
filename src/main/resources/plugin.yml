@@ -2,7 +2,8 @@ name: ${pluginName}
 version: '${pluginVersion}'
 main: dev.cazajefes.CazaJefesPlugin
 api-version: '1.21'
-softdepend: [ModelEngine, WorldGuard, packetevents, NBTAPI, PlaceholderAPI]
+depend: [packetevents]
+softdepend: [ModelEngine, WorldGuard, NBTAPI, PlaceholderAPI]
 description: "${pluginDescription}"
 authors: [CazaJefes]
 commands:

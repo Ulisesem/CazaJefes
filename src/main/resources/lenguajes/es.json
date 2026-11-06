@@ -51,7 +51,8 @@
     "bestiary.category.EPIC": "Épicos",
     "bestiary.category.LEGENDARY": "Legendarios",
     "bestiary.category.MYTHIC": "Míticos",
-    "bestiary.category.ABYSSAL": "Abismales"
+    "bestiary.category.ABYSSAL": "Abismales",
+    "bestiary.aiAttacks": "ATAQUES DEL JEFE"
   },
   "bosses": {},
   "attacks": {}

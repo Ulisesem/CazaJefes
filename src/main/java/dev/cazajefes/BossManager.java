@@ -103,7 +103,7 @@ public final class BossManager implements Listener {
                   resumeBoss(var5);
                   var5.setInvulnerable(false);
                   if (var5 instanceof Mob var8) {
-                     var8.setAI(true);
+                     var8.setAI(false);
                   }
                } else if (var6.has(this.minionKey, PersistentDataType.BYTE)) {
                   var5.removePotionEffect(PotionEffectType.RESISTANCE);
@@ -134,7 +134,8 @@ public final class BossManager implements Listener {
          try {
             UUID id=UUID.fromString(entity.getPersistentDataContainer().get(encounterKey,PersistentDataType.STRING));
             BukkitTask task=attacks.remove(id);if(task!=null)task.cancel();removeBossBar(id);encounters.remove(id);
-            living.setInvulnerable(false);living.setAI(true);
+            ((CazaJefesPlugin)plugin).customEncounter.remove(living.getUniqueId());
+            living.setInvulnerable(false);living.setAI(false);
          } catch (IllegalArgumentException invalid) { plugin.getLogger().warning("Boss con encuentro inválido al descargar chunk"); }
       }
    }
@@ -204,7 +205,7 @@ public final class BossManager implements Listener {
       if (var4 != null && var2.getWorld() != null) {
          LivingEntity var5;
          try {
-            Entity var6 = var2.getWorld().spawnEntity(var2,var4.entityType(),org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CUSTOM,entity->{entity.getPersistentDataContainer().set(this.bossKey,PersistentDataType.BYTE,(byte)1);entity.getPersistentDataContainer().set(this.typeKey,PersistentDataType.STRING,var4.id());});
+            Entity var6 = var2.getWorld().spawnEntity(var2,var4.entityType(),org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CUSTOM,entity->{entity.setVisibleByDefault(false);if(entity instanceof LivingEntity body){body.setAI(false);body.setGravity(false);}entity.getPersistentDataContainer().set(this.bossKey,PersistentDataType.BYTE,(byte)1);entity.getPersistentDataContainer().set(this.typeKey,PersistentDataType.STRING,var4.id());});
             if (!(var6 instanceof LivingEntity var7)) {
                var6.remove();
                return null;
@@ -272,24 +273,18 @@ public final class BossManager implements Listener {
    }
 
    private void startBossSystems(UUID var1, LivingEntity var2, BossCatalog.Definition var3, long var4) {
-      BossIntegrity.restore(var2);
-      ((CazaJefesPlugin)plugin).abilities.track(var2,var3);
-      AnimalBossSizing.apply(var2,var3);MiniBossSizing.apply(var2,var3);((CazaJefesPlugin)plugin).safety.track(var2);
-      var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
-      if(var3.custom().options().aura())((CazaJefesPlugin)plugin).auras.track(var2,var3);BossEquipment.apply(var2,var3);ThrownAxeHand.restore(var2,plugin);((CazaJefesPlugin)plugin).pillagers.track(var2,var3);((CazaJefesPlugin)plugin).archers.track(var2,var3);((CazaJefesPlugin)plugin).mages.track(var2,var3);
-      if (!this.attacks.containsKey(var1)) {
-         if (var2 instanceof Mob var6&&var3.custom().options().fearless()) PassiveHostility.prepare(var6);
-
-         long var9 = var3.custom().options().attackInterval(var3.mini()?5:Math.max(5L,Math.min(10L,var4)));
-         BossBuffs.apply(var2);
-         this.attacks
-            .put(
-               var1,
-               this.plugin
-                  .getServer()
-                  .getScheduler()
-                  .runTaskTimer(this.plugin, new BossManager.BossAttackTask(this.plugin, var2, var3, this.minionKey), 10L, var9)
-            );
+      var owner=(CazaJefesPlugin)plugin;
+      if(!owner.customEncounter.owns(var2)){
+         BossIntegrity.restore(var2);
+         AnimalBossSizing.apply(var2,var3);
+         MiniBossSizing.apply(var2,var3);
+         var2.getPersistentDataContainer().set(typeKey,PersistentDataType.STRING,var3.id());
+         BossEquipment.apply(var2,var3);
+         ThrownAxeHand.restore(var2,plugin);
+         owner.customEncounter.attach(var2,var3);
+         if(var3.custom().options().aura())owner.auras.track(var2,var3);
+      }
+      if (!this.healthBars.containsKey(var1)) {
          BossBar var8 = Bukkit.createBossBar("", this.barColor(var3.tier()), BarStyle.SEGMENTED_12, new BarFlag[0]);
          var8.setVisible(true);
          this.healthBars.put(var1, var8);
@@ -606,6 +601,7 @@ public final class BossManager implements Listener {
          NamespacedKey paid = new NamespacedKey(plugin,"loot_paid");
          if (var3.has(paid, PersistentDataType.BYTE)) return;
          var3.set(paid, PersistentDataType.BYTE,(byte)1);
+         ((CazaJefesPlugin)plugin).customEncounter.remove(var2.getUniqueId());
          final boolean credited=((CazaJefesPlugin)plugin).guard.canDrop(var2);
          final BossCatalog.Definition defeated=var7;
          if(credited)((CazaJefesPlugin)plugin).statistics.defeated(var2,defeated,var4);
@@ -741,7 +737,7 @@ public final class BossManager implements Listener {
       }
    }
 
-   @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void nativeMageHorde(org.bukkit.event.entity.EntitySpellCastEvent event){if(event.getEntity().getPersistentDataContainer().has(minionKey,PersistentDataType.BYTE)&&event.getSpell()==org.bukkit.entity.Spellcaster.Spell.SUMMON_VEX){event.setCancelled(true);return;}if(event.getSpell()!=org.bukkit.entity.Spellcaster.Spell.SUMMON_VEX||!event.getEntity().getPersistentDataContainer().has(bossKey,PersistentDataType.BYTE))return;event.setCancelled(true);LivingEntity mage=event.getEntity();if(((CazaJefesPlugin)plugin).abilities.occupied(mage)||((CazaJefesPlugin)plugin).mages.busy(mage.getUniqueId()))return;var definition=BossCatalog.get(mage.getPersistentDataContainer().get(typeKey,PersistentDataType.STRING));if(definition==null)return;Player target=new BossTactics(mage,definition).pickTarget();if(target!=null)new BossAttackTask(plugin,mage,definition,minionKey).summonMinions(target);}
+   @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void nativeMageHorde(org.bukkit.event.entity.EntitySpellCastEvent event){if(event.getEntity().getPersistentDataContainer().has(minionKey,PersistentDataType.BYTE)&&event.getSpell()==org.bukkit.entity.Spellcaster.Spell.SUMMON_VEX){event.setCancelled(true);return;}if(event.getSpell()!=org.bukkit.entity.Spellcaster.Spell.SUMMON_VEX||!event.getEntity().getPersistentDataContainer().has(bossKey,PersistentDataType.BYTE))return;event.setCancelled(true);LivingEntity mage=event.getEntity();if(((CazaJefesPlugin)plugin).customEncounter.owns(mage))return;if(((CazaJefesPlugin)plugin).abilities.occupied(mage)||((CazaJefesPlugin)plugin).mages.busy(mage.getUniqueId()))return;var definition=BossCatalog.get(mage.getPersistentDataContainer().get(typeKey,PersistentDataType.STRING));if(definition==null)return;Player target=new BossTactics(mage,definition).pickTarget();if(target!=null)new BossAttackTask(plugin,mage,definition,minionKey).summonMinions(target);}
 
    public boolean isEggBlock(org.bukkit.block.Block block) { return eggsByBlock.containsKey(key(block.getLocation())); }
 

@@ -19,7 +19,7 @@ final class LightningRetaliation implements Listener {
  LightningRetaliation(CazaJefesPlugin p){plugin=p;marker=new NamespacedKey(p,BossKeys.BOSS);}
  private boolean boss(Entity e){return e.getPersistentDataContainer().has(marker,PersistentDataType.BYTE);}
  @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)public void hit(EntityDamageByEntityEvent event){
-  if(!plugin.getConfig().getBoolean("combat.phase3-lightning.enabled",true)||isActive()||!(event.getEntity() instanceof LivingEntity boss)||!boss(boss))return;
+  if(!plugin.getConfig().getBoolean("combat.phase3-lightning.enabled",true)||isActive()||!(event.getEntity() instanceof LivingEntity boss)||!boss(boss)||plugin.customEncounter.owns(boss))return;
   Entity source=event.getDamager() instanceof Projectile p&&p.getShooter() instanceof Entity shooter?shooter:event.getDamager();
   if(!(source instanceof Player player))return;
   Pair key=new Pair(boss.getUniqueId(),player.getUniqueId());int phase=PhaseRules.phase(boss.getHealth()/Math.max(1,boss.getMaxHealth()));
