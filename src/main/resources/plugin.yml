@@ -6,6 +6,9 @@ softdepend: [ModelEngine, WorldGuard, packetevents, NBTAPI, PlaceholderAPI]
 description: "${pluginDescription}"
 authors: [CazaJefes]
 commands:
+  settings:
+    description: Cambia el idioma de CazaJefes.
+    usage: /settings
   riequipo:
     description: Entrega equipo por categoría a administradores.
     usage: /riequipo <epico|legendario|mitico|abismal> [armadura|espada|hacha|todo] [jugador]

@@ -25,7 +25,7 @@ final class AttackPresentation {
    private static final int GLOBAL_DISPLAYS = 144;
    private static int activeDisplays;
    private final Plugin plugin;
-   private final BossBar bar = BossBar.bossBar(Component.empty(), 0, BossBar.Color.YELLOW, BossBar.Overlay.PROGRESS);
+   private final java.util.Map<Player,BossBar> bars = new java.util.HashMap<>();
    private final Set<Player> viewers = new HashSet<>();
    private ItemDisplay prop;
    private ItemDisplay projectile;
@@ -35,21 +35,27 @@ final class AttackPresentation {
       this.plugin = plugin;
    }
 
-   void update(List<Player> audience, Component label, float progress, BossBar.Color color) {
-      bar.name(label);
-      bar.progress(progress);
-      bar.color(color);
+   void update(List<Player> audience, java.util.function.Function<Player,Component> label, float progress, BossBar.Color color) {
       var nearby = new HashSet<>(audience);
       viewers.removeIf(player -> {
          if (nearby.contains(player)) return false;
-         player.hideBossBar(bar);
+         player.hideBossBar(bars.remove(player));
          if (prop != null) player.hideEntity(plugin, prop);
          return true;
       });
       for (var player : audience) {
-         if (!viewers.add(player)) continue;
-         player.showBossBar(bar);
-         if (prop != null) player.showEntity(plugin, prop);
+         var title=label.apply(player);
+         if (viewers.add(player)) {
+            var bar=BossBar.bossBar(title,progress,color,BossBar.Overlay.PROGRESS);
+            bars.put(player,bar);
+            player.showBossBar(bar);
+            if (prop != null) player.showEntity(plugin, prop);
+         } else {
+            var bar=bars.get(player);
+            bar.name(title);
+            bar.progress(progress);
+            bar.color(color);
+         }
       }
    }
 
@@ -199,7 +205,8 @@ final class AttackPresentation {
    }
 
    void close() {
-      for (var viewer : viewers) viewer.hideBossBar(bar);
+      bars.forEach(Player::hideBossBar);
+      bars.clear();
       viewers.clear();
       clearProp();
       clearDisplays();

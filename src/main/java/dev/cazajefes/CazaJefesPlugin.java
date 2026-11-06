@@ -34,12 +34,17 @@ public final class CazaJefesPlugin extends JavaPlugin {
    private RelicItems relicItems;
    private HuntTracker tracker;
    private ConfiguredText text;
+   Languages languages;
    ConfiguredText text() { return text; }
 
    public void onEnable() {
       this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);
       ConfigMigration.run(this);
+      languages = new Languages(this);
       text = new ConfiguredText(this);
+      var languageMenu = new LanguageMenu(this,languages);
+      getCommand("settings").setExecutor(languageMenu);
+      getServer().getPluginManager().registerEvents(languageMenu,this);
       BossCatalog.installCustom(JsonBosses.load(this));
       CombatScripts.load(this);
       this.recipeSettings = new RecipeSettings(this);

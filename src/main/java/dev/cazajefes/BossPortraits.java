@@ -15,9 +15,13 @@ final class BossPortraits {
    private BossPortraits() {}
 
    static ItemStack tile(BossCatalog.Definition boss, NamedTextColor color, String... lore) {
+      return tile(boss,boss.name(),color,lore);
+   }
+
+   static ItemStack tile(BossCatalog.Definition boss, String name, NamedTextColor color, String... lore) {
       String portrait = boss.custom().portrait();
       Material icon = portrait == null ? nativeHead(boss.entityType()) : Material.PLAYER_HEAD;
-      ItemStack tile = PremiumStyle.tile(icon, boss.name(), color, true, lore);
+      ItemStack tile = PremiumStyle.tile(icon, name, color, true, lore);
       if (portrait != null && tile.getItemMeta() instanceof SkullMeta meta) {
          var profile = Bukkit.createPlayerProfile(UUID.nameUUIDFromBytes(
             ("cazajefes:" + portrait).getBytes(StandardCharsets.UTF_8)));
@@ -48,6 +52,10 @@ final class BossPortraits {
 
    static ItemStack meteorHead(BossCatalog.Definition boss) {
       String hash=boss.custom().meteorTexture()==null?boss.custom().portrait():textureHash(boss.custom().meteorTexture());
+      return texturedHead(hash);
+   }
+
+   static ItemStack texturedHead(String hash) {
       if(hash==null) return new ItemStack(Material.PLAYER_HEAD);
       var head=new ItemStack(Material.PLAYER_HEAD);
       var meta=(SkullMeta)head.getItemMeta();

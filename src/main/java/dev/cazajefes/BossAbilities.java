@@ -278,12 +278,15 @@ final class BossAbilities implements Listener {
 
   private void show(List<Player> audience, String state, float progress,
                     net.kyori.adventure.bossbar.BossBar.Color color) {
-   String attack=skill.summon()&&pulse==0?profile.name()+" + HORDA":profile.name();
-   Component message = plugin.text().attack(state,attack,target);
-   presentation.update(audience, message, progress, color);
+   var labels=new HashMap<Player,Component>();
+   presentation.update(audience,viewer->labels.computeIfAbsent(viewer,
+      player->{
+       Component label=plugin.text().attack(state,definition.id()+"."+skill.id(),profile.name(),player);
+       return skill.summon()&&pulse==0?label.append(Component.text(" + "+plugin.languages.text(player,"attack.hordeTag","HORDA"),NamedTextColor.GOLD)):label;
+      }),progress,color);
    if (!state.equals(lastNotice) || ticks % 20 == 0) {
     lastNotice=state;
-    for (Player player : audience) BossWarnings.send(player, message);
+    for (Player player : audience) BossWarnings.send(player,labels.get(player));
    }
   }
 
@@ -463,7 +466,7 @@ final class BossAbilities implements Listener {
     plugin.getServer().getScheduler().runTaskLater(plugin,() -> {
      if(!boss.isValid()||boss.isDead()||casts.containsKey(boss.getUniqueId()))return;
      for(Player player:players()) BossWarnings.send(player,Component.text(
-        "RECUPERACIÓN · ¡Contraataca!",NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
+        plugin.languages.text(player,"attack.recovery","RECUPERACIÓN · ¡Contraataca!"),NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
     },10);
    }
    if (!completed) plugin.cinematics.remove(boss.getUniqueId());
