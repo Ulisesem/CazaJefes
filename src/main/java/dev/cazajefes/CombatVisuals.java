@@ -29,7 +29,7 @@ final class CombatVisuals {
       (family.getGreen()*2+signature.getGreen())/3,(family.getBlue()*2+signature.getBlue())/3);
  }
  static Particle motif(BossCatalog.Definition boss){return identity(boss).particle();}
- record AuraDot(Location location,Particle.DustTransition data,boolean spark){}
+ record AuraDot(Location location,Particle.DustTransition data){}
  record AuraTrail(Location origin, Particle.Trail data){}
  record Ambient(java.util.List<AuraDot> dots, java.util.List<AuraTrail> trails, Location crown,Particle motif,Particle particle){}
  static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,BossParticles config,double angle,int points){
@@ -37,13 +37,14 @@ final class CombatVisuals {
   AuraIdentity identity=identity(boss);
   Color firstColor=config.color()==null?identity.primary():config.color();
   Color secondColor=config.accent()==null?identity.accent():config.accent();
-  var primary=new Particle.DustTransition(firstColor,secondColor,phase==3?1.55f:1.3f);
-  var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:secondColor,firstColor,1.25f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
   boolean crate=config.crateVisual();
+  float size=(float)Math.clamp(.65+Math.sqrt(Math.max(width,height))*.38,.85,1.65);
+  var primary=new Particle.DustTransition(firstColor,secondColor,phase==3?size*1.15f:size);
+  var accent=new Particle.DustTransition(BossRebirth.used(entity)?Color.ORANGE:secondColor,firstColor,size*.85f);java.util.List<AuraDot> dots=new java.util.ArrayList<>(points);
   var shape=config.shape()==BossParticles.Shape.AUTO
       ?identity.magma()>=0?AuraShape.magma(identity.magma(),width,height,angle,Math.min(points,config.points()),phase)
         :style.points(width,height,origin.getYaw(),angle,Math.min(points,config.points()),phase,identity.seed())
-      :config.geometry(Math.clamp(width*.5+.55,.8,6),Math.clamp(height,.6,9),angle+(identity.seed()&255)*.02,points);
+      :config.geometry(auraRadius(width),Math.max(.35,height),angle+(identity.seed()&255)*.02,points);
   java.util.List<AuraTrail> trails=new java.util.ArrayList<>(2);
   int first=shape.isEmpty()?0:Math.floorMod((int)(angle*3),shape.size());
   for(int i=0;i<shape.size();i++){
@@ -56,19 +57,19 @@ final class CombatVisuals {
     var end=origin.clone().add(next.x(),next.y(),next.z());
     trails.add(new AuraTrail(start,new Particle.Trail(end,point.accent()?secondColor:firstColor,phase==3?12:9)));
    }else{
-    dots.add(new AuraDot(start,point.accent()?accent:primary,crate&&(i-first)%3==0));
+    dots.add(new AuraDot(start,point.accent()?accent:primary));
    }
   }
-  return new Ambient(dots,trails,origin.clone().add(0,height+.3,0),identity.particle(),config.particle());
+  return new Ambient(dots,trails,origin.clone().add(0,height+.3,0),crate?null:identity.particle(),config.particle());
  }
+ static double auraRadius(double width){return width*.72+Math.clamp(width*.16,.20,.75);}
  static void ambient(org.bukkit.entity.Player player,Ambient frame){
   for(var dot:frame.dots()){
-   if(frame.particle()==null&&dot.spark())PacketBridge.particle(player,Particle.END_ROD,dot.location(),1,0,0,0,0,null);
-   else if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
+   if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
    else PacketBridge.particle(player,frame.particle(),dot.location(),1,0,0,0,0,null);
   }
   for(var trail:frame.trails())PacketBridge.particle(player,Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data());
-  PacketBridge.particle(player,frame.motif(),frame.crown(),1,.2,.15,.2,.005,null);
+  if(frame.motif()!=null)PacketBridge.particle(player,frame.motif(),frame.crown(),1,.2,.15,.2,.005,null);
  }
  static void special(LivingEntity entity,BossCatalog.Definition boss){signatureRing(entity.getLocation(),boss,1.6,24);CosmeticFX.emit(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}
  static void summon(Location point,BossCatalog.Definition boss){signatureRing(point,boss,.8,18);CosmeticFX.emit(motif(boss),point.clone().add(0,.7,0),16,.35,.5,.35,.02);}

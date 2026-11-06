@@ -37,3 +37,5 @@ En 1.37.2 el aura sigue la posición actual del jefe durante todo el encuentro. 
 Desde 1.37.3, cada jefe recibe una forma de caja por defecto según su ID. La elección se conserva al reiniciar y es la misma para todos los jugadores. Formas: HELIX, SPIRAL, SPHERE, HEART, PULSAR, BEACON, TORNADO, VORTEX y SIMPLE. Configura combat.particles.aura.shape en el JSON del jefe para escoger una forma específica o RANDOM_CRATE para usar la asignación por ID.
 
 En 1.37.4 los estilos de cajas con partículas automáticas alternan polvo de color con destellos blancos END_ROD en el contorno. Los destellos ocupan parte del mismo cupo de partículas. Si el JSON indica una partícula explícita, se respeta esa elección.
+
+En 1.37.5 el aura de caja usa el ancho y la altura actuales del cuerpo y dibuja su contorno con dos colores. Se retiraron los destellos blancos automáticos y la partícula de la corona en esos estilos. Los ajustes de color, forma, tamaño y partícula explícita del JSON siguen disponibles.
