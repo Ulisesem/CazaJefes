@@ -12,6 +12,8 @@ public interface BossEnvironment {
     boolean mayHit(CustomBoss boss, LivingEntity entity);
     void damage(CustomBoss boss, LivingEntity victim, double damage);
     void warning(CustomBoss boss, Player player, BossAttack attack, int ticks);
+    default void release(CustomBoss boss,BossAttack attack) {}
+    default void impact(CustomBoss boss,BossAttack attack,Location at) { visuals().explosion(at); }
     default void heartbeat(CustomBoss boss) {}
     BossVisuals visuals();
 }

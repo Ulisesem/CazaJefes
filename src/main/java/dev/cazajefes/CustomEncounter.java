@@ -112,12 +112,44 @@ final class CustomEncounter implements BossEnvironment {
         var at=boss.body().getLocation();
         var definition=BossCatalog.get(boss.body().getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
+        effect(boss,attack,"charge",BossParticles.Shape.RING,at,
+            Math.max(.85,boss.body().getWidth()*.65),boss.body().getHeight(),true);
         for(Player viewer:at.getWorld().getNearbyPlayers(at,32)){
             if(!ArenaBoundary.allows(boss.body(),viewer.getLocation()))continue;
             String id=definition==null?attack.id():definition.id()+"."+attack.id();
             String name=plugin.languages.attack(viewer,id,attack.name());
             BossWarnings.send(viewer,Component.text("⚠ "+plugin.languages.text(viewer,"attack.loading","CARGANDO")
                 +" · "+name+" · "+String.format(Locale.ROOT,"%.1f",ticks/20.0)+" s",NamedTextColor.GOLD));
+        }
+    }
+
+    @Override public void release(CustomBoss boss,BossAttack attack){
+        var at=boss.body().getLocation();
+        effect(boss,attack,"release",BossParticles.Shape.BEAM,at,
+            Math.max(.8,boss.body().getWidth()*.55),boss.body().getHeight(),false);
+    }
+
+    @Override public void impact(CustomBoss boss,BossAttack attack,Location at){
+        effect(boss,attack,"impact",BossParticles.Shape.PULSE,at,
+            Math.max(1,attack.radius()),1.1,false);
+    }
+
+    private void effect(CustomBoss boss,BossAttack attack,String stage,BossParticles.Shape fallback,
+                        Location at,double radius,double height,boolean warning){
+        var id=boss.body().getPersistentDataContainer().get(new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING);
+        var definition=BossCatalog.get(id);
+        if(definition==null)return;
+        var style=CreatureAura.of(definition.entityType());
+        var effect=BossParticles.attack(definition,attack.id(),stage,fallback);
+        double angle=effect.shape()==BossParticles.Shape.PULSE&&effect.speed()>0?-Math.PI*.5/effect.speed():org.bukkit.Bukkit.getCurrentTick()*.21;
+        effect.show(at,radius,height,angle,style.primary,style.accent,warning);
+        if(effect.shape()==BossParticles.Shape.PULSE&&effect.speed()>0){
+            for(int frame=1;frame<=2;frame++){
+                double renderedAngle=angle+frame*Math.PI*.5/effect.speed();
+                plugin.getServer().getScheduler().runTaskLater(plugin,()->{
+                    if(at.isChunkLoaded())effect.show(at,radius,height,renderedAngle,style.primary,style.accent,warning);
+                },frame*3L);
+            }
         }
     }
 

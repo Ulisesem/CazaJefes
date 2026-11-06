@@ -15,9 +15,13 @@ final class CosmeticFX {
   return true;
  }
  static void warning(Player player,Location at,Particle.DustTransition color){
+  warning(player,at,null,color);
+ }
+ static void warning(Player player,Location at,Particle particle,Particle.DustTransition color){
   if(player.getWorld().equals(at.getWorld())&&player.getLocation().distanceSquared(at)<=1024
       &&allowWarning(player.getUniqueId(),System.currentTimeMillis())) {
-   PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,at,1,0,0,0,0,color);
+   if(particle==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,at,1,0,0,0,0,color);
+   else PacketBridge.particle(player,particle,at,1,0,0,0,0,null);
   }
  }
  static <T> void to(Player p,Particle type,Location at,int count,double x,double y,double z,double speed,T data){if(!p.getWorld().equals(at.getWorld())||p.getLocation().distanceSquared(at)>1024||!allow(p.getUniqueId(),Math.max(1,count),System.currentTimeMillis()))return;PacketBridge.particle(p,type,at,count,x,y,z,speed,data);}
