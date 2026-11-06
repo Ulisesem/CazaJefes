@@ -192,10 +192,20 @@ final class CustomEncounter implements BossEnvironment {
         if(boss.body().isInWater())boss.body().setRemainingAir(boss.body().getMaximumAir());
     }
 
+    @Override public boolean canSee(CustomBoss boss,Player target){
+        return boss.body().hasLineOfSight(target)||CombatHitbox.visible(target,boss.body());
+    }
+
+    @Override public void dislodge(CustomBoss boss,Player target){
+        var toward=boss.body().getLocation().toVector().subtract(target.getLocation().toVector()).setY(0);
+        if(toward.lengthSquared()<.001)toward=boss.body().getLocation().getDirection().setY(0);
+        target.setVelocity(toward.normalize().multiply(1.1).setY(-.55));
+    }
+
     @Override public void blocked(CustomBoss boss,Player target,Location attempted){
         var definition=definition(boss);
         if(definition!=null&&definition.custom().options().caveBreach()
-            &&plugin.getConfig().getBoolean("combat.cave-breach",true))caves.open(boss.body(),attempted);
+            &&plugin.getConfig().getBoolean("combat.cave-breach",true))caves.open(boss.body(),target,attempted);
     }
 
     private BossCatalog.Definition definition(CustomBoss boss){

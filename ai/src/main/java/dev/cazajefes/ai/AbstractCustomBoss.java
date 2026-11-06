@@ -59,15 +59,15 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             }else if(motion!=null&&motion.tick()){
                 finish();
             }
-            move(target,motion!=null||pending!=null&&profile.tactics().mobileWindup());
+            move(target,motion!=null||mobileWindup());
         }else if(!environment.validTarget(this,target)){
             target=null;
             state=BossState.IDLE;
             move(null,false);
         }else{
             double distance=body.getLocation().distance(target.getLocation());
-            BossAttack choice=tick<gcdUntil||!body.hasLineOfSight(target)?null:DecisionMaker.choose(profile.attacks(),distance,tick,
-                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current());
+            BossAttack choice=tick<gcdUntil||!environment.canSee(this,target)?null:DecisionMaker.choose(profile.attacks(),tick,
+                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),attack->attack.inRange(this,target,distance));
             if(choice==null){
                 state=BossState.MOVING;
                 move(target,true);
@@ -76,10 +76,15 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 releaseAt=tick+choice.warningTicks();
                 state=BossState.ATTACKING;
                 environment.warning(this,target,choice,choice.warningTicks());
-                move(target,profile.tactics().mobileWindup());
+                move(target,mobileWindup());
             }
         }
         if(!closed)view.move(body.getLocation());
+    }
+
+    private boolean mobileWindup(){
+        return pending!=null&&!(pending instanceof dev.cazajefes.ai.attack.MeleeSweep)
+            &&profile.tactics().mobileWindup();
     }
 
     protected abstract void move(Player player,boolean approach);

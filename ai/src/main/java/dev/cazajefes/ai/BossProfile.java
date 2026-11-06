@@ -40,6 +40,8 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                 double radius=number(row,"radius",2,0,24);
                 double damage=number(row,"damage",Math.min(baseDamage,500),0,500);
                 entries.add(switch(text(row,"type","")){
+                    case "SHOCKWAVE" -> new dev.cazajefes.ai.attack.ShockwaveAttack(id,name,weight,cooldown,radius,damage,warn);
+                    case "FAULT_LINE" -> new dev.cazajefes.ai.attack.FaultLineAttack(id,name,weight,cooldown,radius,damage,warn);
                     case "MELEE_SWEEP" -> new dev.cazajefes.ai.attack.MeleeSweep(id,name,category,weight,cooldown,radius,damage,warn);
                     case "LINEAR_PROJECTILE" -> new LinearProjectileAttack(id,name,category,weight,cooldown,
                         radius,damage,warn,number(row,"speed",1.4,.1,4),integer(row,"lifetimeTicks",30,1,100));
@@ -51,6 +53,16 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                     default -> throw new IllegalArgumentException("tipo de ataque desconocido: "+id);
                 });
             }
+        }
+        if(!entries.isEmpty()&&entries.size()<24&&!(json.has("disableDefaultFaultLine")&&json.get("disableDefaultFaultLine").getAsBoolean())
+            &&entries.stream().noneMatch(attack->attack instanceof dev.cazajefes.ai.attack.FaultLineAttack||attack.id().equals("falla_del_terreno"))){
+            entries.add(new dev.cazajefes.ai.attack.FaultLineAttack("falla_del_terreno","Falla del Terreno",12,180,12,
+                Math.min(baseDamage*.9,500),24));
+        }
+        if(!entries.isEmpty()&&entries.size()<24&&!(json.has("disableDefaultShockwave")&&json.get("disableDefaultShockwave").getAsBoolean())
+            &&entries.stream().noneMatch(attack->attack instanceof dev.cazajefes.ai.attack.ShockwaveAttack||attack.id().equals("pulso_de_fractura"))){
+            entries.add(new dev.cazajefes.ai.attack.ShockwaveAttack("pulso_de_fractura","Pulso de Fractura",4,140,7,
+                Math.min(baseDamage*1.2,500),23));
         }
         var config=json.has("tactics")?json.getAsJsonObject("tactics"):new JsonObject();
         String styleName=text(config,"style","AUTO");

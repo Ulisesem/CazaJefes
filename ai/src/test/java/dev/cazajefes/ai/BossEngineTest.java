@@ -49,7 +49,9 @@ public class BossEngineTest {
         var preset=BossProfile.read(document,40,true);
         assertTrue(preset.aquatic());
         assertEquals(60,preset.detectionRange(),0);
-        assertEquals(1,preset.attacks().size());
+        assertEquals(3,preset.attacks().size());
+        assertTrue(preset.attacks().stream().anyMatch(a->a.id().equals("falla_del_terreno")));
+        assertTrue(preset.attacks().stream().anyMatch(a->a.id().equals("pulso_de_fractura")));
         assertEquals(30,preset.globalCooldown());
         var invalid=JsonParser.parseString("{\"globalCooldownTicks\":0}").getAsJsonObject();
         assertThrows(IllegalArgumentException.class,()->BossProfile.read(invalid,40,true));
@@ -67,6 +69,14 @@ public class BossEngineTest {
         assertEquals(CombatStyle.Tactics.Move.APPROACH,tactics.move(4,false));
         json.getAsJsonObject("tactics").addProperty("preferredMin",13);
         assertThrows(IllegalArgumentException.class,()->BossProfile.read(json,40,false));
+    }
+
+    @Test public void meleeUsesTheGapInsteadOfTheEntityCenter(){
+        var large=new org.bukkit.util.BoundingBox(-3,0,-3,3,6,3);
+        var player=new org.bukkit.util.BoundingBox(3.5,0,0,4.1,1.8,.6);
+        assertEquals(.25,Geometry.gapSquared(large,player),.0001);
+        player.shift(0,8,0);
+        assertEquals(4.25,Geometry.gapSquared(large,player),.0001);
     }
 
     private static BossAttack attack(String id,AttackCategory category,int weight){
