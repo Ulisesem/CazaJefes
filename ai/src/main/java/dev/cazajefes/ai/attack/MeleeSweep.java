@@ -9,9 +9,13 @@ public final class MeleeSweep extends BossAttack {
         super(id,name,category,weight,cooldown,radius,damage,warningTicks);
     }
 
+    @Override public boolean inRange(CustomBoss boss,Player target,double distance){
+        return Geometry.gapSquared(boss.body().getBoundingBox(),target.getBoundingBox())<=radius()*radius();
+    }
+
     @Override public AttackMotion execute(CustomBoss boss,Player target) {
-        if(boss.environment().mayHit(boss,target) && boss.body().hasLineOfSight(target)
-            && Geometry.sphereIntersects(boss.origin().toVector(),radius(),target.getBoundingBox())) {
+        if(boss.environment().mayHit(boss,target) && boss.environment().canSee(boss,target)
+            && inRange(boss,target,0)) {
             boss.environment().damage(boss,target,damage());
             boss.environment().impact(boss,this,target.getLocation());
         }

@@ -7,6 +7,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
@@ -41,27 +42,42 @@ final class CavePassages {
         task=plugin.getServer().getScheduler().runTaskTimer(plugin,this::restore,20,20);
     }
 
-    void open(LivingEntity boss,Location attempted){
+    void open(LivingEntity boss,Player target,Location attempted){
         if(!available||blocks.size()>=512||!attempted.isChunkLoaded()||boss.isInWater())return;
         var world=attempted.getWorld();
-        if(!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.MOB_GRIEFING))
-            ||attempted.getY()>=world.getSeaLevel()
-            ||world.getHighestBlockYAt(attempted)<=attempted.getBlockY()+boss.getHeight()
+        if(target.getWorld()!=world||!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.MOB_GRIEFING))
             ||!ArenaBoundary.allowsTerrain(boss,attempted))return;
-        var box=boss.getBoundingBox().shift(attempted.toVector().subtract(boss.getLocation().toVector())).expand(-.001);
+        var origin=boss.getLocation();
+        boolean vertical=attempted.getBlockX()==origin.getBlockX()&&attempted.getBlockZ()==origin.getBlockZ()
+            &&Math.abs(attempted.getY()-origin.getY())>.5;
+        boolean underRoof=attempted.getY()<world.getSeaLevel()
+            &&world.getHighestBlockYAt(attempted)>attempted.getBlockY()+boss.getHeight();
         var id=boss.getUniqueId();
         var batch=new ArrayList<Saved>();
-        for(int x=(int)Math.floor(box.getMinX());x<=Math.floor(box.getMaxX());x++)
-            for(int y=(int)Math.floor(box.getMinY());y<=Math.floor(box.getMaxY());y++)
-                for(int z=(int)Math.floor(box.getMinZ());z<=Math.floor(box.getMaxZ());z++){
-                    if(y<world.getMinHeight()||y>=world.getMaxHeight()||!world.isChunkLoaded(x>>4,z>>4))return;
-                    var block=world.getBlockAt(x,y,z);
-                    if(block.isPassable())continue;
-                    if(batch.size()>=24||!natural(block.getType())||!ArenaBoundary.allowsTerrain(boss,block.getLocation()))return;
-                    var air=Material.CAVE_AIR.createBlockData();
-                    if(!new EntityChangeBlockEvent(boss,block,air).callEvent())return;
-                    batch.add(new Saved(id,world.getUID(),x,y,z,block.getBlockData()));
+        if(!vertical&&underRoof){
+            var box=boss.getBoundingBox().shift(attempted.toVector().subtract(origin.toVector())).expand(-.001);
+            for(int x=(int)Math.floor(box.getMinX());x<=Math.floor(box.getMaxX());x++)
+                for(int y=(int)Math.floor(box.getMinY());y<=Math.floor(box.getMaxY());y++)
+                    for(int z=(int)Math.floor(box.getMinZ());z<=Math.floor(box.getMaxZ());z++){
+                        if(y<world.getMinHeight()||y>=world.getMaxHeight()||!world.isChunkLoaded(x>>4,z>>4))return;
+                        var block=world.getBlockAt(x,y,z);
+                        if(!block.isPassable()&&batch.size()<24)collect(boss,block,batch);
+                    }
+        }
+        if(batch.isEmpty()){
+            var eye=boss.getEyeLocation();
+            var direction=target.getEyeLocation().toVector().subtract(eye.toVector());
+            double distance=Math.min(6,direction.length());
+            if(distance>.01&&dev.cazajefes.ai.Geometry.loaded(eye,distance)){
+                var obstruction=world.rayTraceBlocks(eye,direction.normalize(),distance,FluidCollisionMode.NEVER,true);
+                if(obstruction!=null)collect(boss,obstruction.getHitBlock(),batch);
+                else if(vertical&&target.getY()>origin.getY()&&target.isOnGround()
+                    &&target.getLocation().distanceSquared(origin)<=36){
+                    var support=target.getLocation().subtract(0,.16,0).getBlock();
+                    collect(boss,support,batch);
                 }
+            }
+        }
         if(batch.isEmpty()||batch.size()+blocks.size()>512
             ||blocks.stream().filter(saved->saved.boss().equals(id)).count()+batch.size()>96)return;
         blocks.addAll(batch);
@@ -78,10 +94,22 @@ final class CavePassages {
         world.playSound(attempted,Sound.BLOCK_STONE_BREAK,1,.7f);
     }
 
+    private static void collect(LivingEntity boss,Block block,List<Saved> batch){
+        if(block==null||!natural(block.getType())||!ArenaBoundary.allowsTerrain(boss,block.getLocation()))return;
+        var data=block.getBlockData();
+        if(data instanceof org.bukkit.block.data.Waterlogged waterlogged&&waterlogged.isWaterlogged())return;
+        if(!new EntityChangeBlockEvent(boss,block,Material.CAVE_AIR.createBlockData()).callEvent()
+            ||!block.getBlockData().equals(data))return;
+        batch.add(new Saved(boss.getUniqueId(),block.getWorld().getUID(),block.getX(),block.getY(),block.getZ(),data));
+    }
+
     private static boolean natural(Material material){
         return switch(material){
             case STONE, DEEPSLATE, ANDESITE, DIORITE, GRANITE, TUFF, CALCITE, DRIPSTONE_BLOCK,
-                 DIRT, ROOTED_DIRT, COARSE_DIRT, CLAY, NETHERRACK, BASALT, BLACKSTONE -> true;
+                 DIRT, ROOTED_DIRT, COARSE_DIRT, CLAY, NETHERRACK, BASALT, BLACKSTONE,
+                 COBBLESTONE, COBBLED_DEEPSLATE, STONE_BRICKS, DEEPSLATE_BRICKS,
+                 OAK_PLANKS, SPRUCE_PLANKS, BIRCH_PLANKS, JUNGLE_PLANKS, ACACIA_PLANKS,
+                 DARK_OAK_PLANKS, MANGROVE_PLANKS, CHERRY_PLANKS, PALE_OAK_PLANKS -> true;
             default -> false;
         };
     }

@@ -9,7 +9,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
     private double fall;
     private Vector impulse;
     private boolean hasEnteredWater,grounded;
-    private int idleTicks,blockedTicks,strafe=1;
+    private int idleTicks,blockedTicks,verticalBlockedTicks,strafe=1;
 
     public KinematicBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
         super(body,profile,environment);
@@ -63,7 +63,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
             var tactics=profile().tactics();
             double groundDistance=horizontal.length();
             horizontal.normalize().multiply(profile().speed());
-            switch(tactics.move(groundDistance,body().hasLineOfSight(target))){
+            switch(tactics.move(groundDistance,environment().canSee(this,target))){
                 case APPROACH -> {}
                 case RETREAT -> horizontal.multiply(-.75);
                 case ORBIT -> horizontal.rotateAroundY(strafe*Math.PI/2).multiply(tactics.orbit());
@@ -83,10 +83,13 @@ public final class KinematicBoss extends AbstractCustomBoss {
         Location horizontalMove=next.clone().add(horizontal);
         if(horizontal.lengthSquared()>.0001){
             if(clear(horizontalMove)){next=horizontalMove;blockedTicks=0;}
-            else if(!swim&&clear(horizontalMove.clone().add(0,.56,0)))next=horizontalMove.add(0,.56,0);
+            else if(!swim&&grounded&&clear(horizontalMove.clone().add(0,1.02,0))){
+                next=horizontalMove.add(0,1.02,0);
+                blockedTicks=0;
+            }
             else {
                 var side=new Vector(-horizontal.getZ(),0,horizontal.getX());
-                if(++blockedTicks%12==0&&target!=null&&!body().hasLineOfSight(target))
+                if(++blockedTicks%12==0&&target!=null&&!environment().canSee(this,target))
                     environment().blocked(this,target,horizontalMove);
                 if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));
                 else if(clear(next.clone().subtract(side.clone().multiply(strafe)))){
@@ -95,6 +98,11 @@ public final class KinematicBoss extends AbstractCustomBoss {
                 }
             }
         }
+        if(approach&&target!=null&&!swim&&Math.abs(target.getY()-origin.getY())>=1.5
+            &&origin.distanceSquared(target.getLocation())<=49){
+            if(++verticalBlockedTicks%16==0)environment().blocked(this,target,
+                origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0));
+        }else verticalBlockedTicks=0;
         if(distance>.01)next.setDirection(direction);
         if(next.distanceSquared(origin)>.000001){
             body().teleport(next);
