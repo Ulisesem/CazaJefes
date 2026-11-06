@@ -14,16 +14,54 @@ final class SkeletonCombat implements Listener {
  static final NamespacedKey ARROW=new NamespacedKey("cazajefes","skeleton_arrow");
  static boolean archer(EntityType type){return type==EntityType.SKELETON||type==EntityType.STRAY||type==EntityType.BOGGED;}
  static boolean shot(Entity entity){return entity.getPersistentDataContainer().has(ARROW,PersistentDataType.BYTE);}
- private static final class Unit {LivingEntity boss;BossCatalog.Definition definition;long nextShot,nextSpecial,release;Unit(LivingEntity b,BossCatalog.Definition d){boss=b;definition=d;nextSpecial=System.currentTimeMillis()+15000;}}
+ private static final class Unit {LivingEntity boss;BossCatalog.Definition definition;long nextShot,nextSpecial,release;UUID focus;Unit(LivingEntity b,BossCatalog.Definition d){boss=b;definition=d;nextSpecial=System.currentTimeMillis()+15000;}}
  private record Shot(Arrow arrow,UUID boss,UUID target,double damage,long end){}
  private final CazaJefesPlugin plugin;private final Map<UUID,Unit> units=new HashMap<>();private final Map<UUID,Shot> shots=new LinkedHashMap<>();private final BukkitTask timer;
  SkeletonCombat(CazaJefesPlugin plugin){this.plugin=plugin;timer=plugin.getServer().getScheduler().runTaskTimer(plugin,this::tick,5,5);}
  void track(LivingEntity boss,BossCatalog.Definition d){if(archer(boss.getType()))units.putIfAbsent(boss.getUniqueId(),new Unit(boss,d));}
  boolean charging(UUID id){var u=units.get(id);return u!=null&&u.release>0;}
  private Player target(LivingEntity boss){return ThreatTable.pick(boss,24,player -> eligible(boss,player));}
- private boolean eligible(LivingEntity boss,Player p){return p!=null&&CombatGuard.eligible(p)&&p.getWorld().equals(boss.getWorld())&&p.getLocation().distanceSquared(boss.getLocation())<=2304&&boss.hasLineOfSight(p);}
+ private boolean eligible(LivingEntity boss,Player p){return p!=null&&CombatGuard.eligible(p)&&p.getWorld().equals(boss.getWorld())&&p.getLocation().distanceSquared(boss.getLocation())<=2304&&ArenaBoundary.allows(boss,p.getLocation())&&boss.hasLineOfSight(p);}
  private void tick(){long now=System.currentTimeMillis();for(var it=shots.entrySet().iterator();it.hasNext();){Shot s=it.next().getValue();Entity owner=Bukkit.getEntity(s.boss());if(!s.arrow().isValid()||s.arrow().isInBlock()||now>=s.end()||owner==null||owner.isDead()){s.arrow().remove();it.remove();continue;}Player player=Bukkit.getPlayer(s.target());if(s.arrow().getTicksLived()<=20&&owner instanceof LivingEntity boss&&eligible(boss,player)){Vector desired=aim(s.arrow().getLocation(),player),current=s.arrow().getVelocity();if(current.lengthSquared()>.01)s.arrow().setVelocity(current.normalize().multiply(.7).add(desired.multiply(.3)).normalize().multiply(3.2));}}
-  for(var it=units.entrySet().iterator();it.hasNext();){var u=it.next().getValue();LivingEntity boss=u.boss;if(!boss.isValid()||boss.isDead()){it.remove();continue;}if(boss.isInvulnerable())continue;Player player=target(boss);if(player==null){u.release=0;continue;}if(u.release>0){if(now<u.release){BossWarnings.send(player,Component.text("⚠ TRÍADA DEL ECLIPSE · Cargando arco",NamedTextColor.GOLD).decorate(TextDecoration.BOLD));continue;}u.release=0;fire(u,player,true,now);plugin.abilities.rest(boss);u.nextSpecial=now+15000;u.nextShot=now+2000;continue;}if(plugin.abilities.occupied(boss))continue;if(now>=u.nextSpecial){u.release=now+3000;plugin.cinematics.play(boss,u.definition,BossStyle.Beat.PREPARE);continue;}if(now>=u.nextShot){fire(u,player,false,now);u.nextShot=now+2000;}}
+  for(var it=units.entrySet().iterator();it.hasNext();){
+   var u=it.next().getValue();LivingEntity boss=u.boss;
+   if(!boss.isValid()||boss.isDead()){it.remove();continue;}
+   if(boss.isInvulnerable())continue;
+   if(u.release>0){
+    Player player=Bukkit.getPlayer(u.focus);
+    if(!eligible(boss,player)){
+     u.release=0;u.focus=null;u.nextSpecial=now+5000;
+     if(player!=null && player.getWorld()==boss.getWorld() && CombatGuard.eligible(player)
+         && ArenaBoundary.allows(boss,player.getLocation()) && boss instanceof Mob mob) {
+      var at=boss.getLocation();
+      Vector side=player.getLocation().toVector().subtract(at.toVector()).setY(0);
+      if(side.lengthSquared()>.01){
+       side.normalize().rotateAroundY(Math.PI/2).multiply(3);
+       mob.setTarget(player);
+       Location left=at.clone().add(side);
+       Location right=at.clone().subtract(side);
+       if(!ArenaBoundary.allows(boss,left)||!RepositionGoal.request(mob,left))
+        if(ArenaBoundary.allows(boss,right))RepositionGoal.request(mob,right);
+      }
+      BossWarnings.send(player,Component.text("TIRO INTERRUMPIDO · El arquero busca otro ángulo",NamedTextColor.GREEN));
+     }
+     continue;
+    }
+    if(now<u.release){
+     BossWarnings.personal(player,Component.text("TE ESTÁ APUNTANDO · TRÍADA DEL ECLIPSE",NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
+     continue;
+    }
+    u.release=0;u.focus=null;fire(u,player,true,now);plugin.abilities.rest(boss);
+    u.nextSpecial=now+15000;u.nextShot=now+2000;continue;
+   }
+   Player player=target(boss);
+   if(player==null||plugin.abilities.occupied(boss))continue;
+   if(now>=u.nextSpecial){
+    u.release=now+3000;u.focus=player.getUniqueId();
+    plugin.cinematics.play(boss,u.definition,BossStyle.Beat.PREPARE);continue;
+   }
+   if(now>=u.nextShot){fire(u,player,false,now);u.nextShot=now+2000;}
+  }
  }
  private Vector aim(Location from,Player p){var levitation=p.getPotionEffect(org.bukkit.potion.PotionEffectType.LEVITATION);return PillagerRules.aim(from.toVector(),p.getEyeLocation().toVector(),p.getVelocity(),3.2,levitation==null?0:levitation.getAmplifier()+1,!p.isOnGround());}
  private void fire(Unit u,Player player,boolean special,long now){if(shots.size()+(special?3:1)>128)return;var attribute=u.boss.getAttribute(Attribute.ATTACK_DAMAGE);double baseline=Math.max(u.definition.tier().damage,attribute==null?20:attribute.getValue());double damage=Math.min(120,baseline*.55*3.75*(special?1.2:1));Vector direction=aim(u.boss.getEyeLocation(),player);int count=special?3:1;for(int i=0;i<count;i++){Vector vector=direction.clone().rotateAroundY(Math.toRadians(special?(i-1)*4:0));Arrow arrow=u.boss.launchProjectile(Arrow.class,vector.multiply(3.2),a->{a.getPersistentDataContainer().set(ARROW,PersistentDataType.BYTE,(byte)1);a.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);a.setDamage(damage/3.2);a.setKnockbackStrength(10);a.setFireTicks(60);a.setCritical(false);a.setPersistent(false);});if(arrow.isValid())shots.put(arrow.getUniqueId(),new Shot(arrow,u.boss.getUniqueId(),player.getUniqueId(),damage,now+4000));}u.boss.getWorld().playSound(u.boss.getLocation(),Sound.ENTITY_SKELETON_SHOOT,1,.7f);if(special){plugin.cinematics.play(u.boss,u.definition,BossStyle.Beat.IMPACT);CombatVisuals.special(u.boss,u.definition);BossWarnings.send(player,Component.text("✦ TRÍADA DEL ECLIPSE · ¡Busca cobertura!",NamedTextColor.GOLD).decorate(TextDecoration.BOLD));}}

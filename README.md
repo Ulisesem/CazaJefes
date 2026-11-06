@@ -1,3 +1,7 @@
+# CazaJefes 1.34.0 · Contraataque
+
+Avisos con partículas, hachas arrojadizas, rayos reflejados y anclas rompibles. [Cambios y configuración](docs/CAMBIOS-1.34.0.md).
+
 # CazaJefes 1.33.0 · Impacto de la Grieta
 
 Avisos con partículas, hachas arrojadizas, rayos reflejados y anclas rompibles. [Cambios y configuración](docs/CAMBIOS-1.33.0.md).

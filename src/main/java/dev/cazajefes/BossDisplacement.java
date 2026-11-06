@@ -14,7 +14,7 @@ final class BossDisplacement {
  boolean tick(LivingEntity boss,BossCatalog.Definition definition,int phase,long now,boolean otherCast){
   State state=states.computeIfAbsent(boss.getUniqueId(),id->new State());
   if(state.phase!=phase){anchor.remove(boss.getUniqueId());state.phase=phase;state.pending=0;state.cadence.initialize(now);state.lift=state.cadence.next();state.repel=state.lift;}
-  List<Player> players=boss.getWorld().getPlayers().stream().filter(p->CombatGuard.eligible(p)&&CombatHitbox.distanceSquared(p.getEyeLocation(),boss)<=144&&CombatHitbox.visible(p,boss)).toList();
+  List<Player> players=boss.getWorld().getPlayers().stream().filter(p->CombatGuard.eligible(p)&&ArenaBoundary.allows(boss,p.getLocation())&&CombatHitbox.distanceSquared(p.getEyeLocation(),boss)<=144&&CombatHitbox.visible(p,boss)).toList();
   if(state.pending!=0){String name=state.pending==1?StageAttackRules.LIFT:StageAttackRules.REPEL;
    if(now<state.release){if(now>=state.lastHud){warn(players,"⚠ CARGANDO · "+name+" · "+Math.max(1,(state.release-now+999)/1000)+"s");state.lastHud=now+350;}return true;}
    int attack=state.pending;state.last=attack;state.pending=0;state.cadence.released(now);state.lift=state.cadence.next();state.repel=state.lift;

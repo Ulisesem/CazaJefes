@@ -38,12 +38,13 @@ final class CombatGuard implements Listener {
             if(attacker instanceof Player player){
                 if(!canAttackBoss(player))deny(event,"modo de juego o permisos");
                 else if(!player.getWorld().equals(victim.getWorld()))deny(event,"mundos distintos");
+                else if(!ArenaBoundary.allows(victim,player.getLocation()))deny(event,"límite de arena");
                 else if(CombatHitbox.distanceSquared(player.getEyeLocation(),victim)>576)deny(event,"fuera de alcance");
                 else if(!CombatHitbox.visible(player,victim))deny(event,"pared entre jugador y cuerpo del boss");
             }else if(!combatant(attacker))deny(event,"atacante no permitido");
         }
         if (combatant(attacker) && victim instanceof Player player && (!eligible(player)
-            || !attacker.getWorld().equals(victim.getWorld()) || attacker.getLocation().distanceSquared(victim.getLocation())>(event.getDamager() instanceof Projectile?PillagerCombat.arrowRangeSquared(event.getDamager()):576)
+            || !attacker.getWorld().equals(victim.getWorld()) || !ArenaBoundary.allows(attacker,victim.getLocation()) || attacker.getLocation().distanceSquared(victim.getLocation())>(event.getDamager() instanceof Projectile?PillagerCombat.arrowRangeSquared(event.getDamager()):576)
             || attacker instanceof LivingEntity living && !AbilityDamage.reflected(attacker,victim) && !(event.getDamager() instanceof Projectile?living.hasLineOfSight(victim):CombatHitbox.visible(player,living)))) event.setCancelled(true);
     }
     @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)

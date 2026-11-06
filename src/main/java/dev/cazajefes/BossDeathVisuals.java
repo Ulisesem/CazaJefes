@@ -44,9 +44,9 @@ final class BossDeathVisuals implements Listener {
   for(int i=0;i<4;i++){double angle=i*Math.PI/2;center.getWorld().strikeLightningEffect(center.clone().add(Math.cos(angle)*9,0,Math.sin(angle)*9));}
   deathCylinder(center);
   for(Player player:center.getWorld().getPlayers()){
-   if(player.isDead()||!player.isOnline()||!plugin.guard.canAttackBoss(player)||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
+   if(player.isDead()||!player.isOnline()||!plugin.guard.canAttackBoss(player)||!ArenaBoundary.allows(center,player.getLocation())||!DeathFlight.inRange(player.getLocation().distanceSquared(center)))continue;
    UUID id=player.getUniqueId();blastDamage.put(id,DeathFlight.damage(java.util.concurrent.ThreadLocalRandom.current().nextDouble()));
-   try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event==null||!event.isCancelled()){VectorBack.push(player,center);plugin.getServer().getScheduler().runTask(plugin,()->{if(player.isOnline()&&!player.isDead()&&player.getWorld().equals(center.getWorld())&&player.getLocation().distanceSquared(center)<=100)VectorBack.push(player,center);});}}finally{blastDamage.remove(id);blastEvents.remove(id);}
+   try{player.damage(blastDamage.get(id));EntityDamageEvent event=blastEvents.get(id);if(event==null||!event.isCancelled()){VectorBack.push(player,center);plugin.getServer().getScheduler().runTask(plugin,()->{if(player.isOnline()&&!player.isDead()&&player.getWorld().equals(center.getWorld())&&player.getLocation().distanceSquared(center)<=100&&ArenaBoundary.allows(center,player.getLocation()))VectorBack.push(player,center);});}}finally{blastDamage.remove(id);blastEvents.remove(id);}
   }
  }
  @SuppressWarnings("deprecation") static void fixedBlastDamage(EntityDamageEvent event,double amount){

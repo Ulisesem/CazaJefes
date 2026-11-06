@@ -46,7 +46,7 @@ final class ThreatTable {
       var candidates = boss.getWorld().getNearbyPlayers(at, range).stream()
          .filter(p -> CombatGuard.eligible(p) && p.getLocation().distanceSquared(at) <= range * range
             && (range <= 48 || p.getLocation().distanceSquared(at) <= 576 || fight != null && fight.scores.containsKey(p.getUniqueId()))
-            && filter.test(p)).toList();
+            && ArenaBoundary.allows(boss,p.getLocation()) && filter.test(p)).toList();
       if (candidates.isEmpty()) return null;
       long now = System.currentTimeMillis();
       if (fight != null && now < fight.forcedUntil) {

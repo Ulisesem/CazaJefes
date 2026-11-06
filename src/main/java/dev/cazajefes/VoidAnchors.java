@@ -15,12 +15,19 @@ final class VoidAnchors {
    private final List<Location> safe = new ArrayList<>();
    private static int count;
 
+   int broken() { return safe.size(); }
+
    void start(Location center, UUID owner) {
       if (count >= 48) return;
       for (int i=0;i<3 && count<48;i++) {
          double angle=i*Math.PI*2/3;
          var at=center.clone().add(Math.cos(angle)*3.5,0,Math.sin(angle)*3.5);
-         if (!at.isChunkLoaded() || !at.getBlock().isPassable()) continue;
+         add(at,owner);
+      }
+   }
+
+   void add(Location at,UUID owner) {
+         if (count>=48 || !at.isChunkLoaded() || !at.getBlock().isPassable()) return;
          var entity=at.getWorld().spawn(at,Interaction.class,hitbox -> {
             hitbox.setPersistent(false);
             hitbox.setInteractionWidth(1.3f);
@@ -29,10 +36,13 @@ final class VoidAnchors {
             hitbox.getPersistentDataContainer().set(OWNER,PersistentDataType.STRING,owner.toString());
          });
          if (entity.isValid()) { active.add(new Anchor(entity,at));count++; }
-      }
    }
 
    void update(List<Player> audience, boolean draw) {
+      update(audience,draw,"ANCLA ROTA · ENTRA AL CÍRCULO VERDE");
+   }
+
+   void update(List<Player> audience, boolean draw,String message) {
       for (var iterator=active.iterator();iterator.hasNext();) {
          Anchor anchor=iterator.next();
          var hit=anchor.entity().getLastAttack();
@@ -46,7 +56,7 @@ final class VoidAnchors {
             iterator.remove();
             count--;
             player.playSound(anchor.position(),Sound.BLOCK_AMETHYST_BLOCK_BREAK,.8f,1.3f);
-            BossWarnings.send(player,net.kyori.adventure.text.Component.text("ANCLA ROTA · ENTRA AL CÍRCULO VERDE"));
+            BossWarnings.send(player,net.kyori.adventure.text.Component.text(message));
          } else if (draw) {
             CinematicFX.ring(anchor.position(),audience,.72,0,7,Color.FUCHSIA,Color.WHITE);
             CosmeticFX.emit(Particle.END_ROD,anchor.position().clone().add(0,.9,0),2,.2,.35,.2,.02);
