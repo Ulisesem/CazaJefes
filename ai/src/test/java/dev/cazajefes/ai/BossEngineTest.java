@@ -55,6 +55,20 @@ public class BossEngineTest {
         assertThrows(IllegalArgumentException.class,()->BossProfile.read(invalid,40,true));
     }
 
+    @Test public void combatStylesUseDistanceAndRecoverLineOfSight(){
+        var json=JsonParser.parseString("""
+            {"attacks":[],"tactics":{"style":"RANGED","preferredMin":6,"preferredMax":12}}
+            """).getAsJsonObject();
+        var tactics=BossProfile.read(json,40,false).tactics();
+        assertEquals(CombatStyle.RANGED,tactics.style());
+        assertEquals(CombatStyle.Tactics.Move.RETREAT,tactics.move(4,true));
+        assertEquals(CombatStyle.Tactics.Move.ORBIT,tactics.move(9,true));
+        assertEquals(CombatStyle.Tactics.Move.APPROACH,tactics.move(15,true));
+        assertEquals(CombatStyle.Tactics.Move.APPROACH,tactics.move(4,false));
+        json.getAsJsonObject("tactics").addProperty("preferredMin",13);
+        assertThrows(IllegalArgumentException.class,()->BossProfile.read(json,40,false));
+    }
+
     private static BossAttack attack(String id,AttackCategory category,int weight){
         return new BossAttack(id,id,category,weight,20,2,10,20){
             @Override public AttackMotion execute(CustomBoss boss,Player target){return AttackMotion.complete();}

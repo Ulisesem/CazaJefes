@@ -45,12 +45,23 @@ final class CustomEncounter implements BossEnvironment {
 
     private BossProfile read(BossCatalog.Definition definition){
         boolean aquatic=AquaticCombat.aquatic(definition.entityType());
+        var style=defaultStyle(definition.entityType(),aquatic);
         try{
-            return BossProfile.read(definition.custom().ai(),definition.custom().damage(),aquatic);
+            return BossProfile.read(definition.custom().ai(),definition.custom().damage(),aquatic,style);
         }catch(RuntimeException invalid){
             plugin.getLogger().warning("IA "+definition.id()+": "+invalid.getMessage()+". Se usan sus ataques base.");
-            return BossProfile.read(null,definition.custom().damage(),aquatic);
+            return BossProfile.read(null,definition.custom().damage(),aquatic,style);
         }
+    }
+
+    private static dev.cazajefes.ai.CombatStyle defaultStyle(org.bukkit.entity.EntityType type,boolean aquatic){
+        if(aquatic)return dev.cazajefes.ai.CombatStyle.AQUATIC;
+        return switch(type){
+            case EVOKER, ILLUSIONER, WITCH, GHAST, SHULKER -> dev.cazajefes.ai.CombatStyle.ARTILLERY;
+            case SKELETON, STRAY, BOGGED, PILLAGER, BLAZE, BREEZE -> dev.cazajefes.ai.CombatStyle.RANGED;
+            case SPIDER, CAVE_SPIDER, FOX, BEE, VEX, PHANTOM, ENDERMAN -> dev.cazajefes.ai.CombatStyle.SKIRMISHER;
+            default -> dev.cazajefes.ai.CombatStyle.BRAWLER;
+        };
     }
 
     BossProfile profile(BossCatalog.Definition definition){return profiles.computeIfAbsent(definition.id(),id->read(definition));}

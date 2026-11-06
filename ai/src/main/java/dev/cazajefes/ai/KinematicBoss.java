@@ -60,9 +60,14 @@ public final class KinematicBoss extends AbstractCustomBoss {
         Vector horizontal=new Vector(direction.getX(),0,direction.getZ());
         if(!approach||horizontal.lengthSquared()<.0001)horizontal.zero();
         else {
+            var tactics=profile().tactics();
+            double groundDistance=horizontal.length();
             horizontal.normalize().multiply(profile().speed());
-            if(distance<2.1&&body().hasLineOfSight(target))
-                horizontal.rotateAroundY(strafe*Math.PI/2).multiply(.55);
+            switch(tactics.move(groundDistance,body().hasLineOfSight(target))){
+                case APPROACH -> {}
+                case RETREAT -> horizontal.multiply(-.75);
+                case ORBIT -> horizontal.rotateAroundY(strafe*Math.PI/2).multiply(tactics.orbit());
+            }
         }
         fall=swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
