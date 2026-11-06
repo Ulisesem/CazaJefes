@@ -60,4 +60,10 @@ public class AuraPerformanceTest {
   assertTrue(Math.hypot(first.x(),first.z())<Math.hypot(last.x(),last.z()));
   assertTrue(BossParticles.read(null,BossParticles.Shape.OFF).geometry(2,2,0,36).isEmpty());
  }
+ @Test public void followingFramesShareTheRefillWithoutGoingDark(){
+  assertEquals(15,BossAuras.pointsForFrame(160,1,1,36,160));
+  assertEquals(7,BossAuras.pointsForFrame(160,1,2,36,160));
+  assertEquals(3,BossAuras.pointsForFrame(160,1,2,36,4));
+  assertEquals(0,BossAuras.pointsForFrame(160,1,1,36,1));
+ }
 }
