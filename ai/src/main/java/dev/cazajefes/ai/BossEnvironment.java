@@ -13,6 +13,7 @@ public interface BossEnvironment {
     void damage(CustomBoss boss, LivingEntity victim, double damage);
     void warning(CustomBoss boss, Player player, BossAttack attack, int ticks);
     default boolean canSee(CustomBoss boss,Player target){return boss.body().hasLineOfSight(target);}
+    default void attackHit(CustomBoss boss,Player target,BossAttack attack) {}
     default void projectileHit(CustomBoss boss,LivingEntity target,BossVisuals.Projectile kind) {}
     default int phase(CustomBoss boss){return 1;}
     default void lightning(CustomBoss boss,Location at) { visuals().explosion(at); }
@@ -22,7 +23,7 @@ public interface BossEnvironment {
     default void heartbeat(CustomBoss boss) {}
     default AttackMotion signature(CustomBoss boss,Player target){return null;}
     default boolean occupied(CustomBoss boss){return false;}
-    default void blocked(CustomBoss boss,Player target,Location attempted) {}
+    default boolean blocked(CustomBoss boss,Player target,Location attempted) {return false;}
     default void groundWarning(CustomBoss boss,Location center,double radius,int age) {}
     BossVisuals visuals();
 }

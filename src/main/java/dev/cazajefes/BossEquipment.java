@@ -43,6 +43,18 @@ final class BossEquipment {
  static boolean isDisplay(ItemStack stack){return stack!=null&&stack.hasItemMeta()&&stack.getItemMeta().getPersistentDataContainer().has(DISPLAY,PersistentDataType.BYTE);}
  private static ItemStack gear(Material material,BossCatalog.Definition boss,boolean weapon){ItemStack item=new ItemStack(material);var meta=item.getItemMeta();meta.displayName(Component.text("Guardia de la Grieta · "+boss.tier().display,boss.tier().color).decoration(TextDecoration.ITALIC,false));meta.setEnchantmentGlintOverride(true);if(piglin(boss.entityType()))meta.setUnbreakable(true);meta.getPersistentDataContainer().set(DISPLAY,PersistentDataType.BYTE,(byte)1);item.setItemMeta(meta);item.addUnsafeEnchantment(weapon?Enchantment.SHARPNESS:Enchantment.PROTECTION,weapon||SkeletonCombat.archer(boss.entityType())?10:BossProtection.level(boss));item.addUnsafeEnchantment(Enchantment.UNBREAKING,weapon||SkeletonCombat.archer(boss.entityType())?10:3);return item;}
  static ItemStack crossbow(BossCatalog.Definition boss){ItemStack item=new ItemStack(Material.CROSSBOW);var meta=item.getItemMeta();meta.displayName(Component.text("Ballesta del Destierro · "+boss.tier().display,boss.tier().color).decoration(TextDecoration.ITALIC,false));meta.setEnchantmentGlintOverride(true);meta.getPersistentDataContainer().set(DISPLAY,PersistentDataType.BYTE,(byte)1);meta.setUnbreakable(true);for(var entry:PillagerRules.ENCHANTMENTS.entrySet()){var enchantment=Registry.ENCHANTMENT.get(NamespacedKey.minecraft(entry.getKey()));if(enchantment!=null)meta.addEnchant(enchantment,entry.getValue(),true);}item.setItemMeta(meta);return item;}
+ static ItemStack drownedTrident(BossCatalog.Definition boss){
+  var item=new ItemStack(Material.TRIDENT);
+  var meta=item.getItemMeta();
+  meta.displayName(Component.text("Tridente de la Fosa · "+boss.tier().display,boss.tier().color).decoration(TextDecoration.ITALIC,false));
+  meta.setUnbreakable(true);
+  meta.setEnchantmentGlintOverride(true);
+  meta.getPersistentDataContainer().set(DISPLAY,PersistentDataType.BYTE,(byte)1);
+  meta.addEnchant(Enchantment.IMPALING,10,true);
+  meta.addEnchant(Enchantment.LOYALTY,3,true);
+  item.setItemMeta(meta);
+  return item;
+ }
  static ItemStack bow(BossCatalog.Definition boss){var item=new ItemStack(Material.BOW);var meta=item.getItemMeta();meta.displayName(Component.text("Arco del Eclipse · "+boss.tier().display,boss.tier().color).decoration(TextDecoration.ITALIC,false));meta.setEnchantmentGlintOverride(true);meta.setUnbreakable(true);meta.getPersistentDataContainer().set(DISPLAY,PersistentDataType.BYTE,(byte)1);item.setItemMeta(meta);for(var enchant:new Enchantment[]{Enchantment.POWER,Enchantment.PUNCH,Enchantment.FLAME,Enchantment.UNBREAKING})item.addUnsafeEnchantment(enchant,10);item.addUnsafeEnchantment(Enchantment.INFINITY,1);item.addUnsafeEnchantment(Enchantment.MENDING,1);return item;}
  static ItemStack totem(){ItemStack item=new ItemStack(Material.TOTEM_OF_UNDYING);var meta=item.getItemMeta();meta.displayName(Component.text("Suspiro del Renacido",NamedTextColor.GOLD).decorate(TextDecoration.BOLD));meta.setEnchantmentGlintOverride(true);meta.getPersistentDataContainer().set(DISPLAY,PersistentDataType.BYTE,(byte)1);item.setItemMeta(meta);return item;}
  static double virtualSharpness(LivingEntity entity){var gear=entity.getEquipment();int nativeLevel=gear==null?0:gear.getItemInMainHand().getEnchantmentLevel(Enchantment.SHARPNESS);return SharpnessRules.missingBonus(nativeLevel);}
@@ -50,6 +62,7 @@ final class BossEquipment {
   {var boots=equipment.getBoots();if(boots!=null&&!boots.getType().isAir()){boots.addUnsafeEnchantment(Enchantment.DEPTH_STRIDER,10);equipment.setBoots(boots,true);}}
   var held=equipment.getItemInMainHand();if(held.getType().name().endsWith("_SWORD")||held.getType().name().endsWith("_AXE"))equipment.setItemInMainHand(gear(held.getType(),boss,true),true);
   if(SkeletonCombat.archer(entity.getType()))equipment.setItemInMainHand(bow(boss),true);
+  if(entity instanceof Drowned)equipment.setItemInMainHand(drownedTrident(boss),true);
   if(entity instanceof Pillager)equipment.setItemInMainHand(crossbow(boss),true);
   maintainPiglin(entity,boss);
   for(EquipmentSlot slot:new EquipmentSlot[]{EquipmentSlot.HEAD,EquipmentSlot.CHEST,EquipmentSlot.LEGS,EquipmentSlot.FEET,EquipmentSlot.HAND,EquipmentSlot.OFF_HAND})equipment.setDropChance(slot,0);entity.setCanPickupItems(false);
