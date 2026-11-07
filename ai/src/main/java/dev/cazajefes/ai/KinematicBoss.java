@@ -9,7 +9,8 @@ public final class KinematicBoss extends AbstractCustomBoss {
     private double fall;
     private Vector impulse;
     private boolean hasEnteredWater,grounded;
-    private int idleTicks,blockedTicks,verticalBlockedTicks,strafe=1;
+    private int idleTicks,blockedTicks,verticalBlockedTicks,strafe=1,pursuitTicks;
+    private double jump;
 
     public KinematicBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
         super(body,profile,environment);
@@ -52,6 +53,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         if(impulse!=null){applyImpulse();return;}
         if(target==null&&grounded&&++idleTicks%10!=0)return;
         Location origin=body().getLocation();
+        if(pursuitTicks>0)pursuitTicks--;
         Vector direction=target==null?new Vector():target.getEyeLocation().toVector().subtract(body().getEyeLocation().toVector());
         boolean wet=body().isInWater()||water(origin);
         if(wet)hasEnteredWater=true;
@@ -63,14 +65,17 @@ public final class KinematicBoss extends AbstractCustomBoss {
             var tactics=profile().tactics();
             double groundDistance=horizontal.length();
             horizontal.normalize().multiply(profile().speed());
-            switch(tactics.move(groundDistance,environment().canSee(this,target))){
+            switch(tactics.move(groundDistance,pursuitTicks==0&&environment().canSee(this,target))){
                 case APPROACH -> {}
                 case RETREAT -> horizontal.multiply(-.75);
                 case ORBIT -> horizontal.rotateAroundY(strafe*Math.PI/2).multiply(tactics.orbit());
             }
         }
-        fall=swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
+        if(approach&&target!=null&&!swim&&grounded&&pursuitTicks>0&&target.getY()-origin.getY()>1
+            &&origin.distanceSquared(target.getLocation())<=49)jump=.58;
+        fall=jump>0?jump:swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
+        if(jump>0)jump=Math.max(0,jump-.10);
         Location next=origin.clone();
         Location y=origin.clone().add(0,fall,0);
         if(clear(y)){
@@ -79,6 +84,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }else{
             grounded=true;
             fall=0;
+            jump=0;
         }
         Location horizontalMove=next.clone().add(horizontal);
         if(horizontal.lengthSquared()>.0001){
@@ -89,9 +95,10 @@ public final class KinematicBoss extends AbstractCustomBoss {
             }
             else {
                 var side=new Vector(-horizontal.getZ(),0,horizontal.getX());
-                if(++blockedTicks%4==0&&target!=null&&!environment().canSee(this,target))
-                    environment().blocked(this,target,horizontalMove);
-                if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));
+                if(++blockedTicks%3==0&&target!=null&&(pursuitTicks>0||!environment().canSee(this,target))
+                    &&environment().blocked(this,target,horizontalMove))pursuitTicks=50;
+                if(clear(horizontalMove))next=horizontalMove;
+                else if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));
                 else if(clear(next.clone().subtract(side.clone().multiply(strafe)))){
                     next.subtract(side.multiply(strafe));
                     strafe=-strafe;
@@ -100,8 +107,8 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }
         if(approach&&target!=null&&!swim&&Math.abs(target.getY()-origin.getY())>=1.5
             &&origin.distanceSquared(target.getLocation())<=49){
-            if(++verticalBlockedTicks%5==0)environment().blocked(this,target,
-                origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0));
+            if(++verticalBlockedTicks%4==0&&environment().blocked(this,target,
+                origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0)))pursuitTicks=50;
         }else verticalBlockedTicks=0;
         if(distance>.01)next.setDirection(direction);
         if(next.distanceSquared(origin)>.000001){

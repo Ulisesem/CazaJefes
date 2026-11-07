@@ -19,7 +19,8 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     private BossAttack pending;
     private BossAttack requested;
     private AttackMotion motion;
-    private long releaseAt,gcdUntil,stunnedUntil,tick;
+    private long releaseAt,gcdUntil,specialUntil,stunnedUntil,tick;
+    private boolean specialMotion;
 
     protected AbstractCustomBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
         this.body=body;
@@ -37,11 +38,12 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     @Override public final Player target(){return target;}
 
     public final boolean requestSignature(Player player,java.util.function.Supplier<AttackMotion> start){
-        if(!canRequest(player))return false;
+        if(!canRequest(player)||tick<specialUntil)return false;
         var signature=start.get();
         if(signature==null)return false;
         target=player;
         motion=signature;
+        specialMotion=true;
         state=BossState.ATTACKING;
         return true;
     }
@@ -55,7 +57,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(!canRequest(player))return false;
         double distance=body.getLocation().distance(player.getLocation());
         for(var attack:profile.attacks()){
-            if(attack.id().equals(id)&&attack.weight()>0&&tick>=ready.getOrDefault(id,0L)
+            if(attack.id().equals(id)&&available(attack)&&attack.weight()>0&&tick>=ready.getOrDefault(id,0L)
                 &&attack.inRange(this,player,distance)){
                 target=player;
                 requested=attack;
@@ -85,6 +87,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 pending=null;
                 ready.put(attack.id(),tick+attack.cooldown());
                 environment.release(this,attack);
+                specialMotion=attack.special();
                 motion=attack.execute(this,target);
             }else if(motion!=null&&motion.tick()){
                 finish();
@@ -101,15 +104,19 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             BossAttack choice=requested;
             requested=null;
             if(choice!=null&&(!free||!choice.inRange(this,target,distance)))choice=null;
-            if(free&&choice==null)motion=environment.signature(this,target);
+            if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
+                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
+                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&attack.inRange(this,target,distance));
+            if(free&&choice==null&&tick>=specialUntil)motion=environment.signature(this,target);
             if(motion!=null){
+                specialMotion=true;
                 state=BossState.ATTACKING;
                 move(target,motion.mobile());
                 view.move(body.getLocation());
                 return;
             }
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
-                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),attack->attack.inRange(this,target,distance));
+                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),attack->available(attack)&&attack.inRange(this,target,distance));
             if(choice==null){
                 state=BossState.MOVING;
                 move(target,true);
@@ -124,12 +131,23 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(!closed)view.move(body.getLocation());
     }
 
+    private boolean available(BossAttack attack){return !attack.special()||tick>=specialUntil;}
+
     private boolean mobileWindup(){
         return pending!=null&&!(pending instanceof dev.cazajefes.ai.attack.MeleeSweep)
             &&profile.tactics().mobileWindup();
     }
 
     protected abstract void move(Player player,boolean approach);
+
+    @Override public final boolean canStartSpecial(){
+        return pending==null&&motion==null&&requested==null&&tick>=specialUntil&&tick>=stunnedUntil;
+    }
+
+    @Override public final void holdSpecial(int ticks){
+        stun(ticks);
+        specialUntil=Math.max(specialUntil,tick+profile.specialRecovery());
+    }
 
     @Override public final void stun(int ticks){
         finish();
@@ -138,11 +156,14 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     }
 
     private void finish(){
+        boolean special=specialMotion;
+        if(special)specialUntil=tick+profile.specialRecovery();
+        specialMotion=false;
         if(motion!=null)motion.close();
         motion=null;
         pending=null;
         requested=null;
-        gcdUntil=tick+profile.globalCooldown();
+        gcdUntil=tick+(special?profile.globalCooldown():profile.basicRecovery());
     }
 
     @Override public final void close(){

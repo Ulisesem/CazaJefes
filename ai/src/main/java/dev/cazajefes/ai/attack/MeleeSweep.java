@@ -6,12 +6,14 @@ import org.bukkit.entity.Player;
 public final class MeleeSweep extends BossAttack {
     public MeleeSweep(String id,String name,AttackCategory category,int weight,long cooldown,
                       double radius,double damage,int warningTicks) {
-        super(id,name,category,weight,cooldown,radius,damage,warningTicks);
+        super(id,name,category,weight,Math.min(cooldown,24),radius,damage,Math.min(warningTicks,7));
     }
 
     @Override public boolean inRange(CustomBoss boss,Player target,double distance){
         return Geometry.gapSquared(boss.body().getBoundingBox(),target.getBoundingBox())<=radius()*radius();
     }
+
+    @Override public boolean special(){return false;}
 
     @Override public AttackMotion execute(CustomBoss boss,Player target) {
         if(boss.environment().mayHit(boss,target) && boss.environment().canSee(boss,target)

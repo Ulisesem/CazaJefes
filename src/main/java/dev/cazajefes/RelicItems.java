@@ -946,7 +946,7 @@ public final class RelicItems implements Listener {
 
    public record LootResult(int count,Component summary) {}
 
-   public LootResult dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3) {
+   public LootResult dropBossLoot(Location var1, BossCatalog.Definition var2, UUID var3,boolean animate) {
       ArrayList<ItemStack> var4 = new ArrayList<>();
       for (LootRules.Reward reward:LootRules.roll(var2,ThreadLocalRandom.current())) {
          ItemStack stack=switch(reward.kind()) {
@@ -988,7 +988,8 @@ public final class RelicItems implements Listener {
          for(ItemStack unit:LootPresentation.units(var11))sequence.add(new QueuedLoot(var1.clone(),unit,var9,var3));
       }
 
-      queueLoot(sequence);
+      if(animate)queueLoot(sequence);
+      else scatterCaveLoot(sequence,var2);
       var1.getWorld().playSound(var1, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0F, 0.85F);
       var1.getWorld().spawnParticle(Particle.FIREWORK, var1.clone().add(0.0, 1.0, 0.0), 50, 0.9, 0.8, 0.9, 0.12);
       return new LootResult(var13,summary);
@@ -1429,6 +1430,35 @@ public final class RelicItems implements Listener {
       else{Item item=reward.location().getWorld().dropItem(reward.location().clone().add(0,.3,0),reward.stack().clone());item.getPersistentDataContainer().set(dropEncounterKey,PersistentDataType.STRING,reward.encounter().toString());item.setVelocity(new Vector(0,0,0));item.setPickupDelay(0);item.setGlowing(true);}
    }
    private final Set<BukkitTask> lootSounds=new HashSet<>();
+   private void scatterCaveLoot(List<QueuedLoot> rewards,BossCatalog.Definition boss){
+      var random=ThreadLocalRandom.current();
+      for(QueuedLoot reward:rewards){
+         var origin=reward.location();
+         Location landing=origin;
+         search: for(int attempt=0;attempt<12;attempt++){
+            double angle=random.nextDouble(2*Math.PI),distance=random.nextDouble(.4,3.5);
+            var point=origin.clone().add(Math.cos(angle)*distance,0,Math.sin(angle)*distance);
+            if(!point.isChunkLoaded()||!ArenaBoundary.allows(origin,point))continue;
+            for(int dy:new int[]{0,-1,1,-2,2}){
+               var check=point.clone().add(0,dy,0);
+               if(check.getBlock().isPassable()&&!check.getBlock().isLiquid()
+                   &&check.clone().subtract(0,1,0).getBlock().getType().isSolid()){
+                  var delta=check.toVector().subtract(origin.toVector());
+                  double length=delta.length();
+                  if(length>.25&&origin.getWorld().rayTraceBlocks(origin.clone().add(0,.25,0),delta.normalize(),
+                      length-.20,org.bukkit.FluidCollisionMode.NEVER,true)!=null)continue;
+                  landing=check;
+                  break search;
+               }
+            }
+         }
+         releaseLoot(new QueuedLoot(landing,reward.stack(),reward.particle(),reward.encounter()),false);
+         var shine=landing.clone().add(0,.35,0);
+         CosmeticFX.emit(Particle.DUST_COLOR_TRANSITION,shine,6,.24,.22,.24,.01,
+             new Particle.DustTransition(CombatVisuals.signature(boss),Color.AQUA,1.25f));
+         CosmeticFX.emit(Particle.FIREWORK,shine,4,.16,.15,.16,.035);
+      }
+   }
    private void queueLoot(List<QueuedLoot> rewards){
       for(int i=0;i<rewards.size();i++){
          QueuedLoot reward=rewards.get(i);var offset=LootScatter.at(i,rewards.size());Location candidate=reward.location().clone().add(offset.x(),0,offset.z());Location landing=reward.location().clone();

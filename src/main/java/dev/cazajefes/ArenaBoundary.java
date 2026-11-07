@@ -65,7 +65,26 @@ final class ArenaBoundary {
       if(plugin==null||!plugin.getServer().getPluginManager().isPluginEnabled("WorldGuard"))
          return allows(boss,destination);
       if(api==null||!allows(boss,destination))return false;
-      try{return !regions(destination).isEmpty();}
+      try{
+         if(regions(destination).isEmpty())return false;
+         Object set=applicable(destination);
+         var all=(Iterable<?>)api.regions().invoke(set);
+         for(var region:all){
+            String name=(String)api.id().invoke(region);
+            if(!protectedIds.contains(name))return false;
+         }
+         var loader=set.getClass().getClassLoader();
+         var stateFlag=loader.loadClass("com.sk89q.worldguard.protection.flags.StateFlag");
+         var flags=loader.loadClass("com.sk89q.worldguard.protection.flags.Flags");
+         var associable=loader.loadClass("com.sk89q.worldguard.protection.association.RegionAssociable");
+         var array=java.lang.reflect.Array.newInstance(stateFlag,2);
+         java.lang.reflect.Array.set(array,0,flags.getField("BUILD").get(null));
+         java.lang.reflect.Array.set(array,1,flags.getField("BLOCK_BREAK").get(null));
+         var query=loader.loadClass("com.sk89q.worldguard.protection.ApplicableRegionSet")
+            .getMethod("queryState",associable,array.getClass());
+         Object result=query.invoke(set,null,array);
+         return result==null||!result.toString().equals("DENY");
+      }
       catch(ReflectiveOperationException|RuntimeException failure){warn(failure);return false;}
    }
 
@@ -83,15 +102,19 @@ final class ArenaBoundary {
 
    private static Set<String> regions(Location at) throws ReflectiveOperationException {
       var ids=new HashSet<String>();
-      Object manager=api.manager().invoke(api.container(),api.adapt().invoke(null,at.getWorld()));
-      if (manager==null) throw new IllegalStateException("WorldGuard sin gestor para "+at.getWorld().getName());
-      Object vector=api.vector().invoke(null,at.getBlockX(),at.getBlockY(),at.getBlockZ());
-      var regions=(Iterable<?>)api.regions().invoke(api.applicable().invoke(manager,vector));
+      var regions=(Iterable<?>)api.regions().invoke(applicable(at));
       for (Object region : regions) {
          String id=(String)api.id().invoke(region);
          if (protectedIds.contains(id)) ids.add(id);
       }
       return ids;
+   }
+
+   private static Object applicable(Location at) throws ReflectiveOperationException {
+      Object manager=api.manager().invoke(api.container(),api.adapt().invoke(null,at.getWorld()));
+      if (manager==null) throw new IllegalStateException("WorldGuard sin gestor para "+at.getWorld().getName());
+      Object vector=api.vector().invoke(null,at.getBlockX(),at.getBlockY(),at.getBlockZ());
+      return api.applicable().invoke(manager,vector);
    }
 
    private static void warn(Throwable error) {

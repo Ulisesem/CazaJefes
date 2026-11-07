@@ -1,0 +1,7 @@
+# Combate y muerte bajo techo en CazaJefes 1.40.0
+
+- El jefe prioriza el golpe cercano cuando está a su alcance. Los ataques básicos tienen una recuperación de 8 ticks por defecto. `ai.basicRecoveryTicks` permite ajustarla. Los especiales tienen su enfriamiento individual más una espera compartida de 55 ticks después de que termina su ejecución. Configúrala en `ai.specialRecoveryTicks`.
+- Al abrir un paso, el jefe avanza en dirección al objetivo y puede saltar hacia desniveles cercanos. Los obstáculos persistentes se comprueban cada 3 ticks en horizontal y 4 en vertical.
+- La ruptura temporal admite los bloques sólidos que obstruyen el paso excepto bedrock y los bloqueados por las protecciones. Con WorldGuard se requiere un área de combate autorizada sin protecciones superpuestas ni flags de denegación. También se respeta `mobGriefing` y la cancelación de `EntityChangeBlockEvent`. Para retirar un bloque con datos propios, primero se necesita guardar su contenido con NBTAPI. Se conservan los límites del registro para evitar ediciones masivas.
+- Los ahogados llevan el Tridente de la Fosa. **Arpón de la Fosa** lanza tres tridentes guiados que ralentizan al impactar. **Marea de Arrastre** causa daño de área, atrae a los jugadores y les aplica fatiga minera.
+- Bajo techo o sumergido, el jefe explota en el sitio con el empuje de muerte. El botín aparece en el suelo en puntos cercanos y accesibles con destellos. A cielo abierto se mantiene la animación completa.

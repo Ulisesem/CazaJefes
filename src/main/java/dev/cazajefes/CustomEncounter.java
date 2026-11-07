@@ -158,6 +158,10 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public void impact(CustomBoss boss,BossAttack attack,Location at){
+        if(attack.id().equals("marea_de_arrastre")){
+            CosmeticFX.emit(org.bukkit.Particle.BUBBLE_POP,at.clone().add(0,.5,0),30,2,.5,2,.12);
+            at.getWorld().playSound(at,org.bukkit.Sound.ITEM_TRIDENT_RIPTIDE_2,1,.75f);
+        }
         effect(boss,attack,"impact",BossParticles.Shape.PULSE,at,
             Math.max(1,attack.radius()),1.1,false);
     }
@@ -203,22 +207,20 @@ final class CustomEncounter implements BossEnvironment {
         var definition=BossCatalog.get(body.getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
         if(definition!=null&&definition.custom().options().legacyAttacks()
-            &&plugin.species.tick(body,System.currentTimeMillis(),boss.state()!=dev.cazajefes.ai.BossState.ATTACKING
-                &&!occupied(boss),true)){
-            boss.stun(6);
+            &&plugin.species.tick(body,System.currentTimeMillis(),boss.canStartSpecial()&&!occupied(boss),true)){
+            boss.holdSpecial(6);
             return;
         }
         if(definition!=null&&!body.isInvulnerable()&&definition.custom().options().legacyAttacks()
             &&plugin.abilities.centralGaze(body,definition,BossStages.phase(body),System.currentTimeMillis(),
-                boss.state()==dev.cazajefes.ai.BossState.ATTACKING||occupied(boss))){
-            boss.stun(6);
+                !boss.canStartSpecial()||occupied(boss))){
+            boss.holdSpecial(6);
             return;
         }
         if(definition!=null&&!body.isInvulnerable()
             &&displacement.tick(body,definition,BossStages.phase(body),System.currentTimeMillis(),
-                boss.state()==dev.cazajefes.ai.BossState.ATTACKING||boss.state()==dev.cazajefes.ai.BossState.STUNNED
-                    &&!displacement.busy(body.getUniqueId()))){
-            boss.stun(6);
+                !boss.canStartSpecial()||occupied(boss))){
+            boss.holdSpecial(6);
         }
         if(boss.body().isInWater())boss.body().setRemainingAir(boss.body().getMaximumAir());
     }
@@ -226,11 +228,23 @@ final class CustomEncounter implements BossEnvironment {
     @Override public int phase(CustomBoss boss){return BossStages.phase(boss.body());}
 
     @Override public void projectileHit(CustomBoss boss,LivingEntity target,BossVisuals.Projectile kind){
+        if(kind==BossVisuals.Projectile.TRIDENT){
+            BossEffects.applyFrom(boss.body(),target,BossEffects.effect(org.bukkit.potion.PotionEffectType.SLOWNESS,100,1));
+            CosmeticFX.emit(org.bukkit.Particle.SPLASH,target.getLocation().add(0,1,0),20,.35,.55,.35,.12);
+            return;
+        }
         if(kind!=BossVisuals.Projectile.SHULKER)return;
         for(var type:java.util.List.of(org.bukkit.potion.PotionEffectType.POISON,org.bukkit.potion.PotionEffectType.WITHER,
             org.bukkit.potion.PotionEffectType.LEVITATION)){
             BossEffects.applyFrom(boss.body(),target,BossEffects.effect(type,80,0));
         }
+    }
+
+    @Override public void attackHit(CustomBoss boss,Player target,BossAttack attack){
+        if(!attack.id().equals("marea_de_arrastre"))return;
+        BossEffects.applyFrom(boss.body(),target,BossEffects.effect(org.bukkit.potion.PotionEffectType.MINING_FATIGUE,100,1));
+        var pull=boss.body().getLocation().toVector().subtract(target.getLocation().toVector());
+        if(pull.lengthSquared()>.01)target.setVelocity(pull.normalize().multiply(.95).setY(target.isInWater()?-.25:.15));
     }
 
     @Override public void lightning(CustomBoss boss,Location at){
@@ -248,10 +262,10 @@ final class CustomEncounter implements BossEnvironment {
         target.setVelocity(toward.normalize().multiply(1.1).setY(-.55));
     }
 
-    @Override public void blocked(CustomBoss boss,Player target,Location attempted){
+    @Override public boolean blocked(CustomBoss boss,Player target,Location attempted){
         var definition=definition(boss);
-        if(definition!=null&&definition.custom().options().caveBreach()
-            &&plugin.getConfig().getBoolean("combat.cave-breach",true))caves.open(boss.body(),target,attempted);
+        return definition!=null&&definition.custom().options().caveBreach()
+            &&plugin.getConfig().getBoolean("combat.cave-breach",true)&&caves.open(boss.body(),target,attempted);
     }
 
     private BossCatalog.Definition definition(CustomBoss boss){

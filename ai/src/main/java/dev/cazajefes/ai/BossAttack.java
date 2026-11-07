@@ -34,6 +34,8 @@ public abstract class BossAttack {
     public double damage(){return damage;}
     public int warningTicks(){return warningTicks;}
 
+    public boolean special(){return true;}
+
     public boolean inRange(CustomBoss boss,Player target,double distance){return category.includes(distance);}
 
     public abstract AttackMotion execute(CustomBoss boss, Player target);

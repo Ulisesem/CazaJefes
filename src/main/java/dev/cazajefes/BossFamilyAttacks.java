@@ -16,6 +16,13 @@ final class BossFamilyAttacks {
         if(attacks.isEmpty())return config;
         double damage=boss.custom().damage();
         switch(boss.entityType()){
+            case DROWNED -> {
+                add(attacks,volley("arpon_de_la_fosa","Arpón de la Fosa","TRIDENT",3,1,9,damage*.85,0,true));
+                var tide=spec("marea_de_arrastre","Marea de Arrastre","SHOCKWAVE",damage*1.1);
+                tide.addProperty("radius",6);
+                tide.addProperty("cooldownTicks",230);
+                add(attacks,tide);
+            }
             case PILLAGER -> {
                 add(attacks,volley("andanada_del_saqueador","Andanada del Saqueador","ARROW",6,5,6,damage*.65,0,true));
                 add(attacks,volley("bateria_de_cohetes","Batería de Cohetes","FIREWORK",6,1,12,damage*.85,3.5,true));

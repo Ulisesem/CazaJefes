@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public record BossProfile(double speed,double gravity,double detectionRange,int globalCooldown,
+public record BossProfile(double speed,double gravity,double detectionRange,int globalCooldown,int basicRecovery,int specialRecovery,
                           boolean aquatic,CombatStyle.Tactics tactics,List<BossAttack> attacks) {
     public BossProfile {
         attacks=List.copyOf(attacks);
@@ -22,7 +22,9 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         double speed=number(json,"speed",.29,.02,1);
         double gravity=number(json,"gravity",.08,0,.35);
         double range=number(json,"detectionRange",60,3,60);
-        int gcd=integer(json,"globalCooldownTicks",30,1,600);
+        int gcd=integer(json,"globalCooldownTicks",18,1,600);
+        int basicRecovery=integer(json,"basicRecoveryTicks",8,1,100);
+        int specialRecovery=integer(json,"specialRecoveryTicks",55,10,600);
         var entries=new ArrayList<BossAttack>();
         {
             var attacks=json.has("attacks")?json.getAsJsonArray("attacks"):defaults(baseDamage,aquatic).getAsJsonArray("attacks");
@@ -79,7 +81,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         double orbit=number(config,"orbitSpeed",style.orbit,0,1);
         boolean mobile=config.has("mobileWindup")?config.get("mobileWindup").getAsBoolean():style.mobileWindup;
         var tactics=new CombatStyle.Tactics(style,near,far,orbit,mobile);
-        return new BossProfile(speed,gravity,range,gcd,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries);
+        return new BossProfile(speed,gravity,range,gcd,basicRecovery,specialRecovery,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries);
     }
 
     public static JsonObject defaults(double baseDamage,boolean aquatic){
@@ -87,7 +89,9 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         json.addProperty("speed",aquatic?.32:.29);
         json.addProperty("gravity",.08);
         json.addProperty("detectionRange",60);
-        json.addProperty("globalCooldownTicks",30);
+        json.addProperty("globalCooldownTicks",18);
+        json.addProperty("basicRecoveryTicks",8);
+        json.addProperty("specialRecoveryTicks",55);
         json.addProperty("aquatic",aquatic);
         json.add("equipment",new JsonObject());
         var attacks=new com.google.gson.JsonArray();

@@ -13,5 +13,7 @@ public interface CustomBoss {
     default Location origin() { return body().getEyeLocation(); }
     void tick(long tick);
     void stun(int ticks);
+    default boolean canStartSpecial(){return true;}
+    default void holdSpecial(int ticks){stun(ticks);}
     void close();
 }

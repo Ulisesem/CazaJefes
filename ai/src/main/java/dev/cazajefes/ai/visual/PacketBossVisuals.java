@@ -51,6 +51,7 @@ public final class PacketBossVisuals implements BossVisuals {
             case FIREWORK -> EntityTypes.FIREWORK_ROCKET;
             case SHULKER -> EntityTypes.SHULKER_BULLET;
             case SPELL -> EntityTypes.SMALL_FIREBALL;
+            case TRIDENT -> EntityTypes.TRIDENT;
         };
         var view=new PacketView(VIRTUAL_IDS.getAndDecrement(),UUID.randomUUID(),type,null,null,0);
         view.move(origin);

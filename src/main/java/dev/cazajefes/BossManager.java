@@ -612,12 +612,15 @@ public final class BossManager implements Listener {
          if(credited)((CazaJefesPlugin)plugin).statistics.defeated(var2,defeated,var4);
          final String winner=var8;
          final Location dropLocation=var2.getLocation().clone();
-         ((CazaJefesPlugin)plugin).deathVisuals.show(var2,defeated,()->{
-            RelicItems.LootResult result=credited&&defeated.custom().options().loot()?this.relicItems.dropBossLoot(dropLocation,defeated,var4):new RelicItems.LootResult(0,Component.text(credited?"sin drops: botín desactivado":"sin drops: no hay crédito de jugador válido"));
+         boolean openSky=BossDeathVisuals.openSky(var2);
+         ((CazaJefesPlugin)plugin).deathVisuals.show(var2,defeated,openSky,()->{
+            RelicItems.LootResult result=credited&&defeated.custom().options().loot()?this.relicItems.dropBossLoot(dropLocation,defeated,var4,openSky):new RelicItems.LootResult(0,Component.text(credited?"sin drops: botín desactivado":"sin drops: no hay crédito de jugador válido"));
             this.plugin.getServer().broadcast(DamageLedger.report(var2,defeated,winner,result));
          });
-         CosmeticFX.emit(Particle.TOTEM_OF_UNDYING, var2.getLocation().add(0.0, 1.0, 0.0), 65, 1.1, 1.2, 1.1, 0.1);
-         var2.getWorld().playSound(var2.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0F, 1.25F);
+         if(openSky){
+            CosmeticFX.emit(Particle.TOTEM_OF_UNDYING,var2.getLocation().add(0,1,0),65,1.1,1.2,1.1,.1);
+            var2.getWorld().playSound(var2.getLocation(),Sound.ENTITY_ENDER_DRAGON_DEATH,1,1.25f);
+         }
       }
    }
 

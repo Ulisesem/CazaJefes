@@ -21,6 +21,8 @@ public final class LinearProjectileAttack extends BossAttack {
         this.lifetime=lifetime;
     }
 
+    @Override public boolean special(){return false;}
+
     @Override public AttackMotion execute(CustomBoss boss,Player target){
         return launch(boss,target,boss.origin(),dev.cazajefes.ai.visual.BossVisuals.Projectile.ARROW,false,0);
     }
