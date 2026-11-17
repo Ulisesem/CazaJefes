@@ -147,7 +147,7 @@ public final class PacketBossVisuals implements BossVisuals {
                         if(viewer!=null&&viewer.getWorld()==at.getWorld())sendScale(viewer,lastScale);
                     }
                 }
-                nextEquipment=tick+10;
+                nextEquipment=tick+2;
             }
         }
 

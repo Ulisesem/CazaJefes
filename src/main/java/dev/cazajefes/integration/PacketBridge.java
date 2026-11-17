@@ -123,8 +123,14 @@ public final class PacketBridge {
         try {
             var stack = e.convert().invoke(null,entity.getEquipment().getItemInMainHand());
             var slot = e.entry().newInstance(e.mainHand(),stack);
-            for (Player viewer : entity.getTrackedBy()) if (viewer.canSee(entity)) {
-                transport.send(viewer,e.packet().newInstance(entity.getEntityId(),List.of(slot)));
+            boolean packetBoss=!entity.isVisibleByDefault()&&entity.getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey("cazajefes","is_boss"),org.bukkit.persistence.PersistentDataType.BYTE);
+            var audience=packetBoss?entity.getWorld().getNearbyPlayers(entity.getLocation(),40):entity.getTrackedBy();
+            for(Player viewer:audience){
+                var at=entity.getLocation();
+                if((packetBoss||viewer.canSee(entity))&&viewer.isChunkSent(org.bukkit.Chunk.getChunkKey(
+                    at.getBlockX()>>4,at.getBlockZ()>>4)))
+                    transport.send(viewer,e.packet().newInstance(entity.getEntityId(),List.of(slot)));
             }
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
             equipment = null;

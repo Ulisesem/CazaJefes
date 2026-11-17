@@ -14,6 +14,9 @@ final class CombatTelegraph {
         var delta=end.toVector().subtract(from.toVector());
         double length=delta.length();
         if(length<.01||length>60)return;
+        var obstruction=from.getWorld().rayTraceBlocks(from,delta.clone().normalize(),length,
+            FluidCollisionMode.NEVER,true);
+        if(obstruction!=null)return;
         var viewers=from.getWorld().getNearbyPlayers(from,32).stream()
             .filter(viewer->ArenaBoundary.allows(boss,viewer.getLocation())).toList();
         // The same bounded warning budget is shared by every fight and viewer.
@@ -23,7 +26,7 @@ final class CombatTelegraph {
             if(!at.isChunkLoaded())continue;
             for(var viewer:viewers)CosmeticFX.warning(viewer,at,null,dust);
         }
-        if(attack.special()){
+        if(attack.special()&&ArenaBoundary.allows(boss,end)){
             for(int i=0;i<16;i++){
                 double angle=i*Math.PI/8;
                 var at=end.clone().add(Math.cos(angle)*1.1,0,Math.sin(angle)*1.1);

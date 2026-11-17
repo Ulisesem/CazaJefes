@@ -491,7 +491,7 @@ final class BossAbilities implements Listener {
     var audience = players();
     plugin.cinematics.play(boss, definition, BossStyle.Beat.RECOVERY, audience, skill.sounds());
     plugin.getServer().getScheduler().runTaskLater(plugin,() -> {
-     if(!boss.isValid()||boss.isDead()||casts.containsKey(boss.getUniqueId()))return;
+     if(!boss.isValid()||boss.isDead()||casts.containsKey(boss.getUniqueId())||plugin.customEncounter.attacking(boss))return;
      for(Player player:players()) BossWarnings.send(player,Component.text(
         plugin.languages.text(player,"attack.recovery","RECUPERACIÓN · ¡Contraataca!"),NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
     },10);
