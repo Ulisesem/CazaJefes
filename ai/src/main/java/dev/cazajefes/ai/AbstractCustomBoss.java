@@ -140,6 +140,14 @@ public abstract class AbstractCustomBoss implements CustomBoss {
 
     protected abstract void move(Player player,boolean approach);
 
+    @Override public final boolean followUp(AttackMotion attack){
+        if(closed||pending!=null||motion!=null||requested!=null||!environment.validTarget(this,target))return false;
+        motion=attack;
+        specialMotion=true;
+        state=BossState.ATTACKING;
+        return true;
+    }
+
     @Override public final boolean canStartSpecial(){
         return pending==null&&motion==null&&requested==null&&tick>=specialUntil&&tick>=stunnedUntil;
     }

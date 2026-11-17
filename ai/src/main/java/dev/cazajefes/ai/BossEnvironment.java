@@ -10,7 +10,13 @@ public interface BossEnvironment {
     boolean validTarget(CustomBoss boss, Player player);
     boolean mayMove(CustomBoss boss, Location destination);
     boolean mayHit(CustomBoss boss, LivingEntity entity);
+    default boolean mayAffect(CustomBoss boss,Location at){return mayMove(boss,at);}
     void damage(CustomBoss boss, LivingEntity victim, double damage);
+    default void meleeDamage(CustomBoss boss,LivingEntity victim,double damage){damage(boss,victim,damage);}
+    default void meteorDamage(CustomBoss boss,LivingEntity victim,double fallback){damage(boss,victim,fallback);}
+    default void precisionDamage(CustomBoss boss,LivingEntity victim,double damage){damage(boss,victim,damage);}
+    default double movementSpeed(CustomBoss boss){return boss.profile().speed();}
+    default void meteorTrail(CustomBoss boss,Location at) {}
     void warning(CustomBoss boss, Player player, BossAttack attack, int ticks);
     default boolean canSee(CustomBoss boss,Player target){return boss.body().hasLineOfSight(target);}
     default void attackHit(CustomBoss boss,Player target,BossAttack attack) {}

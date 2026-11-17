@@ -64,8 +64,10 @@ final class CombatVisuals {
  }
  static double auraRadius(double width){return width*.72+Math.clamp(width*.16,.20,.75);}
  static void ambient(org.bukkit.entity.Player player,Ambient frame){
+  int highlight=0;
   for(var dot:frame.dots()){
-   if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
+   if(frame.particle()==null&&highlight++%12==0)PacketBridge.particle(player,Particle.ELECTRIC_SPARK,dot.location(),1,0,0,0,0,null);
+   else if(frame.particle()==null)PacketBridge.particle(player,Particle.DUST_COLOR_TRANSITION,dot.location(),1,0,0,0,0,dot.data());
    else PacketBridge.particle(player,frame.particle(),dot.location(),1,0,0,0,0,null);
   }
   for(var trail:frame.trails())PacketBridge.particle(player,Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data());

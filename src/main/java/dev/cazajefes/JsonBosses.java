@@ -138,11 +138,13 @@ final class JsonBosses {
             var document=com.google.gson.JsonParser.parseString(content).getAsJsonObject();
             var combat=candidate.custom().options().json().deepCopy();
             boolean addEncounter=!combat.has("encounter");
+            boolean addBoons=!combat.has("boons");
+            if(addBoons){combat.add("boons",BossBoons.defaults());document.add("combat",combat);}
             if(addEncounter){
                combat.add("encounter",EncounterDesign.defaults());
                document.add("combat",combat);
             }
-            if(!document.has("combatRevision")||addEncounter){
+            if(!document.has("combatRevision")||addEncounter||addBoons){
                var config=candidate.custom().ai()==null?aiDefaults(candidate):candidate.custom().ai().deepCopy();
                if(!config.has("detectionRange")||config.get("detectionRange").getAsDouble()==32)config.addProperty("detectionRange",60);
                var defaults=aiDefaults(candidate).getAsJsonArray("attacks");

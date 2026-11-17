@@ -58,6 +58,8 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.relicItems = new RelicItems(this, this.itemKey);
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
       getServer().getPluginManager().registerEvents(new BossIntegrity(),this);
+      getServer().getPluginManager().registerEvents(new SpecialDamage(),this);
+      getServer().getPluginManager().registerEvents(new BossBoons(this),this);
       burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);
       animalMinions=new AnimalMinions(this);getServer().getPluginManager().registerEvents(animalMinions,this);
       species=new BossSpecies();getServer().getPluginManager().registerEvents(species,this);
@@ -124,6 +126,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       if(spawnpoints!=null)spawnpoints.stop();
       if(deathVisuals!=null)deathVisuals.stop();
       if(relicItems!=null)relicItems.stopLootAnimations();
+      SpecialDamage.clear();
       CosmeticFX.clear();if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if(crystals!=null)crystals.stop();

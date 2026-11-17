@@ -79,9 +79,11 @@ public final class MeteoriteAoEAttack extends BossAttack {
                         var random=java.util.concurrent.ThreadLocalRandom.current();
                         double angle=random.nextDouble(2*Math.PI);
                         // sqrt keeps impact density uniform over the disk.
-                        double distance=showerRadius*Math.sqrt(random.nextDouble());
-                        var point=center.clone().add(Math.cos(angle)*distance,1.25,Math.sin(angle)*distance);
-                        if(Geometry.loaded(point,0)&&boss.environment().mayMove(boss,point)){
+                        boolean focused=age%3!=0&&boss.environment().validTarget(boss,target)
+                            &&target.getLocation().distanceSquared(center)<=showerRadius*showerRadius;
+                        double distance=focused?random.nextDouble(.15,1.4):showerRadius*Math.sqrt(random.nextDouble());
+                        var point=(focused?target.getLocation():center).clone().add(Math.cos(angle)*distance,1.25,Math.sin(angle)*distance);
+                        if(Geometry.loaded(point,0)&&boss.environment().mayAffect(boss,point)){
                             var floor=point.getWorld().rayTraceBlocks(point,new Vector(0,-1,0),5,FluidCollisionMode.NEVER,true);
                             if(floor!=null)falling.add(fall(boss,floor.getHitPosition().toLocation(point.getWorld()).add(0,.12,0)));
                         }
@@ -102,7 +104,7 @@ public final class MeteoriteAoEAttack extends BossAttack {
     }
 
     private AttackMotion fall(CustomBoss boss,Location aim){
-        if(!Geometry.loaded(aim,0)||!boss.environment().mayMove(boss,aim))return AttackMotion.complete();
+        if(!Geometry.loaded(aim,0)||!boss.environment().mayAffect(boss,aim))return AttackMotion.complete();
         double rise=Math.min(height,aim.getWorld().getMaxHeight()-aim.getY()-1);
         if(rise<=.1)return AttackMotion.complete();
         // Limit the spawn point under low ceilings. A second sweep finds the first floor hit.
@@ -123,6 +125,7 @@ public final class MeteoriteAoEAttack extends BossAttack {
                 }
                 position=next;
                 view.move(position);
+                if(age%3==0)boss.environment().meteorTrail(boss,position);
                 return false;
             }
             @Override public void close(){view.close();}
@@ -130,7 +133,7 @@ public final class MeteoriteAoEAttack extends BossAttack {
     }
 
     private void impact(CustomBoss boss,Location center){
-        if(!boss.environment().mayMove(boss,center))return;
+        if(!boss.environment().mayAffect(boss,center))return;
         boss.environment().impact(boss,this,center);
         double range=radius();
         if(!Geometry.loaded(center,range))return;
@@ -142,7 +145,7 @@ public final class MeteoriteAoEAttack extends BossAttack {
             double distance=direction.length();
             if(distance>.15&&center.getWorld().rayTraceBlocks(center,direction.normalize(),distance-.12,
                 FluidCollisionMode.NEVER,true)!=null)continue;
-            boss.environment().damage(boss,victim,damage());
+            boss.environment().meteorDamage(boss,victim,damage());
         }
     }
 }

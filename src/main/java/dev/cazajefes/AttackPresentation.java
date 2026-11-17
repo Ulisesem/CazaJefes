@@ -93,6 +93,7 @@ final class AttackPresentation {
          display.setItemStack(new ItemStack(Material.NETHERITE_AXE));
          display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
          display.setBrightness(new Display.Brightness(15,15));
+         display.setGlowing(true);
          display.setTeleportDuration(9);
          display.setInterpolationDuration(9);
          display.setTransformation(new Transformation(new Vector3f(),new AxisAngle4f(.7f,0,0,1),

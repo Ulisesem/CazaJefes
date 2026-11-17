@@ -64,7 +64,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         else {
             var tactics=profile().tactics();
             double groundDistance=horizontal.length();
-            horizontal.normalize().multiply(profile().speed());
+            horizontal.normalize().multiply(environment().movementSpeed(this));
             switch(tactics.move(groundDistance,pursuitTicks==0&&environment().canSee(this,target))){
                 case APPROACH -> {}
                 case RETREAT -> horizontal.multiply(-.75);

@@ -18,7 +18,7 @@ public final class MeleeSweep extends BossAttack {
     @Override public AttackMotion execute(CustomBoss boss,Player target) {
         if(boss.environment().mayHit(boss,target) && boss.environment().canSee(boss,target)
             && inRange(boss,target,0)) {
-            boss.environment().damage(boss,target,damage());
+            boss.environment().meleeDamage(boss,target,damage());
             boss.environment().impact(boss,this,target.getLocation());
         }
         return AttackMotion.complete();

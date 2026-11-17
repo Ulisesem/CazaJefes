@@ -10,6 +10,11 @@ final class BossFamilyAttacks {
     static JsonObject withDefaults(BossCatalog.Definition boss,boolean aquatic){
         var original=boss.custom().ai();
         var config=original==null?BossProfile.defaults(boss.custom().damage(),aquatic):original.deepCopy();
+        if(config.has("attacks"))for(var entry:config.getAsJsonArray("attacks")){
+            var row=entry.getAsJsonObject();
+            if("METEORITE_AOE".equals(row.get("type").getAsString())
+                &&row.has("intervalTicks")&&row.get("intervalTicks").getAsInt()==10)row.addProperty("intervalTicks",4);
+        }
         if(!boss.custom().options().legacyAttacks())return config;
         var attacks=config.has("attacks")?config.getAsJsonArray("attacks")
             :BossProfile.defaults(boss.custom().damage(),aquatic).getAsJsonArray("attacks");

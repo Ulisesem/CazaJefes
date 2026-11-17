@@ -13,18 +13,25 @@ import org.bukkit.entity.Player;
 public final class LinearProjectileAttack extends BossAttack {
     private final double speed;
     private final int lifetime;
+    private final boolean precise;
 
     public LinearProjectileAttack(String id,String name,AttackCategory category,int weight,long cooldown,
                                   double radius,double damage,int warningTicks,double speed,int lifetime){
+        this(id,name,category,weight,cooldown,radius,damage,warningTicks,speed,lifetime,false);
+    }
+
+    public LinearProjectileAttack(String id,String name,AttackCategory category,int weight,long cooldown,
+                                  double radius,double damage,int warningTicks,double speed,int lifetime,boolean precise){
         super(id,name,category,weight,cooldown,radius,damage,warningTicks);
         this.speed=speed;
         this.lifetime=lifetime;
+        this.precise=precise;
     }
 
     @Override public boolean special(){return false;}
 
     @Override public AttackMotion execute(CustomBoss boss,Player target){
-        return launch(boss,target,boss.origin(),dev.cazajefes.ai.visual.BossVisuals.Projectile.ARROW,false,0);
+        return launch(boss,target,boss.origin(),dev.cazajefes.ai.visual.BossVisuals.Projectile.ARROW,precise,0);
     }
 
     AttackMotion launch(CustomBoss boss,Player target,Location from,
@@ -61,7 +68,8 @@ public final class LinearProjectileAttack extends BossAttack {
                             boss.environment().damage(boss,victim,damage());
                         }
                     }else if(collision.getHitEntity() instanceof LivingEntity victim){
-                        boss.environment().damage(boss,victim,damage());
+                        if(precise)boss.environment().precisionDamage(boss,victim,damage());
+                        else boss.environment().damage(boss,victim,damage());
                         if(!victim.isDead())boss.environment().projectileHit(boss,victim,kind);
                     }
                     boss.environment().impact(boss,LinearProjectileAttack.this,hit);

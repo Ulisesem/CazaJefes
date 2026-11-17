@@ -196,13 +196,13 @@ final class BossAbilities implements Listener {
    if (dischargeAt >= 0) {
     weakPoint.update(audience,false,"HACHA ROTA · DESCARGA INTERRUMPIDA");
     if (weakPoint.broken()>0) { interrupted(audience);return; }
+    if(ticks%5==0){
+     CinematicFX.ring(lodgedAxe,audience,1.2,ticks*.13,14,Color.AQUA,Color.WHITE);
+     CosmeticFX.emit(Particle.ELECTRIC_SPARK,lodgedAxe.clone().add(0,.7,0),8,.22,.5,.22,.06);
+    }
     if (ticks>=dischargeAt) {
      axeImpact=lodgedAxe;
      axeShock(audience);
-     for (Player player : audience) {
-      if (player.getLocation().distanceSquared(axeImpact)<=9 && boss.hasLineOfSight(player))
-       AbilityDamage.hit(player,boss,skill.damage()>0 ? skill.damage()*.65 : 14);
-     }
      finish(true);
      return;
     }
@@ -411,7 +411,12 @@ final class BossAbilities implements Listener {
   }
 
   private void axeShock(List<Player> audience) {
-   axeImpact.getWorld().strikeLightningEffect(axeImpact);
+   for(int i=0;i<8;i++){
+    double a=i*Math.PI/4;
+    var point=axeImpact.clone().add(Math.cos(a)*3.5,0,Math.sin(a)*3.5);
+    if(point.isChunkLoaded()&&ArenaBoundary.allows(boss,point))point.getWorld().strikeLightningEffect(point);
+   }
+   SpecialDamage.area(boss,axeImpact,6,7);
    CinematicFX.ring(axeImpact,audience,3,0,20,Color.WHITE,Color.ORANGE);
    CosmeticFX.emit(Particle.ELECTRIC_SPARK,axeImpact.clone().add(0,1.3,0),12,.45,1,.45,.03);
    CosmeticFX.emit(Particle.BLOCK,axeImpact.clone().add(0,.2,0),20,1.2,.18,1.2,.02,
@@ -444,6 +449,7 @@ final class BossAbilities implements Listener {
     plugin.bosses().summonConfiguredHorde(boss, definition, target);
    }
    if (skill.particles()) CombatVisuals.special(boss,definition);
+   if(axeImpact!=null)return;
    boolean beam = isBeam();
    if (beam && !BeamPath.same(beamPath, trace())) return;
    if (skill.particles()) {

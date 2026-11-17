@@ -140,7 +140,7 @@ public final class RelicItems implements Listener {
                   ? "Combínala en la mesa de crafteo con un casco."
                   : (var1.equals("magneto") ? "Atrae al inventario todo lo que extraes con un pico." : "Combínala en la mesa de crafteo con equipo compatible.")
             );
-         String var7 = var1.equals("despertar")?"Resonancia Primigenia":var5 ? var3 : "Rare Essence";
+         String var7 = var5 ? var3 : "Rare Essence";
          ItemStack var8 = this.named(
             var5 ? Material.BOOK : Material.MAGMA_CREAM,
             (var5 ? "rare_spell_book_" : "esencia_rare_") + var1 + "_" + var4,
@@ -170,7 +170,7 @@ public final class RelicItems implements Listener {
          var9.getPersistentDataContainer().set(this.rareEssenceLevelKey, PersistentDataType.INTEGER, var4);
          if(var5&&RareDefinitions.get(var1)!=null){var definition=RareDefinitions.get(var1);List<Component> lines=new ArrayList<>();lines.add(Component.text("Nivel "+RareAppearance.roman(var4)+" · Máximo "+RareAppearance.roman(definition.maximum()),NamedTextColor.AQUA).decoration(TextDecoration.ITALIC,false));lines.add(Component.text("Costo de uso: "+definition.cost()+" de saturación",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lines.add(Component.text("Recarga: "+definition.cooldown()+" s",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));for(String line:RareAppearance.powerLines(var1))lines.add(Component.text(line,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lines.add(Component.text("Clic derecho en el aire para activar",NamedTextColor.GOLD).decoration(TextDecoration.ITALIC,false));if(definition.maximum()>1)lines.add(Component.text("Une dos libros iguales para subir nivel",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));var9.lore(lines);}
          var8.setItemMeta(var9);
-         return var1.equals("despertar")?awakeningSeal():var5?var8:refreshAppearance(var8);
+         return var5?var8:refreshAppearance(var8);
       }
    }
 
@@ -413,11 +413,7 @@ public final class RelicItems implements Listener {
             }
 
             if (var7 != null && var6.size() == var4 && var8 != null && !this.spellIds().contains(var8) && !var7.getType().isAir()) {
-               if(var8.equals("despertar")){
-                  if(!RareCompatibility.canAwaken(bossInfusionGear(var7),!infusionBlocked(var7),var6.size())){var1.getInventory().setResult(null);return;}
-                  ItemStack opened=var7.clone();var meta=opened.getItemMeta();meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE,(byte)1);opened.setItemMeta(meta);var1.getInventory().setResult(refreshAppearance(opened));return;
-               }
-               if(infusionBlocked(var7)||!RareCompatibility.accepts(var8,var7.getType())){var1.getInventory().setResult(null);return;}else{
+               if(var8.equals("despertar")||!RareCompatibility.accepts(var8,var7.getType())){var1.getInventory().setResult(null);return;}else{
                   ItemStack var27 = var7.clone();
                   ItemMeta var15 = var27.getItemMeta();
                   String var16 = (String)var15.getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
@@ -1096,9 +1092,7 @@ public final class RelicItems implements Listener {
       return var2;
    }
 
-   ItemStack awakeningSeal(){ItemStack stack=named(Material.MAGMA_CREAM,"sello_resonancia_primigenia","✦ Resonancia Primigenia ✦",NamedTextColor.GOLD,1,"Rare de desbloqueo · Nivel I","Abre las infusiones de UNA pieza de boss.","Mesa: pieza sellada + una Resonancia Primigenia","Conserva encantamientos, desgaste y mejoras existentes.");var meta=stack.getItemMeta();meta.getPersistentDataContainer().set(rareBookKey,PersistentDataType.STRING,"despertar");meta.getPersistentDataContainer().set(rareEssenceLevelKey,PersistentDataType.INTEGER,1);stack.setItemMeta(meta);return stack;}
    private boolean bossInfusionGear(ItemStack stack){return stack!=null&&stack.hasItemMeta()&&RareAppearance.equipment(stack.getType())&&RareCompatibility.bossGear(customId(stack),stack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"boss_reward"),PersistentDataType.BYTE));}
-   private boolean infusionBlocked(ItemStack stack){return RareCompatibility.blocked(bossInfusionGear(stack),stack!=null&&stack.hasItemMeta()&&stack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE));}
    private ItemStack carryBossSeal(ItemStack result,ItemStack... inputs){if(result==null||!RareAppearance.equipment(result.getType())||java.util.Arrays.stream(inputs).noneMatch(this::bossInfusionGear))return result;ItemStack out=result.clone();var meta=out.getItemMeta();meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"boss_reward"),PersistentDataType.BYTE,(byte)1);ItemStack base=java.util.Arrays.stream(inputs).filter(i->i!=null&&!i.getType().isAir()).findFirst().orElse(null);if(base==null||!base.hasItemMeta()||!base.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE))meta.getPersistentDataContainer().remove(new NamespacedKey(plugin,"infusion_unlocked"));else meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"infusion_unlocked"),PersistentDataType.BYTE,(byte)1);out.setItemMeta(meta);return refreshAppearance(out);}
    @EventHandler(priority=EventPriority.HIGHEST)public void sealAnvil(org.bukkit.event.inventory.PrepareAnvilEvent e){e.setResult(carryBossSeal(e.getResult(),e.getInventory().getItem(0),e.getInventory().getItem(1)));}
    @EventHandler(priority=EventPriority.HIGHEST)public void sealGrindstone(org.bukkit.event.inventory.PrepareGrindstoneEvent e){e.setResult(carryBossSeal(e.getResult(),e.getInventory().getItem(0),e.getInventory().getItem(1)));}
@@ -1113,7 +1107,7 @@ public final class RelicItems implements Listener {
       List<Component> lore=new ArrayList<>(meta.lore()==null?List.of():meta.lore());
       if(essence){String type=property!=null?RareAppearance.title(property):id.equals("rare_essence_primordial")?"Primordial":id.equals("rare_essence_abyssal")?"Abismal":"Esencia de la Grieta";meta.displayName(Component.text(property==null?"Rare Essence":"Rare Essence · "+type,NamedTextColor.GREEN).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("Rare:")||text.startsWith("Tipo de Rare:")||text.startsWith("Nivel:")||text.startsWith("Compatible:");});lore.add(0,Component.text("Tipo de Rare: "+type,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(property!=null){lore.removeIf(line->!PlainTextComponentSerializer.plainText().serialize(line).startsWith("Tipo de Rare:"));String detail=RareAppearance.description(property);if(detail!=null){lore.removeIf(line->{String value=PlainTextComponentSerializer.plainText().serialize(line);return value.startsWith("Poder: ")||value.startsWith("Dominio máximo: ")||value.startsWith("Costo de uso: ")||value.startsWith("Recarga: ")||value.equals(detail);});lore.add(Component.text("Dominio máximo: "+RareAppearance.roman(maxLevel(property)),RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));if(RareDefinitions.get(property)!=null){var rule=RareDefinitions.get(property);lore.add(Component.text("Costo de uso: "+(rule.cost()==0?"gratuito":rule.cost()+" de saturación"),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(rule.cooldown()>0)lore.add(Component.text("Recarga: "+rule.cooldown()+" s",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}for(String line:RareAppearance.powerLines(property))lore.add(Component.text(line,NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}lore.add(1,Component.text("Nivel: "+RareAppearance.roman(meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));lore.add(2,Component.text("Compatible: "+RareCompatibility.label(property),NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}}
       if(!levels.isEmpty()){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("✦ Veneno ")||text.startsWith("✦ Vampirismo ")||text.startsWith("✦ Veneno Antiguo ")||text.startsWith("✦ Sello Vampírico ")||text.startsWith("Rare:")||text.startsWith("Rare ")&&text.contains("Nivel")||levels.keySet().stream().anyMatch(key->(text.startsWith("✦ "+RareAppearance.title(key)+" ")||text.startsWith("✦ "+RareNames.bare(RareAppearance.title(key))+" ")||text.startsWith("✦ "+RareNames.original(key)+" ")));});for(var entry:levels.entrySet())lore.add(Component.text("✦ "+RareAppearance.title(entry.getKey())+" "+RareAppearance.roman(Math.min(maxLevel(entry.getKey()),Math.max(1,entry.getValue()))),gear?RareAppearance.ORANGE:NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));if(gear&&meta.displayName()!=null)meta.displayName(Component.text(PlainTextComponentSerializer.plainText().serialize(meta.displayName()),RareAppearance.ORANGE).decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC,false));}
-      if(bossInfusionGear(stack)){lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("✧ Infusiones:")||text.startsWith("Desbloquea con:");});lore.add(Component.text(infusionBlocked(stack)?"✧ Infusiones: SELLADAS":"✧ Infusiones: DESPERTADAS",infusionBlocked(stack)?NamedTextColor.DARK_PURPLE:RareAppearance.ORANGE).decoration(TextDecoration.ITALIC,false));if(infusionBlocked(stack))lore.add(Component.text("Desbloquea con: Resonancia Primigenia",NamedTextColor.GRAY).decoration(TextDecoration.ITALIC,false));}
+      lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);return text.startsWith("✧ Infusiones:")||text.startsWith("Desbloquea con:");});
       meta.lore(lore);out.setItemMeta(meta);return decorateCommandBook(out);
    }
 
@@ -1310,7 +1304,6 @@ public final class RelicItems implements Listener {
             this.plugin.getServer().addRecipe(var27);
          }
       }
-      addRecipe("sello_resonancia_primigenia",awakeningSeal(),new String[]{"KPK","NSN","FTF"},Map.of('K',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)),'P',new ExactChoice(primordialEssence()),'N',bossCoreChoice(),'S',new MaterialChoice(Material.NETHER_STAR),'F',new ExactChoice(fragment(1)),'T',new ExactChoice(tribute("Cazador"))));
       for(String material:RangedRareCatalog.MATERIALS)addRecipe("ranged_material_"+material,rangedMaterial(material),new String[]{" R ","CEC"," F "},Map.of('R',new MaterialChoice(RangedRareCatalog.materialIcon(material)),'C',bossCoreChoice(),'E',new ExactChoice(essence()),'F',new ExactChoice(fragment(1))));
       registerSpellUpgrades();registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
       ((CazaJefesPlugin)plugin).recipeSettings.saveDiscovered();

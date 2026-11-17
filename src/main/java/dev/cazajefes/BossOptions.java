@@ -15,6 +15,9 @@ record BossOptions(JsonObject json) {
     com.google.gson.JsonObject encounter(){
         return json.get("encounter") instanceof com.google.gson.JsonObject object?object:new com.google.gson.JsonObject();
     }
+    com.google.gson.JsonObject boons(){
+        return json.get("boons") instanceof com.google.gson.JsonObject object?object:new com.google.gson.JsonObject();
+    }
     boolean fearless(){return bool("fearless",true);}
     boolean loot(){return bool("loot",true);}
     boolean legacyAttacks(){return bool("legacyAttacks",true);}

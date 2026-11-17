@@ -57,7 +57,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                         number(row,"height",10,2,24),number(row,"speed",.85,.1,3),
                         text(row,"material","MAGMA_BLOCK"),text(row,"texture",""),
                         number(row,"showerRadius",20,0,24),integer(row,"durationTicks",200,1,300),
-                        integer(row,"intervalTicks",10,5,60));
+                        integer(row,"intervalTicks",4,3,60));
                     default -> throw new IllegalArgumentException("tipo de ataque desconocido: "+id);
                 });
             }

@@ -96,6 +96,29 @@ final class CustomEncounter implements BossEnvironment {
         return boss!=null&&boss.state()==dev.cazajefes.ai.BossState.ATTACKING;
     }
 
+    void afterBurst(LivingEntity body,Player target){
+        var brain=loop.get(body.getUniqueId());
+        if(brain==null||!validTarget(brain,target))return;
+        var shot=new dev.cazajefes.ai.attack.LinearProjectileAttack("flecha_del_cenit","Flecha del Cénit",
+            dev.cazajefes.ai.AttackCategory.MIXED,1,500,.5,6,8,2.4,60,true);
+        var motion=new dev.cazajefes.ai.AttackMotion(){
+            int tick;
+            dev.cazajefes.ai.AttackMotion flight;
+            boolean closed;
+            @Override public boolean tick(){
+                if(closed||!validTarget(brain,target))return true;
+                if(tick++==0)warning(brain,target,shot,8);
+                if(tick==8){
+                    release(brain,shot);
+                    flight=shot.execute(brain,target);
+                }
+                return flight!=null&&flight.tick();
+            }
+            @Override public void close(){closed=true;if(flight!=null)flight.close();}
+        };
+        if(!brain.followUp(motion))motion.close();
+    }
+
     boolean push(org.bukkit.entity.Entity entity,org.bukkit.util.Vector velocity){
         if(!(loop.get(entity.getUniqueId()) instanceof KinematicBoss boss))return false;
         displacement.remove(entity.getUniqueId());
@@ -138,6 +161,11 @@ final class CustomEncounter implements BossEnvironment {
         return true;
     }
 
+    @Override public boolean mayAffect(CustomBoss boss,Location at){
+        return at.getWorld()==boss.body().getWorld()&&at.getWorld().getWorldBorder().isInside(at)
+            &&ArenaBoundary.allows(boss.body(),at);
+    }
+
     @Override public boolean mayHit(CustomBoss boss,LivingEntity victim){
         var data=victim.getPersistentDataContainer();
         return victim.isValid()&&!victim.isDead()&&!victim.isInvulnerable()&&victim!=boss.body()
@@ -151,6 +179,32 @@ final class CustomEncounter implements BossEnvironment {
         if(damage<=0||!mayHit(boss,victim))return;
         if(victim instanceof Player player)AbilityDamage.hit(player,boss.body(),damage,true);
         else victim.damage(damage,boss.body());
+    }
+
+    @Override public void meleeDamage(CustomBoss boss,LivingEntity victim,double damage){
+        var definition=definition(boss);
+        damage(boss,victim,damage+3*BossBoons.levels(definition).strength());
+    }
+
+    @Override public void meteorDamage(CustomBoss boss,LivingEntity victim,double fallback){
+        if(victim instanceof Player player)SpecialDamage.hit(boss.body(),player,
+            java.util.concurrent.ThreadLocalRandom.current().nextDouble(4,6));
+        else damage(boss,victim,5);
+    }
+
+    @Override public void precisionDamage(CustomBoss boss,LivingEntity victim,double damage){
+        if(victim instanceof Player player)SpecialDamage.hit(boss.body(),player,damage);
+        else damage(boss,victim,damage);
+    }
+
+    @Override public double movementSpeed(CustomBoss boss){
+        var levels=BossBoons.levels(definition(boss));
+        return Math.min(levels.maxSpeed(),boss.profile().speed()*(1+.2*levels.haste()));
+    }
+
+    @Override public void meteorTrail(CustomBoss boss,Location at){
+        CosmeticFX.emit(org.bukkit.Particle.SMALL_FLAME,at,2,.13,.15,.13,.015);
+        CosmeticFX.emit(org.bukkit.Particle.ELECTRIC_SPARK,at,1,.06,.06,.06,.01);
     }
 
     @Override public void warning(CustomBoss boss,Player target,BossAttack attack,int ticks){
@@ -232,6 +286,7 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public void heartbeat(CustomBoss boss){
+        BossBuffs.apply(boss.body());
         encounters.update(boss.body());
         var tracker=stages.get(boss.body().getUniqueId());
         if(tracker!=null)tracker.update();
@@ -314,7 +369,7 @@ final class CustomEncounter implements BossEnvironment {
             double angle=age*.021+i*2.399963229728653;
             double distance=i<24?radius:radius*Math.sqrt((i-23.5)/32);
             var point=center.clone().add(Math.cos(angle)*distance,1.25,Math.sin(angle)*distance);
-            if(!point.isChunkLoaded()||!mayMove(boss,point))continue;
+            if(!point.isChunkLoaded()||!mayAffect(boss,point))continue;
             var floor=point.getWorld().rayTraceBlocks(point,new org.bukkit.util.Vector(0,-1,0),5,
                 org.bukkit.FluidCollisionMode.NEVER,true);
             if(floor==null)continue;

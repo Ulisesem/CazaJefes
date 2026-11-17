@@ -20,7 +20,17 @@ final class BossDisplacement {
    Location center=boss.getLocation();BurstVisuals.showBoss(plugin,boss);
    boss.getWorld().playSound(center,attack==1?Sound.ENTITY_BREEZE_WIND_BURST:Sound.ENTITY_WARDEN_SONIC_BOOM,1,attack==1?1.3f:.7f);
    plugin.burstLaunch.wave(boss,12,attack==1?CombatPower.ASCENT_LATERAL:CombatPower.repel(),attack==1?StageAttackRules.lift(phase):.5,true);
-   anchor.remove(boss.getUniqueId());plugin.abilities.rest(boss);plugin.shulkers.afterBurst(boss);warn(players,"✦ "+name+" · "+definition.name());return true;
+   anchor.remove(boss.getUniqueId());
+   if(attack==1){
+    var brain=plugin.customEncounter.active(boss.getUniqueId());
+    Player focus=brain==null?null:brain.target();
+    if(focus!=null&&players.contains(focus)&&!focus.isOp()){
+     plugin.getServer().getScheduler().runTask(plugin,()->{
+      if(boss.isValid()&&!boss.isDead())plugin.customEncounter.afterBurst(boss,focus);
+     });
+    }
+   }
+   plugin.abilities.rest(boss);plugin.shulkers.afterBurst(boss);warn(players,"✦ "+name+" · "+definition.name());return true;
   }
   if(anchor.held(boss.getUniqueId()))return true;
   if(!otherCast&&!players.isEmpty()){
