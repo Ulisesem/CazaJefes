@@ -64,6 +64,15 @@ public final class PacketBossVisuals implements BossVisuals {
         return view;
     }
 
+    @Override public void swing(LivingEntity body){
+        var at=body.getLocation();
+        for(Player viewer:at.getWorld().getNearbyPlayers(at,RANGE)){
+            if(!receives(viewer,at))continue;
+            send(viewer,new WrapperPlayServerEntityAnimation(body.getEntityId(),
+                WrapperPlayServerEntityAnimation.EntityAnimationType.SWING_MAIN_ARM));
+        }
+    }
+
     @Override public void explosion(Location center){
         for(Player viewer:center.getWorld().getNearbyPlayers(center,RANGE)){
             if(!receives(viewer,center))continue;

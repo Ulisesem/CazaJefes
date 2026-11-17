@@ -15,5 +15,6 @@ public interface BossVisuals {
     View projectile(Location origin);
     default View projectile(Location origin,Projectile kind){return projectile(origin);}
     View meteor(Location origin,ItemStack helmet);
+    default void swing(LivingEntity body) {}
     void explosion(Location center);
 }

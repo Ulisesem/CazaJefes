@@ -149,6 +149,8 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public void warning(CustomBoss boss,Player target,BossAttack attack,int ticks){
+        attackEvent(boss,attack,dev.cazajefes.api.event.BossAttackEvent.Stage.CHARGE,boss.body().getLocation());
+        CombatTelegraph.charge(boss.body(),target,attack);
         var at=boss.body().getLocation();
         var definition=BossCatalog.get(boss.body().getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
@@ -164,18 +166,28 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public void release(CustomBoss boss,BossAttack attack){
+        attackEvent(boss,attack,dev.cazajefes.api.event.BossAttackEvent.Stage.RELEASE,boss.body().getLocation());
+        visuals.swing(boss.body());
+        CombatTelegraph.release(boss.body(),attack);
         var at=boss.body().getLocation();
         effect(boss,attack,"release",BossParticles.Shape.BEAM,at,
             Math.max(.8,boss.body().getWidth()*.55),boss.body().getHeight(),false);
     }
 
     @Override public void impact(CustomBoss boss,BossAttack attack,Location at){
+        attackEvent(boss,attack,dev.cazajefes.api.event.BossAttackEvent.Stage.IMPACT,at);
         if(attack.id().equals("marea_de_arrastre")){
             CosmeticFX.emit(org.bukkit.Particle.BUBBLE_POP,at.clone().add(0,.5,0),30,2,.5,2,.12);
             at.getWorld().playSound(at,org.bukkit.Sound.ITEM_TRIDENT_RIPTIDE_2,1,.75f);
         }
         effect(boss,attack,"impact",BossParticles.Shape.PULSE,at,
             Math.max(1,attack.radius()),1.1,false);
+    }
+
+    private void attackEvent(CustomBoss boss,BossAttack attack,dev.cazajefes.api.event.BossAttackEvent.Stage stage,Location at){
+        var target=boss.target();
+        plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
+            boss.body().getUniqueId(),target==null?null:target.getUniqueId(),attack.id(),stage,at));
     }
 
     private void effect(CustomBoss boss,BossAttack attack,String stage,BossParticles.Shape fallback,
