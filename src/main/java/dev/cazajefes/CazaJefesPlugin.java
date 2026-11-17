@@ -50,6 +50,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       CombatScripts.load(this);
       this.recipeSettings = new RecipeSettings(this);
       statistics=new BossStatistics(this);getServer().getServicesManager().register(BossStatistics.class,statistics,this,org.bukkit.plugin.ServicePriority.Normal);
+      getServer().getPluginManager().registerEvents(new RegionProtection(),this);
       this.guard = new CombatGuard(this);
       getServer().getPluginManager().registerEvents(guard, this);
       this.participation=new BossParticipation(this);getServer().getPluginManager().registerEvents(participation,this);

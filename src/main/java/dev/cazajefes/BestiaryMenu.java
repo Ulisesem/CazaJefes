@@ -48,7 +48,7 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    for(var attack:ai.attacks()){
     String name=plugin.languages.attack(player,detail.id()+"."+attack.id(),attack.name());
     skillLore.add("· "+name);
-    skillLore.add("  "+attack.category().name()+"  |  "+attack.cooldown()+" ticks");
+    skillLore.add("  "+switch(attack.category()){case SHORT_RANGE->"Cerca";case MID_RANGE->"Media distancia";case LONG_RANGE->"Larga distancia";case GLOBAL,MIXED->"Variable";}+" · "+String.format(java.util.Locale.ROOT,"%.1f",attack.cooldown()/20.0)+" s");
    }
    if(skillLore.isEmpty())skillLore.add("Sin ataques configurados");
    inv.setItem(20,PremiumStyle.tile(Material.IRON_SWORD,label(player,"aiAttacks","ATAQUES DEL JEFE"),NamedTextColor.AQUA,true,skillLore.toArray(String[]::new)));
@@ -59,7 +59,7 @@ final class BestiaryMenu implements CommandExecutor,Listener {
    inv.setItem(24,PremiumStyle.tile(Material.CHEST,label(player,"loot","TESOROS DEL ENCUENTRO"),color,true,detail.mini()?"1–2 tributos, 1–3 fragmentos y cristal común":"Fragmentos garantizados; cristales solo en minis",detail.mini()?"Sin armas ni armaduras":rank<2?"Equipo a partir de categoría Épica":"Armadura: "+Math.round((0.08+rank*0.035)*100)+" % · arma: "+Math.round((0.06+rank*0.025)*100)+" %",detail.mini()?"Primer peldaño de la progresión":"Rare Essence sin poder · Equipo sellado sin rares"));
    inv.setItem(31,detail.mini()?items.crystal(BossCatalog.Tier.COMMON,1):items.tribute("Cazador"));
    if(!detail.mini())inv.setItem(33,items.bossHeart(detail));
-   if(!detail.mini()&&rank>=2)inv.setItem(34,PremiumStyle.tile(Material.NETHER_STAR,"RESONANCIA PRIMIGENIA",NamedTextColor.GOLD,true,"Desbloquea una pieza de equipo de boss","Los drops de equipo no traen rares incorporadas","Solo se fabrica: no cae como rare ya preparada","Receta: /rares → Infusiones → Resonancia Primigenia"));
+   if(!detail.mini()&&rank>=2)inv.setItem(32,PremiumStyle.tile(Material.NETHER_STAR,"RESONANCIA PRIMIGENIA",NamedTextColor.GOLD,true,"Desbloquea una pieza de equipo de boss","Los drops de equipo no traen rares incorporadas","Solo se fabrica: no cae como rare ya preparada","Receta: /rares → Infusiones → Resonancia Primigenia"));
    if(AdminPermissions.allows(player::hasPermission,"rareitemhunter.admin.egg"))inv.setItem(40,PremiumStyle.tile(Material.DRAGON_EGG,"✦ COLOCAR HUEVO DEL BOSS ✦",NamedTextColor.RED,true,"Clic para colocarlo junto a ti","Aparece sobre un pedestal de bedrock","Clic derecho en el huevo para despertar al boss"));
    inv.setItem(49,PremiumStyle.tile(Material.ARROW,"VOLVER A "+category.title.toUpperCase(java.util.Locale.ROOT),color,false));
   }

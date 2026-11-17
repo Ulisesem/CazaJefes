@@ -117,8 +117,20 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public boolean mayMove(CustomBoss boss,Location destination){
-        return destination.getWorld()==boss.body().getWorld()&&destination.getWorld().getWorldBorder().isInside(destination)
-            &&ArenaBoundary.allows(boss.body(),destination);
+        var body=boss.body();
+        if(destination.getWorld()!=body.getWorld()||!body.getWorld().getWorldBorder().isInside(destination))return false;
+        var origin=body.getLocation();
+        var delta=destination.toVector().subtract(origin.toVector());
+        int steps=Math.max(1,(int)Math.ceil(delta.length()/.5));
+        var bounds=body.getBoundingBox();
+        double halfX=bounds.getWidthX()/2,halfZ=bounds.getWidthZ()/2;
+        for(int i=1;i<=steps;i++){
+            var point=origin.clone().add(delta.clone().multiply(i/(double)steps));
+            for(double x:new double[]{-halfX,0,halfX})for(double z:new double[]{-halfZ,0,halfZ})
+                for(double y:new double[]{.05,Math.max(.05,bounds.getHeight()-.05)})
+                    if(!ArenaBoundary.allows(body,point.clone().add(x,y,z)))return false;
+        }
+        return true;
     }
 
     @Override public boolean mayHit(CustomBoss boss,LivingEntity victim){

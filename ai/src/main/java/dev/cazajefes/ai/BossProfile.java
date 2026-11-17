@@ -23,7 +23,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         double gravity=number(json,"gravity",.08,0,.35);
         double range=number(json,"detectionRange",60,3,60);
         int gcd=integer(json,"globalCooldownTicks",18,1,600);
-        int basicRecovery=integer(json,"basicRecoveryTicks",8,1,100);
+        int basicRecovery=integer(json,"basicRecoveryTicks",6,1,100);
         int specialRecovery=integer(json,"specialRecoveryTicks",55,10,600);
         var entries=new ArrayList<BossAttack>();
         {
@@ -90,7 +90,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         json.addProperty("gravity",.08);
         json.addProperty("detectionRange",60);
         json.addProperty("globalCooldownTicks",18);
-        json.addProperty("basicRecoveryTicks",8);
+        json.addProperty("basicRecoveryTicks",6);
         json.addProperty("specialRecoveryTicks",55);
         json.addProperty("aquatic",aquatic);
         json.add("equipment",new JsonObject());

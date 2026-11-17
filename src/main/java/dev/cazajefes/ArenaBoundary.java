@@ -12,6 +12,9 @@ final class ArenaBoundary {
    private record Api(Object container, Method adapt, Method manager, Method vector,
                       Method applicable, Method regions, Method id) {}
    private static Api api;
+   private record FlagKey(java.util.UUID world,int x,int y,int z,String flags) {}
+   private static final java.util.Map<FlagKey,Boolean> flagCache=new java.util.HashMap<>();
+   private static int cacheTick=-1;
    private static Set<String> protectedIds=Set.of();
    private static boolean warned;
    private static CazaJefesPlugin plugin;
@@ -21,9 +24,9 @@ final class ArenaBoundary {
       protectedIds=owner.getConfig().getStringList("combat.worldguard-arenas").stream()
          .map(id -> id.strip().toLowerCase(Locale.ROOT)).filter(id -> !id.isBlank()).collect(Collectors.toUnmodifiableSet());
       api=null;
+      flagCache.clear();
       warned=false;
       var worldGuard=owner.getServer().getPluginManager().getPlugin("WorldGuard");
-      if (protectedIds.isEmpty()) return;
       if (worldGuard==null || !worldGuard.isEnabled()) {
          owner.getLogger().warning("worldguard-arenas requiere WorldGuard habilitado.");
          return;
@@ -55,45 +58,60 @@ final class ArenaBoundary {
    }
 
    static boolean allows(org.bukkit.entity.Entity entity,Location destination) {
-      if (protectedIds.isEmpty()) return true;
       if (!allows(entity.getLocation(),destination)) return false;
       int[] at=entity.getPersistentDataContainer().get(ORIGIN,org.bukkit.persistence.PersistentDataType.INTEGER_ARRAY);
       return at==null || at.length!=3 || allows(new Location(entity.getWorld(),at[0],at[1],at[2]),destination);
    }
 
    static boolean allowsTerrain(org.bukkit.entity.Entity boss,Location destination) {
-      if(plugin==null||!plugin.getServer().getPluginManager().isPluginEnabled("WorldGuard"))
-         return allows(boss,destination);
-      if(api==null||!allows(boss,destination))return false;
+      if(!allows(boss,destination))return false;
+      if(!worldGuardEnabled())return true;
+      if(api==null)return false;
       try{
-         if(regions(destination).isEmpty())return false;
-         Object set=applicable(destination);
-         var all=(Iterable<?>)api.regions().invoke(set);
-         for(var region:all){
-            String name=(String)api.id().invoke(region);
-            if(!protectedIds.contains(name))return false;
-         }
-         var loader=set.getClass().getClassLoader();
-         var stateFlag=loader.loadClass("com.sk89q.worldguard.protection.flags.StateFlag");
-         var flags=loader.loadClass("com.sk89q.worldguard.protection.flags.Flags");
-         var associable=loader.loadClass("com.sk89q.worldguard.protection.association.RegionAssociable");
-         var array=java.lang.reflect.Array.newInstance(stateFlag,2);
-         java.lang.reflect.Array.set(array,0,flags.getField("BUILD").get(null));
-         java.lang.reflect.Array.set(array,1,flags.getField("BLOCK_BREAK").get(null));
-         var query=loader.loadClass("com.sk89q.worldguard.protection.ApplicableRegionSet")
-            .getMethod("queryState",associable,array.getClass());
-         Object result=query.invoke(set,null,array);
-         return result==null||!result.toString().equals("DENY");
+         var regions=(Iterable<?>)api.regions().invoke(applicable(destination));
+         if(regions.iterator().hasNext())return false;
+         return stateAllowed(destination,"BUILD","BLOCK_BREAK");
+      }catch(ReflectiveOperationException|LinkageError|RuntimeException failure){
+         warn(failure);
+         return false;
       }
-      catch(ReflectiveOperationException|RuntimeException failure){warn(failure);return false;}
+   }
+
+   private static boolean worldGuardEnabled(){
+      return plugin!=null&&plugin.getServer().getPluginManager().isPluginEnabled("WorldGuard");
    }
 
    static boolean allows(Location source, Location destination) {
-      if (protectedIds.isEmpty()) return true;
-      if (source.getWorld()!=destination.getWorld()) return false;
-      if (api==null) return false;
-      try { return sharesArena(regions(source),regions(destination)); }
-      catch (ReflectiveOperationException | LinkageError | RuntimeException error) { warn(error);return false; }
+      if(source.getWorld()!=destination.getWorld())return false;
+      if(!worldGuardEnabled())return protectedIds.isEmpty();
+      if(api==null)return false;
+      try{
+         return stateAllowed(source,"PVP")&&stateAllowed(destination,"PVP");
+      }catch(ReflectiveOperationException|LinkageError|RuntimeException failure){
+         warn(failure);
+         return false;
+      }
+   }
+
+   private static boolean stateAllowed(Location at,String... names) throws ReflectiveOperationException {
+      int tick=org.bukkit.Bukkit.getCurrentTick();
+      if(tick!=cacheTick){flagCache.clear();cacheTick=tick;}
+      var key=new FlagKey(at.getWorld().getUID(),at.getBlockX(),at.getBlockY(),at.getBlockZ(),String.join(",",names));
+      var cached=flagCache.get(key);
+      if(cached!=null)return cached;
+      Object set=applicable(at);
+      var loader=api.container().getClass().getClassLoader();
+      var stateFlag=loader.loadClass("com.sk89q.worldguard.protection.flags.StateFlag");
+      var flags=loader.loadClass("com.sk89q.worldguard.protection.flags.Flags");
+      var associable=loader.loadClass("com.sk89q.worldguard.protection.association.RegionAssociable");
+      var array=java.lang.reflect.Array.newInstance(stateFlag,names.length);
+      for(int i=0;i<names.length;i++)java.lang.reflect.Array.set(array,i,flags.getField(names[i]).get(null));
+      var query=loader.loadClass("com.sk89q.worldguard.protection.ApplicableRegionSet")
+         .getMethod("queryState",associable,array.getClass());
+      Object result=query.invoke(set,null,array);
+      boolean allowed=result==null||!result.toString().equals("DENY");
+      flagCache.put(key,allowed);
+      return allowed;
    }
 
    static boolean sharesArena(Set<String> a, Set<String> b) {

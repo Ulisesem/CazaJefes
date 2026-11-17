@@ -201,6 +201,7 @@ public final class BossManager implements Listener {
    }
 
    public LivingEntity spawnBoss(String var1, Location var2, String var3) {
+      if(!ArenaBoundary.allows(var2,var2))return null;
       BossCatalog.Definition var4 = BossCatalog.get(var1);
       if (var4 != null && var2.getWorld() != null) {
          LivingEntity var5;
