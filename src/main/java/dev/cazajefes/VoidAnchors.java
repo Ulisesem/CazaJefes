@@ -15,6 +15,8 @@ final class VoidAnchors {
    private final List<Location> safe = new ArrayList<>();
    private static int count;
 
+   int remaining(){return active.size();}
+
    int broken() { return safe.size(); }
 
    void start(Location center, UUID owner) {

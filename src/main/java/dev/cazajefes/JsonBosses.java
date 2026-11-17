@@ -136,7 +136,13 @@ final class JsonBosses {
                throw new IllegalArgumentException("El ID debe coincidir con el nombre del archivo");
             }
             var document=com.google.gson.JsonParser.parseString(content).getAsJsonObject();
-            if(!document.has("combatRevision")){
+            var combat=candidate.custom().options().json().deepCopy();
+            boolean addEncounter=!combat.has("encounter");
+            if(addEncounter){
+               combat.add("encounter",EncounterDesign.defaults());
+               document.add("combat",combat);
+            }
+            if(!document.has("combatRevision")||addEncounter){
                var config=candidate.custom().ai()==null?aiDefaults(candidate):candidate.custom().ai().deepCopy();
                if(!config.has("detectionRange")||config.get("detectionRange").getAsDouble()==32)config.addProperty("detectionRange",60);
                var defaults=aiDefaults(candidate).getAsJsonArray("attacks");

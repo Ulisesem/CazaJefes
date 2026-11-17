@@ -49,6 +49,11 @@ final class PluginApi implements CazaJefesApi {
         var definition=BossCatalog.get(id);
         List<String> signature=definition==null||!definition.custom().options().legacyAttacks()?List.of()
             :CombatScripts.rotation(definition,phase).stream().map(CombatScripts.Skill::id).toList();
+        if(definition!=null&&EncounterDesign.rules(definition.custom().options().encounter()).enabled()){
+            var all=new java.util.ArrayList<>(signature);
+            all.add("encounter_combo");
+            signature=List.copyOf(all);
+        }
         return Optional.of(new CombatInfo(boss.state().name(),boss.profile().tactics().style().name(),phase,attacks,signature));
     }
 

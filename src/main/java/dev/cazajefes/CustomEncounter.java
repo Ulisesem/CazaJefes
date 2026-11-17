@@ -29,6 +29,7 @@ final class CustomEncounter implements BossEnvironment {
     private final dev.cazajefes.ai.BossManager loop;
     private final BossDisplacement displacement;
     private final CavePassages caves;
+    private final CounterplayEncounters encounters;
     private final BossVisuals visuals=new PacketBossVisuals();
     private final Map<String,BossProfile> profiles=new HashMap<>();
     private final Map<UUID,BossStages> stages=new HashMap<>();
@@ -37,6 +38,8 @@ final class CustomEncounter implements BossEnvironment {
         this.plugin=plugin;
         this.displacement=new BossDisplacement(plugin);
         this.caves=new CavePassages(plugin);
+        this.encounters=new CounterplayEncounters(plugin);
+        plugin.getServer().getPluginManager().registerEvents(encounters,plugin);
         for(var definition:BossCatalog.all()){
             profiles.put(definition.id(),read(definition));
         }
@@ -69,6 +72,7 @@ final class CustomEncounter implements BossEnvironment {
     void attach(LivingEntity body,BossCatalog.Definition definition){
         remove(body.getUniqueId());
         equip(body,definition);
+        encounters.track(body,definition);
         stages.put(body.getUniqueId(),new BossStages(body,definition,plugin.languages));
         loop.add(new KinematicBoss(body,profile(definition),this));
     }
@@ -76,6 +80,7 @@ final class CustomEncounter implements BossEnvironment {
     void remove(UUID uuid){
         loop.remove(uuid);
         stages.remove(uuid);
+        encounters.remove(uuid);
         displacement.remove(uuid);
         caves.release(uuid);
         plugin.species.remove(uuid);
@@ -98,7 +103,7 @@ final class CustomEncounter implements BossEnvironment {
         return true;
     }
 
-    void stop(){loop.stop();stages.clear();displacement.clear();caves.stop();}
+    void stop(){loop.stop();stages.clear();displacement.clear();caves.stop();encounters.stop();}
 
     @Override public Player acquire(CustomBoss boss){
         double range=boss.profile().detectionRange();
@@ -214,10 +219,12 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public dev.cazajefes.ai.AttackMotion signature(CustomBoss boss,Player target){
-        return signature(boss,target,null);
+        var combo=encounters.begin(boss,target);
+        return combo==null?signature(boss,target,null):combo;
     }
 
     dev.cazajefes.ai.AttackMotion signature(CustomBoss boss,Player target,String requested){
+        if("encounter_combo".equals(requested))return encounters.begin(boss,target);
         var definition=definition(boss);
         if(definition==null||!definition.custom().options().legacyAttacks()
             ||target.getLocation().distanceSquared(boss.body().getLocation())>576)return null;
@@ -225,6 +232,7 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public void heartbeat(CustomBoss boss){
+        encounters.update(boss.body());
         var tracker=stages.get(boss.body().getUniqueId());
         if(tracker!=null)tracker.update();
         var body=boss.body();

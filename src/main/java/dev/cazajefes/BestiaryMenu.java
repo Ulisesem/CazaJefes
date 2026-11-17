@@ -50,6 +50,10 @@ final class BestiaryMenu implements CommandExecutor,Listener {
     skillLore.add("· "+name);
     skillLore.add("  "+switch(attack.category()){case SHORT_RANGE->"Cerca";case MID_RANGE->"Media distancia";case LONG_RANGE->"Larga distancia";case GLOBAL,MIXED->"Variable";}+" · "+String.format(java.util.Locale.ROOT,"%.1f",attack.cooldown()/20.0)+" s");
    }
+   var design=EncounterDesign.family(detail);
+   skillLore.add("· "+design.name+" · combo de dos oleadas");
+   skillLore.add("  "+design.hint+" para interrumpir");
+   skillLore.add("  Esquivar abre una ventana de contraataque");
    if(skillLore.isEmpty())skillLore.add("Sin ataques configurados");
    inv.setItem(20,PremiumStyle.tile(Material.IRON_SWORD,label(player,"aiAttacks","ATAQUES DEL JEFE"),NamedTextColor.AQUA,true,skillLore.toArray(String[]::new)));
    inv.setItem(29,PremiumStyle.tile(Material.IRON_CHESTPLATE,"IA DEL GUARDIÁN",color,true,

@@ -12,6 +12,9 @@ record BossOptions(JsonObject json) {
     static final BossOptions DEFAULT=new BossOptions(new JsonObject());
     private static final Set<String> PLAN_KEYS=Set.of("phase-2-health","phase-3-health","phase-1","phase-2","phase-3","horde");
 
+    com.google.gson.JsonObject encounter(){
+        return json.get("encounter") instanceof com.google.gson.JsonObject object?object:new com.google.gson.JsonObject();
+    }
     boolean fearless(){return bool("fearless",true);}
     boolean loot(){return bool("loot",true);}
     boolean legacyAttacks(){return bool("legacyAttacks",true);}
