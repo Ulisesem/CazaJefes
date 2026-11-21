@@ -31,29 +31,33 @@ jobs:
         run: gradle --no-daemon clean build
 
       - name: Upload CazaJefes JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CazaJefes
           path: CazaJefes/build/libs/*.jar
+          archive: false
           if-no-files-found: error
 
       - name: Upload API JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CazaJefes-api
           path: api/build/libs/*.jar
+          archive: false
           if-no-files-found: error
 
       - name: Upload PluginExample JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CazaJefes-pluginExample
           path: pluginExample/build/libs/*.jar
+          archive: false
           if-no-files-found: error
 
       - name: Upload AI JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CazaJefes-ai
           path: ai/build/libs/*.jar
+          archive: false
           if-no-files-found: error
