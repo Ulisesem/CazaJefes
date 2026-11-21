@@ -68,6 +68,7 @@ final class BossAuras implements Listener {
     var key=new FrameKey(entry.entity().getUniqueId(),points);
     var geometry=cache.computeIfAbsent(key,k->CombatVisuals.ambient(entry.entity(),entry.definition(),entry.style(),angle,points));
     CombatVisuals.ambient(player,geometry);
+    if(plugin.getConfig().getBoolean("visual-providers.excellentcrates.enabled",true))CrateAuraBridge.render(player,entry.entity(),(int)frame);
     remaining-=cost;
     available-=cost;
    }

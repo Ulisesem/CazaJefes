@@ -33,7 +33,8 @@ final class CombatVisuals {
  record AuraTrail(Location origin, Particle.Trail data){}
  record Ambient(java.util.List<AuraDot> dots, java.util.List<AuraTrail> trails, Location crown,Particle motif,Particle particle){}
  static Ambient ambient(LivingEntity entity,BossCatalog.Definition boss,BossParticles config,double angle,int points){
-  var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();var style=CreatureAura.of(boss.entityType());int phase=BossStages.phase(entity);
+  var origin=entity.getLocation();var bounds=entity.getBoundingBox();double width=Math.max(bounds.getWidthX(),bounds.getWidthZ()),height=bounds.getHeight();
+  double resonance=1+.12*Math.sin(angle*2);width*=resonance;height*=resonance;var style=CreatureAura.of(boss.entityType());int phase=BossStages.phase(entity);
   AuraIdentity identity=identity(boss);
   Color firstColor=config.color()==null?identity.primary():config.color();
   Color secondColor=config.accent()==null?identity.accent():config.accent();
@@ -73,7 +74,7 @@ final class CombatVisuals {
   for(var trail:frame.trails())PacketBridge.particle(player,Particle.TRAIL,trail.origin(),1,0,0,0,0,trail.data());
   if(frame.motif()!=null)PacketBridge.particle(player,frame.motif(),frame.crown(),1,.2,.15,.2,.005,null);
  }
- static void special(LivingEntity entity,BossCatalog.Definition boss){signatureRing(entity.getLocation(),boss,1.6,24);CosmeticFX.emit(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}
+ static void special(LivingEntity entity,BossCatalog.Definition boss){VisualProviders.impact(entity);signatureRing(entity.getLocation(),boss,1.6,24);CosmeticFX.emit(motif(boss),entity.getLocation().add(0,1,0),18,.6,.7,.6,.025);}
  static void summon(Location point,BossCatalog.Definition boss){signatureRing(point,boss,.8,18);CosmeticFX.emit(motif(boss),point.clone().add(0,.7,0),16,.35,.5,.35,.02);}
  static void signatureRing(Location point,BossCatalog.Definition boss,double radius,int count){for(int i=0;i<count;i++){double angle=i*Math.PI*2/count;CosmeticFX.emit(Particle.DUST,point.clone().add(Math.cos(angle)*radius,.2,Math.sin(angle)*radius),1,0,0,0,0,new Particle.DustOptions(signature(boss),1.3f));}}
 

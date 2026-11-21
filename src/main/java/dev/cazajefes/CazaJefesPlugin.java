@@ -39,7 +39,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    ConfiguredText text() { return text; }
 
    public void onEnable() {
-      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);
+      this.saveDefaultConfig();VisualProviders.load(this);ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);
       ConfigMigration.run(this);
       languages = new Languages(this);
       text = new ConfiguredText(this);
@@ -126,7 +126,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       if(spawnpoints!=null)spawnpoints.stop();
       if(deathVisuals!=null)deathVisuals.stop();
       if(relicItems!=null)relicItems.stopLootAnimations();
-      SpecialDamage.clear();
+      VisualProviders.stop();SpecialDamage.clear();
       CosmeticFX.clear();if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if(crystals!=null)crystals.stop();
