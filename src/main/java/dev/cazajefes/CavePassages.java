@@ -79,6 +79,57 @@ final class CavePassages {
                 }
             }
         }
+        // Anti-farming: break blocks under the player's feet to collapse their platform
+        if(batch.isEmpty()&&target.getY()>origin.getY()+2&&target.isOnGround()
+            &&target.getLocation().distanceSquared(origin)<=49){
+            var playerFeet=target.getLocation().clone().subtract(0,.3,0);
+            if(playerFeet.isChunkLoaded()){
+                // Break the block directly under the player
+                var floorBlock=playerFeet.getBlock();
+                if(!floorBlock.isPassable()&&floorBlock.getType()!=Material.BEDROCK)
+                    collect(boss,floorBlock,batch);
+                // Also break adjacent blocks around the player's platform (2x2 area)
+                if(batch.isEmpty()){
+                    int bx=playerFeet.getBlockX(),by=playerFeet.getBlockY(),bz=playerFeet.getBlockZ();
+                    for(int dx=-1;dx<=1&&batch.size()<4;dx++)
+                        for(int dz=-1;dz<=1&&batch.size()<4;dz++){
+                            var adjacent=world.getBlockAt(bx+dx,by,bz+dz);
+                            if(!adjacent.isPassable())collect(boss,adjacent,batch);
+                        }
+                }
+                // Break blocks between boss and player (vertical pillar)
+                if(batch.isEmpty()){
+                    int bx=origin.getBlockX(),bz=origin.getBlockZ();
+                    int targetY=(int)Math.floor(target.getY());
+                    for(int y=origin.getBlockY()+1;y<targetY&&batch.size()<8;y++){
+                        var pillarBlock=world.getBlockAt(bx,y,bz);
+                        if(!pillarBlock.isPassable())collect(boss,pillarBlock,batch);
+                    }
+                }
+            }
+        }
+        // Anti-hiding: break line-of-sight blocking blocks between boss and player
+        if(batch.isEmpty()&&!boss.hasLineOfSight(target)&&target.getLocation().distanceSquared(origin)<=25){
+            var eye=boss.getEyeLocation();
+            var losDirection=target.getEyeLocation().toVector().subtract(eye.toVector());
+            double losDistance=losDirection.length();
+            if(losDistance>.01&&dev.cazajefes.ai.Geometry.loaded(eye,losDistance)){
+                var blockingBlock=world.rayTraceBlocks(eye,losDirection.normalize(),losDistance,FluidCollisionMode.NEVER,true);
+                if(blockingBlock!=null){
+                    collect(boss,blockingBlock.getHitBlock(),batch);
+                    // Also break adjacent blocks to widen the opening
+                    if(batch.size()<1){
+                        var bb=blockingBlock.getHitBlock();
+                        for(int dy=-1;dy<=1&&batch.size()<4;dy++)
+                            for(int dx=-1;dx<=1&&batch.size()<4;dx+=2)
+                                for(int dz=-1;dz<=1&&batch.size()<4;dz+=2){
+                                    var adjacent=bb.getRelative(dx,dy,dz);
+                                    if(!adjacent.isPassable())collect(boss,adjacent,batch);
+                                }
+                    }
+                }
+            }
+        }
         if(batch.isEmpty()||batch.size()+blocks.size()>512
             ||blocks.stream().filter(saved->saved.boss().equals(id)).count()+batch.size()>96)return false;
         blocks.addAll(batch);

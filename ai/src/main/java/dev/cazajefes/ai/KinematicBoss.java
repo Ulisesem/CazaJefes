@@ -11,6 +11,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
     private boolean hasEnteredWater,grounded;
     private int idleTicks,blockedTicks,verticalBlockedTicks,strafe=1,pursuitTicks;
     private double jump;
+    private int farmingResponseTicks; // tracks how long we've been trying to reach an elevated player
 
     public KinematicBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
         super(body,profile,environment);
@@ -71,8 +72,23 @@ public final class KinematicBoss extends AbstractCustomBoss {
                 case ORBIT -> horizontal.rotateAroundY(strafe*Math.PI/2).multiply(tactics.orbit());
             }
         }
-        if(approach&&target!=null&&!swim&&grounded&&pursuitTicks>0&&target.getY()-origin.getY()>1
+        
+        // Detect farming: player is elevated and out of melee range
+        boolean playerElevated=approach&&target!=null&&target.getY()-origin.getY()>1.5
+            &&origin.distanceSquared(target.getLocation())<=64;
+        if(playerElevated)farmingResponseTicks++;
+        else farmingResponseTicks=Math.max(0,farmingResponseTicks-2);
+        
+        // When farming detected, increase jump frequency and try to break blocks beneath player
+        double jumpThreshold=farmingResponseTicks>30?2.0:1.0; // jump more aggressively when farming
+        if(approach&&target!=null&&!swim&&grounded&&pursuitTicks>0&&target.getY()-origin.getY()>jumpThreshold
             &&origin.distanceSquared(target.getLocation())<=49)jump=.58;
+        
+        // Also try jumping toward elevated players even without pursuitTicks
+        if(approach&&target!=null&&!swim&&grounded&&farmingResponseTicks>20
+            &&target.getY()-origin.getY()>1.5&&origin.distanceSquared(target.getLocation())<=36
+            &&jump==0)jump=.52;
+        
         fall=jump>0?jump:swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
         if(jump>0)jump=Math.max(0,jump-.10);
@@ -105,10 +121,22 @@ public final class KinematicBoss extends AbstractCustomBoss {
                 }
             }
         }
+        // Aggressive vertical block breaking when player is farming above
         if(approach&&target!=null&&!swim&&Math.abs(target.getY()-origin.getY())>=1.5
             &&origin.distanceSquared(target.getLocation())<=49){
-            if(++verticalBlockedTicks%4==0&&environment().blocked(this,target,
-                origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0)))pursuitTicks=50;
+            // More frequent block breaking attempts when farming is detected
+            int breakInterval=farmingResponseTicks>30?2:4;
+            if(++verticalBlockedTicks%breakInterval==0){
+                Location above=origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0);
+                if(environment().blocked(this,target,above)){
+                    pursuitTicks=50;
+                    // Also try to break blocks directly under the player to collapse their platform
+                    if(farmingResponseTicks>40){
+                        Location underPlayer=target.getLocation().clone().subtract(0,.5,0);
+                        environment().blocked(this,target,underPlayer);
+                    }
+                }
+            }
         }else verticalBlockedTicks=0;
         if(distance>.01)next.setDirection(direction);
         if(next.distanceSquared(origin)>.000001){

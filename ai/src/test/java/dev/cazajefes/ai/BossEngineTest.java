@@ -1,6 +1,11 @@
 package dev.cazajefes.ai;
 
 import com.google.gson.JsonParser;
+import dev.cazajefes.ai.attack.FaultLineAttack;
+import dev.cazajefes.ai.attack.ShockwaveAttack;
+import dev.cazajefes.ai.attack.MeteoriteAoEAttack;
+import dev.cazajefes.ai.attack.MeleeSweep;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import org.bukkit.entity.Player;
@@ -79,6 +84,86 @@ public class BossEngineTest {
         assertEquals(.25,Geometry.gapSquared(large,player),.0001);
         player.shift(0,8,0);
         assertEquals(4.25,Geometry.gapSquared(large,player),.0001);
+    }
+
+    @Test public void adaptiveDecisionBoostsAntiFarmingAttacks(){
+        var faultLine=new FaultLineAttack("fault","Falla",10,120,12,30,24);
+        var shockwave=new ShockwaveAttack("shock","Ola",4,140,7,25,23);
+        var melee=new MeleeSweep("melee","Golpe",AttackCategory.SHORT_RANGE,6,48,3,10,7);
+        var options=List.of(faultLine,shockwave,melee);
+        var random=new Random(42);
+        
+        // Tower farming: FaultLine should be heavily favored (4x boost)
+        int faultLineWins=0;
+        int total=1000;
+        for(int i=0;i<total;i++){
+            var picked=DecisionMaker.choose(options,8,100,id->0L,random,
+                BehaviorTracker.PlayerBehavior.TOWER_FARMING);
+            if(picked==faultLine)faultLineWins++;
+        }
+        // FaultLine has 40 effective weight vs 8 (shockwave 2x) + 2 (melee /3) = 50 total
+        // Expected: 40/50 = 80%
+        assertTrue("FaultLine debe ganar mayoría en TOWER_FARMING ("+faultLineWins+"/"+total+")",
+            faultLineWins>600);
+        
+        // Hiding: Shockwave and AoE should be favored
+        int shockWins=0;
+        for(int i=0;i<total;i++){
+            var picked=DecisionMaker.choose(options,5,100,id->0L,random,
+                BehaviorTracker.PlayerBehavior.HIDING);
+            if(picked==shockwave)shockWins++;
+        }
+        // Shockwave has 12 effective weight vs 10 (faultLine) + 6 (melee) = 28 total
+        // Expected: 12/28 ≈ 43%
+        assertTrue("Shockwave debe ganar mayoría en HIDING ("+shockWins+"/"+total+")",
+            shockWins>300);
+        
+        // Aggressive: melee and shockwave should be favored
+        int meleeWins=0;
+        for(int i=0;i<total;i++){
+            var picked=DecisionMaker.choose(options,2,100,id->0L,random,
+                BehaviorTracker.PlayerBehavior.AGGRESSIVE);
+            if(picked==melee)meleeWins++;
+        }
+        // Melee has 12 effective weight vs 20 (faultLine 2x) + 12 (shockwave 3x) = 44 total
+        // Expected: 12/44 ≈ 27%
+        assertTrue("Melee debe ganar en AGGRESSIVE ("+meleeWins+"/"+total+")",
+            meleeWins>150);
+    }
+
+    @Test public void neutralBehaviorPreservesOriginalWeights(){
+        var a=attack("a",AttackCategory.MIXED,1);
+        var b=attack("b",AttackCategory.MIXED,3);
+        var options=List.of(a,b);
+        var random=new Random(0);
+        int bWins=0;
+        int total=1000;
+        for(int i=0;i<total;i++){
+            var picked=DecisionMaker.choose(options,5,100,id->0L,random,
+                BehaviorTracker.PlayerBehavior.NEUTRAL);
+            if(picked==b)bWins++;
+        }
+        // b has 3x weight of a: expected 75%
+        assertTrue("Neutral debe preservar pesos originales ("+bWins+"/"+total+")",
+            bWins>650&&bWins<850);
+    }
+
+    @Test public void kitingDeprioritizesMelee(){
+        var melee=new MeleeSweep("melee","Golpe",AttackCategory.SHORT_RANGE,6,48,3,10,7);
+        var faultLine=new FaultLineAttack("fault","Falla",10,120,12,30,24);
+        var options=List.of(melee,faultLine);
+        var random=new Random(99);
+        int meleeWins=0;
+        int total=1000;
+        for(int i=0;i<total;i++){
+            var picked=DecisionMaker.choose(options,15,100,id->0L,random,
+                BehaviorTracker.PlayerBehavior.KITING);
+            if(picked==melee)meleeWins++;
+        }
+        // Melee has 1.5 effective weight (6/4) vs 10 (faultLine) = 11.5 total
+        // Expected: 1.5/11.5 ≈ 13%
+        assertTrue("Melee debe ser raro en KITING ("+meleeWins+"/"+total+")",
+            meleeWins<250);
     }
 
     private static BossAttack attack(String id,AttackCategory category,int weight){

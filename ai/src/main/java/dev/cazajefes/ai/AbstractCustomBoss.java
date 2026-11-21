@@ -13,8 +13,10 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     private final BossEnvironment environment;
     private final BossVisuals.View view;
     private final Map<String,Long> ready=new HashMap<>();
+    private final BehaviorTracker behaviorTracker=new BehaviorTracker();
     private BossState state=BossState.IDLE;
     private Player target;
+    private Player lastTarget;
     private boolean closed;
     private BossAttack pending;
     private BossAttack requested;
@@ -71,7 +73,14 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(closed)return;
         this.tick=tick;
         if(tick%5==0){
-            if(pending==null&&motion==null&&requested==null&&!environment.validTarget(this,target))target=environment.acquire(this);
+            if(pending==null&&motion==null&&requested==null&&!environment.validTarget(this,target)){
+                // Forget behavior of previous target when switching
+                if(lastTarget!=null&&target!=null&&lastTarget!=target)behaviorTracker.forget(lastTarget);
+                target=environment.acquire(this);
+                lastTarget=target;
+            }
+            // Observe current target behavior for adaptive AI
+            if(target!=null)behaviorTracker.observe(this,target);
             environment.heartbeat(this);
         }
         if(tick<stunnedUntil){
@@ -81,6 +90,8 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             state=BossState.ATTACKING;
             if(!environment.validTarget(this,target)){
                 finish();
+                if(target!=null)behaviorTracker.forget(target);
+                lastTarget=null;
                 target=null;
             }else if(pending!=null&&tick>=releaseAt){
                 var attack=pending;
@@ -94,19 +105,28 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             }
             move(target,motion!=null&&motion.mobile()||mobileWindup());
         }else if(!environment.validTarget(this,target)){
+            if(target!=null)behaviorTracker.forget(target);
+            lastTarget=null;
             target=null;
             requested=null;
             state=BossState.IDLE;
             move(null,false);
         }else{
             double distance=body.getLocation().distance(target.getLocation());
-            boolean free=tick>=gcdUntil&&!environment.occupied(this)&&environment.canSee(this,target);
+            boolean free=tick>=gcdUntil&&!environment.occupied(this);
             BossAttack choice=requested;
             requested=null;
             if(choice!=null&&(!free||!choice.inRange(this,target,distance)))choice=null;
+            
+            // Detect player behavior for adaptive attack selection
+            BehaviorTracker.PlayerBehavior behavior=target!=null?behaviorTracker.getBehavior(target):BehaviorTracker.PlayerBehavior.NEUTRAL;
+            
+            // First try melee sweep if in range (basic attacks have priority)
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
-                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&attack.inRange(this,target,distance));
+                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&attack.inRange(this,target,distance),
+                behavior);
+            // Try signature attack from environment (legacy integration)
             if(free&&choice==null&&tick>=specialUntil)motion=environment.signature(this,target);
             if(motion!=null){
                 specialMotion=true;
@@ -115,8 +135,10 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 view.move(body.getLocation());
                 return;
             }
+            // Choose special attack adapted to player behavior
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
-                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),attack->available(attack)&&attack.inRange(this,target,distance));
+                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
+                attack->available(attack)&&attack.inRange(this,target,distance),behavior);
             if(choice==null){
                 state=BossState.MOVING;
                 move(target,true);
