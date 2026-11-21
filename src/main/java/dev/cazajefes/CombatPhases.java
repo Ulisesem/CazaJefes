@@ -24,7 +24,7 @@ final class CombatPhases implements Listener {
    event.setCancelled(true);
    return;
   }
-  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*plugin.crystals.incoming(living)*(warden(living)?0.85:1));
+  if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*plugin.crystals.incoming(living)*(warden(living)?0.85:1)*(BossRebirth.used(living)?1.15:1));
   if(event instanceof EntityDamageByEntityEvent hit&&source(hit.getDamager()) instanceof LivingEntity attacker&&isBoss(attacker)
       &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(AbilityDamage.active()||PillagerCombat.specialShot(hit.getDamager())||SkeletonCombat.shot(hit.getDamager())?200:80,(event.getDamage()+(!(hit.getDamager() instanceof Projectile)&&!AbilityDamage.active()?BossEquipment.virtualSharpness(attacker):0))*PhaseRules.outgoing(phase(attacker))*PhaseRules.finalBonus(phase(attacker),BossRebirth.used(attacker))*(warden(attacker)?1.35:1)));
  }

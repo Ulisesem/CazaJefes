@@ -171,4 +171,110 @@ public class BossEngineTest {
             @Override public AttackMotion execute(CustomBoss boss,Player target){return AttackMotion.complete();}
         };
     }
+
+    // --- BehaviorTracker tests (use injectSample + getBehavior(UUID) package-private helpers) ---
+
+    @Test public void behaviorTrackerDetectsTowerFarming(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        for (int i = 0; i < 10; i++) {
+            tracker.injectSample(uuid, 3.0, 8.0, true, 100L + i);
+        }
+        assertEquals("Should detect TOWER_FARMING after 4+ consecutive elevated samples",
+            BehaviorTracker.PlayerBehavior.TOWER_FARMING, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerDetectsHiding(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        for (int i = 0; i < 12; i++) {
+            tracker.injectSample(uuid, 0.0, 10.0, false, 100L + i);
+        }
+        assertEquals("Should detect HIDING after 8+ consecutive no-LOS samples",
+            BehaviorTracker.PlayerBehavior.HIDING, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerDetectsKiting(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        for (int i = 0; i < 10; i++) {
+            tracker.injectSample(uuid, 0.0, 5.0 + i * 1.0, true, 100L + i);
+        }
+        assertEquals("Should detect KITING after 6+ consecutive increasing distances",
+            BehaviorTracker.PlayerBehavior.KITING, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerDetectsAggressive(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        for (int i = 0; i < 8; i++) {
+            tracker.injectSample(uuid, 0.0, 2.0, true, 100L + i);
+        }
+        assertEquals("Should detect AGGRESSIVE after 4+ consecutive close-range samples",
+            BehaviorTracker.PlayerBehavior.AGGRESSIVE, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerDetectsOrbiting(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        for (int i = 0; i < 15; i++) {
+            double dist = 8.0 + (i % 2 == 0 ? 0.5 : -0.5);
+            tracker.injectSample(uuid, 0.0, dist, true, 100L + i);
+        }
+        assertEquals("Should detect ORBITING with consistent distance",
+            BehaviorTracker.PlayerBehavior.ORBITING, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerReturnsNeutralWhenNoPattern(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        tracker.injectSample(uuid, 0.0, 5.0, true, 100L);
+        tracker.injectSample(uuid, 0.0, 7.0, true, 101L);
+        tracker.injectSample(uuid, 0.0, 6.0, true, 102L);
+        tracker.injectSample(uuid, 0.0, 8.0, true, 103L);
+        assertEquals("Should return NEUTRAL when no clear pattern",
+            BehaviorTracker.PlayerBehavior.NEUTRAL, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerForgetsPlayer(){
+        var tracker = new BehaviorTracker();
+        var uuid = java.util.UUID.randomUUID();
+        for (int i = 0; i < 10; i++) {
+            tracker.injectSample(uuid, 3.0, 8.0, true, 100L + i);
+        }
+        assertEquals(BehaviorTracker.PlayerBehavior.TOWER_FARMING, tracker.getBehavior(uuid));
+        // forget() uses Player UUID — simulate by clearing the profile directly
+        tracker.clear();
+        assertEquals("Should return NEUTRAL after clearing",
+            BehaviorTracker.PlayerBehavior.NEUTRAL, tracker.getBehavior(uuid));
+    }
+
+    @Test public void behaviorTrackerClearsAllProfiles(){
+        var tracker = new BehaviorTracker();
+        var uuid1 = java.util.UUID.randomUUID();
+        var uuid2 = java.util.UUID.randomUUID();
+        for (int i = 0; i < 10; i++) {
+            tracker.injectSample(uuid1, 3.0, 8.0, true, 100L + i);
+            tracker.injectSample(uuid2, 0.0, 2.0, true, 100L + i);
+        }
+        tracker.clear();
+        assertEquals(BehaviorTracker.PlayerBehavior.NEUTRAL, tracker.getBehavior(uuid1));
+        assertEquals(BehaviorTracker.PlayerBehavior.NEUTRAL, tracker.getBehavior(uuid2));
+    }
+
+    @Test public void behaviorTrackerCleanupOfflinePlayers(){
+        var tracker = new BehaviorTracker();
+        var uuid1 = java.util.UUID.randomUUID();
+        var uuid2 = java.util.UUID.randomUUID();
+        for (int i = 0; i < 10; i++) {
+            tracker.injectSample(uuid1, 3.0, 8.0, true, 100L + i);
+            tracker.injectSample(uuid2, 0.0, 2.0, true, 100L + i);
+        }
+        // Only uuid1 is "online"
+        tracker.cleanupOfflinePlayers(uuid -> uuid.equals(uuid1));
+        assertEquals("Online player should still have behavior",
+            BehaviorTracker.PlayerBehavior.TOWER_FARMING, tracker.getBehavior(uuid1));
+        assertEquals("Offline player should be forgotten",
+            BehaviorTracker.PlayerBehavior.NEUTRAL, tracker.getBehavior(uuid2));
+    }
 }

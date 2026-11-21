@@ -28,7 +28,8 @@ final class RangedRareCatalog {
  new Spec("impacto_sismico","Impacto Sísmico",Material.CROSSBOW,3,14,"engranaje_umbrio","20/35/50% de levantar brevemente al objetivo: Levitation I durante 0,5/1/1,5 s e impulso vertical creciente. Respeta inmunidades.",Material.HEAVY_CORE),
  new Spec("conductor_tempestades","Conductor de Tempestades",Material.TRIDENT,3,12,"filamento_tormenta","Tres lanzamientos acertados al mismo rival en 8 s descargan 2 HP por nivel a un segundo enemigo visible a 4 bloques. Sin fuego.",Material.COPPER_BLOCK));
  static boolean compatible(Spec spec,Material weapon){return spec.weapon()==weapon||spec.id().equals("carga_inestable")&&weapon==Material.CROSSBOW;}
- static Spec get(String id){return ALL.stream().filter(s->s.id().equals(id)).findFirst().orElse(null);}
+ private static final Map<String,Spec> BY_ID=Map.copyOf(ALL.stream().collect(java.util.stream.Collectors.toMap(Spec::id,s->s)));
+ static Spec get(String id){return id==null?null:BY_ID.get(id);}
  static final List<String> MATERIALS=List.of("engranaje_umbrio","polvora_resonante","pluma_vendaval","cristal_escarcha","perla_profundidades","filamento_tormenta");
  static String materialName(String id){return switch(id){case "engranaje_umbrio"->"Engranaje Umbrío";case "polvora_resonante"->"Pólvora Resonante";case "pluma_vendaval"->"Pluma del Vendaval";case "cristal_escarcha"->"Cristal de Escarcha";case "perla_profundidades"->"Perla de las Profundidades";default->"Filamento de Tormenta";};}
  static Material materialIcon(String id){return switch(id){case "engranaje_umbrio"->Material.TRIPWIRE_HOOK;case "polvora_resonante"->Material.GUNPOWDER;case "pluma_vendaval"->Material.FEATHER;case "cristal_escarcha"->Material.PRISMARINE_CRYSTALS;case "perla_profundidades"->Material.ENDER_PEARL;default->Material.ECHO_SHARD;};}

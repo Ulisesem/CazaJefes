@@ -41,6 +41,29 @@ public final class BehaviorTracker {
         profiles.remove(target.getUniqueId());
     }
     
+    /** Remove profiles for players who are no longer online. Call periodically or on PlayerQuitEvent. */
+    public void cleanupOfflinePlayers(java.util.function.Predicate<UUID> isOnline) {
+        profiles.entrySet().removeIf(entry -> !isOnline.test(entry.getKey()));
+    }
+    
+    /** Remove all profiles. Call when a boss is removed. */
+    public void clear() {
+        profiles.clear();
+    }
+    
+    /** Package-private helper for unit tests: inject a sample directly into a player's profile. */
+    void injectSample(UUID playerUuid, double yDelta, double distance, boolean lineOfSight, long tick) {
+        var profile = profiles.computeIfAbsent(playerUuid, uuid -> new PlayerProfile());
+        profile.addSample(new Sample(yDelta, distance, lineOfSight, tick));
+    }
+    
+    /** Package-private helper for unit tests: get behavior by UUID directly, avoiding Player mock. */
+    PlayerBehavior getBehavior(UUID playerUuid) {
+        var profile = profiles.get(playerUuid);
+        if (profile == null || profile.samples.isEmpty()) return PlayerBehavior.NEUTRAL;
+        return profile.classify();
+    }
+    
     /** Behavioral classifications the AI can react to. */
     public enum PlayerBehavior {
         /** Player is standing and fighting normally. */
@@ -113,10 +136,20 @@ public final class BehaviorTracker {
             if (aggressiveStreak >= AGGRESSIVE_THRESHOLD) return PlayerBehavior.AGGRESSIVE;
             
             // Orbiting: samples show consistent distance with frequent LOS
+            // Replaced streams with loops to avoid garbage generation every 5 ticks
             if (samples.size() >= 10) {
-                double avgDist = samples.stream().mapToDouble(Sample::distance).average().orElse(0);
-                double variance = samples.stream().mapToDouble(s -> Math.pow(s.distance() - avgDist, 2)).average().orElse(0);
-                if (variance < 4 && avgDist > 3 && avgDist < 15) return PlayerBehavior.ORBITING;
+                double sum = 0;
+                for (Sample s : samples) sum += s.distance();
+                double avgDist = sum / samples.size();
+                if (avgDist > 3 && avgDist < 15) {
+                    double varSum = 0;
+                    for (Sample s : samples) {
+                        double diff = s.distance() - avgDist;
+                        varSum += diff * diff;
+                    }
+                    double variance = varSum / samples.size();
+                    if (variance < 4) return PlayerBehavior.ORBITING;
+                }
             }
             return PlayerBehavior.NEUTRAL;
         }

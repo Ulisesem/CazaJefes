@@ -16,6 +16,8 @@ final class ThreatTable {
       final Map<UUID, Entry> scores = new HashMap<>();
       UUID forced, focus;
       long forcedUntil, ready;
+      UUID lastTarget;
+      long lastTargetTime;
    }
    private static final Map<UUID, Fight> fights = new HashMap<>();
 
@@ -52,17 +54,32 @@ final class ThreatTable {
       if (fight != null && now < fight.forcedUntil) {
          for (Player candidate : candidates) if (candidate.getUniqueId().equals(fight.forced)) return candidate;
       }
-      for(Player candidate:candidates) if(candidate.getUniqueId().equals(fight.focus)) return candidate;
+      // Target rotation: if we've focused the same player for too long, allow switching
+      boolean shouldRotate = fight != null && fight.lastTarget != null
+         && now - fight.lastTargetTime > 8000; // Rotate every 8 seconds max
+      // Keep focus only briefly (2 seconds) so the boss cycles through players
+      if (!shouldRotate && fight != null && fight.focus != null) {
+         for (Player candidate : candidates) {
+            if (candidate.getUniqueId().equals(fight.focus)) return candidate;
+         }
+      }
       var facing=at.getDirection().setY(0).normalize();
       Player selected = candidates.stream().max(Comparator.<Player,Boolean>comparing(player -> {
          var direction=player.getLocation().toVector().subtract(at.toVector()).setY(0);
          return direction.lengthSquared()>.001&&facing.dot(direction.normalize())>=.45;
       }).thenComparingDouble(player -> {
+         // Prioritize low-health players (health ratio 0-1, lower = more priority)
+         double healthRatio = player.getHealth() / player.getMaxHealth();
+         double lowHealthBonus = healthRatio < 0.3 ? 500.0 : healthRatio < 0.5 ? 200.0 : 0;
          Entry e = fight == null ? null : fight.scores.get(player.getUniqueId());
          double weight = e == null ? 0 : score(e.value(), now - e.updated());
-         return weight;
+         return weight + lowHealthBonus;
       }).thenComparingDouble(player -> -player.getLocation().distanceSquared(at))).orElseThrow();
-      if (fight != null) fight.focus = selected.getUniqueId();
+      if (fight != null) {
+         fight.focus = selected.getUniqueId();
+         fight.lastTarget = selected.getUniqueId();
+         fight.lastTargetTime = now;
+      }
       return selected;
    }
 

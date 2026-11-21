@@ -23,7 +23,7 @@ final class BossRebirth implements Listener {
   boss.playEffect(EntityEffect.PROTECTED_FROM_DEATH);boss.getEquipment().setItemInOffHand(new ItemStack(Material.AIR));boss.setInvulnerable(false);boss.setHealth(RebirthRules.restoredHealth(boss.getMaxHealth()));boss.setNoDamageTicks(0);boss.setFireTicks(0);if(boss instanceof Mob mob)mob.setAI(true);
   Item seal=boss.getWorld().dropItemNaturally(boss.getLocation().clone().add(0,1,0),plugin.items().colossusSigil());seal.setPickupDelay(10);
   BossCatalog.Definition definition=BossCatalog.get(boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"boss_type"),PersistentDataType.STRING));String name=definition==null?"El boss":definition.name();
-  Component message=Component.text("✦ "+name,NamedTextColor.GOLD).decorate(TextDecoration.BOLD).append(Component.text(" ha obtenido Suspiro del Renacido · Vida restaurada · Daño ×2 · Ha dejado un Sello del Renacido",NamedTextColor.AQUA));
+  Component message=Component.text("✦ "+name,NamedTextColor.GOLD).decorate(TextDecoration.BOLD).append(Component.text(" ha obtenido Suspiro del Renacido · Vida restaurada · Daño ×1.5 · Ha dejado un Sello del Renacido",NamedTextColor.AQUA));
   Set<UUID> audience=BossParticipation.participants(boss);for(Player p:boss.getWorld().getPlayers())if(p.getLocation().distanceSquared(boss.getLocation())<=1024)audience.add(p.getUniqueId());for(UUID id:audience){Player p=Bukkit.getPlayer(id);if(p!=null&&p.isOnline())p.sendMessage(message);}
   boss.getWorld().playSound(boss.getLocation(),Sound.ITEM_TOTEM_USE,1.4f,.85f);CosmeticFX.emit(Particle.TOTEM_OF_UNDYING,boss.getLocation().add(0,boss.getHeight()*.5,0),90,boss.getWidth()*.6,boss.getHeight()*.4,boss.getWidth()*.6,.2);return true;
  }

@@ -32,7 +32,8 @@ final class JailRareCatalog {
  new Spec("forja_errante","Forja Errante (Temper)",RareCompatibility.Group.MELEE,12,"repair_weapon","25/35/45% al golpear de reparar 4/8/12 puntos de durabilidad del arma usada, si sigue en tu mano. Máximo III. Recarga 12 s.",Material.NETHERITE_SCRAP,"pluma_vendaval"),
  new Spec("llama_purificadora","Sentencia de Brasas (ScorchStrike)",RareCompatibility.Group.MELEE,10,"scorch","25/35/45% de añadir 8/12/16% de daño contra un objetivo que ya está ardiendo. Máximo III. Recarga 10 s.",Material.FIRE_CHARGE,"engranaje_umbrio"),
  new Spec("ruptura_combo","Rompecombos del Duelista (Breaker)",RareCompatibility.Group.MELEE,18,"breaker","Tras recibir tres golpes del mismo enemigo en 5 s, tu siguiente golpe contra él lo repele y aplica Debilidad I 2/3/4 s. Máximo III. Recarga 18 s.",Material.PISTON,"polvora_resonante"));
- static Spec get(String id){return ALL.stream().filter(s->s.id().equals(id)).findFirst().orElse(null);}
+ private static final Map<String,Spec> BY_ID=Map.copyOf(ALL.stream().collect(java.util.stream.Collectors.toMap(Spec::id,s->s)));
+ static Spec get(String id){return id==null?null:BY_ID.get(id);}
  static double chance(int level){return .15+.1*Math.max(1,Math.min(3,level));}
  static double outgoingCap(double multiplier){return Math.min(1.5,Math.max(1,multiplier));}
  static double defensiveCap(double factor){return Math.max(.5,Math.min(1,factor));}

@@ -57,10 +57,10 @@ public abstract class AbstractCustomBoss implements CustomBoss {
 
     public final boolean requestAttack(String id,Player player){
         if(!canRequest(player))return false;
-        double distance=body.getLocation().distance(player.getLocation());
+        double distance=body.getLocation().distanceSquared(player.getLocation());
         for(var attack:profile.attacks()){
             if(attack.id().equals(id)&&available(attack)&&attack.weight()>0&&tick>=ready.getOrDefault(id,0L)
-                &&attack.inRange(this,player,distance)){
+                &&attack.inRange(this,player,Math.sqrt(distance))){
                 target=player;
                 requested=attack;
                 return true;
@@ -112,7 +112,8 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             state=BossState.IDLE;
             move(null,false);
         }else{
-            double distance=body.getLocation().distance(target.getLocation());
+            double distanceSquared=body.getLocation().distanceSquared(target.getLocation());
+            double distance=Math.sqrt(distanceSquared);
             boolean free=tick>=gcdUntil&&!environment.occupied(this);
             BossAttack choice=requested;
             requested=null;

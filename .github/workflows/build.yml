@@ -1,9 +1,10 @@
 name: Build and Test
 on:
   push:
-    branches: ['*']
+    branches: [main, DLUpdates, 'feature/*', 'fix/*']
+    paths-ignore: ['**.md', 'docs/**', 'resourcepack/**']
   pull_request:
-    branches: ['*']
+    branches: [main, DLUpdates]
   workflow_dispatch:
 
 permissions:
