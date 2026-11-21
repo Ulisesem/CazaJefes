@@ -8,7 +8,9 @@ import java.util.HashSet;
 import java.util.List;
 
 public record BossProfile(double speed,double gravity,double detectionRange,int globalCooldown,int basicRecovery,int specialRecovery,
-                          boolean aquatic,CombatStyle.Tactics tactics,List<BossAttack> attacks) {
+                          boolean aquatic,CombatStyle.Tactics tactics,List<BossAttack> attacks,
+                          RangedMeleeSwap.Config rangedMeleeSwap,
+                          BossMagnetism.Config magnetism) {
     public BossProfile {
         attacks=List.copyOf(attacks);
     }
@@ -81,7 +83,9 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         double orbit=number(config,"orbitSpeed",style.orbit,0,1);
         boolean mobile=config.has("mobileWindup")?config.get("mobileWindup").getAsBoolean():style.mobileWindup;
         var tactics=new CombatStyle.Tactics(style,near,far,orbit,mobile);
-        return new BossProfile(speed,gravity,range,gcd,basicRecovery,specialRecovery,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries);
+        var swapConfig=RangedMeleeSwap.readConfig(json);
+        var magnetismConfig=BossMagnetism.readConfig(json);
+        return new BossProfile(speed,gravity,range,gcd,basicRecovery,specialRecovery,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries,swapConfig,magnetismConfig);
     }
 
     public static JsonObject defaults(double baseDamage,boolean aquatic){

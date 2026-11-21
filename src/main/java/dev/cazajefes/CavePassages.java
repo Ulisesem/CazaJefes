@@ -65,7 +65,8 @@ final class CavePassages {
                         if(!block.isPassable()&&batch.size()<24)collect(boss,block,batch);
                     }
         }
-        if(batch.isEmpty()){
+        // Line-of-sight obstruction: break blocks blocking the boss's view at close range
+        {
             var eye=boss.getEyeLocation();
             var direction=target.getEyeLocation().toVector().subtract(eye.toVector());
             double distance=Math.min(6,direction.length());
@@ -80,7 +81,8 @@ final class CavePassages {
             }
         }
         // Anti-farming: break blocks under the player's feet to collapse their platform
-        if(batch.isEmpty()&&target.getY()>origin.getY()+2&&target.isOnGround()
+        // Runs independently so the boss can break the player's platform even while under a roof
+        if(target.getY()>origin.getY()+2&&target.isOnGround()
             &&target.getLocation().distanceSquared(origin)<=49){
             var playerFeet=target.getLocation().clone().subtract(0,.3,0);
             if(playerFeet.isChunkLoaded()){
@@ -88,7 +90,7 @@ final class CavePassages {
                 var floorBlock=playerFeet.getBlock();
                 if(!floorBlock.isPassable()&&floorBlock.getType()!=Material.BEDROCK)
                     collect(boss,floorBlock,batch);
-                // Also break adjacent blocks around the player's platform (2x2 area)
+                // Also break adjacent blocks around the player's platform (3x3 area)
                 if(batch.isEmpty()){
                     int bx=playerFeet.getBlockX(),by=playerFeet.getBlockY(),bz=playerFeet.getBlockZ();
                     for(int dx=-1;dx<=1&&batch.size()<4;dx++)
@@ -109,7 +111,8 @@ final class CavePassages {
             }
         }
         // Anti-hiding: break line-of-sight blocking blocks between boss and player
-        if(batch.isEmpty()&&!boss.hasLineOfSight(target)&&target.getLocation().distanceSquared(origin)<=25){
+        // Runs independently so the boss can see through walls even while breaking its own path
+        if(!boss.hasLineOfSight(target)&&target.getLocation().distanceSquared(origin)<=25){
             var eye=boss.getEyeLocation();
             var losDirection=target.getEyeLocation().toVector().subtract(eye.toVector());
             double losDistance=losDirection.length();

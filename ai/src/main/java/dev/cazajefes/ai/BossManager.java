@@ -3,17 +3,21 @@ package dev.cazajefes.ai;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.plugin.Plugin;
 
 /** Single Paper scheduler task for all boss brains and simulated attacks. */
-public final class BossManager extends BukkitRunnable {
+public final class BossManager extends BukkitRunnable implements Listener {
     private final Map<UUID,CustomBoss> active=new LinkedHashMap<>();
     private final Plugin plugin;
     private long tick;
 
     public BossManager(Plugin plugin){
         this.plugin=plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         runTaskTimer(plugin,1,1);
     }
 
@@ -45,6 +49,17 @@ public final class BossManager extends BukkitRunnable {
             }catch(RuntimeException failure){
                 remove(id);
                 plugin.getLogger().log(java.util.logging.Level.SEVERE,"IA detenida para "+id,failure);
+            }
+        }
+    }
+
+    /** When a player quits, clean up their behavior profiles from all active bosses. */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID playerUuid = event.getPlayer().getUniqueId();
+        for (CustomBoss boss : active.values()) {
+            if (boss instanceof AbstractCustomBoss abstractBoss) {
+                abstractBoss.getBehaviorTracker().cleanupOfflinePlayers(uuid -> uuid.equals(playerUuid) ? false : true);
             }
         }
     }

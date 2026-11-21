@@ -39,6 +39,9 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     @Override public final BossState state(){return state;}
     @Override public final Player target(){return target;}
 
+    /** Package-private access for BossManager to clean up behavior profiles when a player quits. */
+    BehaviorTracker getBehaviorTracker(){return behaviorTracker;}
+
     public final boolean requestSignature(Player player,java.util.function.Supplier<AttackMotion> start){
         if(!canRequest(player)||tick<specialUntil)return false;
         var signature=start.get();
@@ -122,6 +125,10 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             // Detect player behavior for adaptive attack selection
             BehaviorTracker.PlayerBehavior behavior=target!=null?behaviorTracker.getBehavior(target):BehaviorTracker.PlayerBehavior.NEUTRAL;
             
+            // Apply magnetism pull if configured
+            int currentPhase=environment.phase(this);
+            applyMagnetism(target,behavior,currentPhase);
+            
             // First try melee sweep if in range (basic attacks have priority)
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
@@ -162,6 +169,14 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     }
 
     protected abstract void move(Player player,boolean approach);
+
+    /**
+     * Apply magnetism or other pull effects on the target.
+     * Override in subclasses to implement magnetism behavior.
+     */
+    protected void applyMagnetism(Player target,BehaviorTracker.PlayerBehavior behavior,int phase){
+        // No-op by default; KinematicBoss overrides this
+    }
 
     @Override public final boolean canStartSpecial(){
         return pending==null&&motion==null&&requested==null&&tick>=specialUntil&&tick>=stunnedUntil;

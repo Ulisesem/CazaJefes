@@ -13,8 +13,22 @@ public final class KinematicBoss extends AbstractCustomBoss {
     private double jump;
     private int farmingResponseTicks; // tracks how long we've been trying to reach an elevated player
 
+    // Ranged-melee weapon swap controller
+    private final RangedMeleeSwap weaponSwap = new RangedMeleeSwap();
+
+    // Magnetism controller: pulls players toward the boss under certain conditions
+    private final BossMagnetism magnetism = new BossMagnetism();
+
+    // Retreat run-away: tracks whether we are running away facing forward
+    private int retreatRunTicks; // how long we've been in retreat-run mode
+    private double retreatYaw;   // target yaw when running away (180° from target)
+
     public KinematicBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
         super(body,profile,environment);
+        // Configure weapon swap from the boss profile
+        weaponSwap.configure(profile.rangedMeleeSwap());
+        // Configure magnetism from the boss profile
+        magnetism.configure(profile.magnetism());
     }
 
     public void push(Vector velocity){
@@ -55,6 +69,13 @@ public final class KinematicBoss extends AbstractCustomBoss {
         if(target==null&&grounded&&++idleTicks%10!=0)return;
         Location origin=body().getLocation();
         if(pursuitTicks>0)pursuitTicks--;
+
+        // Evaluate weapon swap (ranged ↔ melee) based on distance
+        if(target!=null&&approach) weaponSwap.evaluate(this,target);
+
+        // Advance magnetism tick and evaluate pull
+        magnetism.tick();
+
         Vector direction=target==null?new Vector():target.getEyeLocation().toVector().subtract(body().getEyeLocation().toVector());
         boolean wet=body().isInWater()||water(origin);
         if(wet)hasEnteredWater=true;
@@ -66,10 +87,21 @@ public final class KinematicBoss extends AbstractCustomBoss {
             var tactics=profile().tactics();
             double groundDistance=horizontal.length();
             horizontal.normalize().multiply(profile().speed());
-            switch(tactics.move(groundDistance,pursuitTicks==0&&environment().canSee(this,target))){
-                case APPROACH -> {}
-                case RETREAT -> horizontal.multiply(-.75);
-                case ORBIT -> horizontal.rotateAroundY(strafe*Math.PI/2).multiply(tactics.orbit());
+            CombatStyle.Tactics.Move moveDecision=tactics.move(groundDistance,pursuitTicks==0&&environment().canSee(this,target));
+
+            if(moveDecision==CombatStyle.Tactics.Move.RETREAT){
+                // Run-away retreat: turn 180° and run forward instead of backing up
+                retreatRunTicks++;
+                // Direction away from target (same as backward, but we rotate to face it)
+                horizontal.multiply(-1.0);
+            } else {
+                // Not retreating — reset retreat state
+                if(retreatRunTicks>0) retreatRunTicks=0;
+                switch(moveDecision){
+                    case APPROACH -> {}
+                    case RETREAT -> {} // handled above
+                    case ORBIT -> horizontal.rotateAroundY(strafe*Math.PI/2).multiply(tactics.orbit());
+                }
             }
         }
         
@@ -138,7 +170,19 @@ public final class KinematicBoss extends AbstractCustomBoss {
                 }
             }
         }else verticalBlockedTicks=0;
-        if(distance>.01)next.setDirection(direction);
+        // Rotation: when retreating, face away from target (run forward, not backward)
+        if(distance>.01){
+            if(retreatRunTicks>0&&target!=null){
+                // Calculate yaw facing away from target (180° from target direction)
+                Vector away=origin.toVector().subtract(target.getLocation().toVector()).setY(0);
+                if(away.lengthSquared()>.0001){
+                    double yaw=Math.toDegrees(Math.atan2(away.getX(),away.getZ()));
+                    next.setYaw((float)yaw);
+                }
+            } else {
+                next.setDirection(direction);
+            }
+        }
         if(next.distanceSquared(origin)>.000001){
             body().teleport(next);
             body().setVelocity(new Vector());
@@ -160,5 +204,13 @@ public final class KinematicBoss extends AbstractCustomBoss {
             case WATER, BUBBLE_COLUMN, KELP, KELP_PLANT, SEAGRASS, TALL_SEAGRASS -> true;
             default -> block.getBlockData() instanceof org.bukkit.block.data.Waterlogged waterlogged && waterlogged.isWaterlogged();
         };
+    }
+
+    /**
+     * Apply magnetism pull toward the boss if conditions are met.
+     * Called from AbstractCustomBoss with the detected player behavior.
+     */
+    @Override protected void applyMagnetism(Player target,BehaviorTracker.PlayerBehavior behavior,int phase){
+        if(target!=null) magnetism.evaluate(this,target,behavior,phase);
     }
 }
