@@ -227,11 +227,13 @@ public final class RelicItems implements Listener {
 
          if(now-passiveRepair.getOrDefault(player.getUniqueId(),0L)<5000)continue;
          boolean repaired=false;
-         for(ItemStack piece:player.getInventory().getArmorContents()){
-            int level=activePropertyLevel(piece,"durability");
-            if(level>0&&piece.getItemMeta() instanceof Damageable meta&&meta.getDamage()>0&&consumePassiveSaturation(player,piece,"durability")){
-               meta.setDamage(Math.max(0,meta.getDamage()-ArmorPropertyRules.repair(level)));piece.setItemMeta(meta);repaired=true;
-            }
+         ItemStack source=armorRares.strongest(player,"durability");
+         int level=activePropertyLevel(source,"durability");
+         ItemStack[] armor=player.getInventory().getArmorContents();
+         boolean damaged=Arrays.stream(armor).anyMatch(piece->piece!=null&&piece.getItemMeta() instanceof Damageable meta&&meta.getDamage()>0);
+         if(level>0&&damaged&&consumePassiveSaturation(player,source,"durability")){
+            for(ItemStack piece:armor)if(piece!=null&&piece.getItemMeta() instanceof Damageable meta&&meta.getDamage()>0){meta.setDamage(Math.max(0,meta.getDamage()-ArmorPropertyRules.repair(level)));piece.setItemMeta(meta);repaired=true;}
+            player.getInventory().setArmorContents(armor);
          }
          if(repaired)passiveRepair.put(player.getUniqueId(),now);
       }

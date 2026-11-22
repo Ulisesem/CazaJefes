@@ -91,10 +91,9 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             // Refresh all targets periodically and pick the nearest player
             refreshTargets();
             // Preserve the warned target during an attack; reassess between attacks.
-            if(pending==null&&motion==null&&requested==null&&!targets.isEmpty()&&tick%60==0){
+            if(pending==null&&motion==null&&requested==null&&!targets.isEmpty()){
                 Player preferred=environment.acquire(this);
                 if(preferred!=null&&targets.contains(preferred))targetIndex=targets.indexOf(preferred);
-                if(tick%120==0&&targets.size()>1)targetIndex=(targetIndex+1)%targets.size();
             }
             // Observe behavior of all tracked targets for adaptive AI and magnetism
             Player current=target();
@@ -153,6 +152,9 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 }
             }
             
+            if(free&&choice==null&&tick>=specialUntil)choice=DecisionMaker.choose(profile.attacks(),tick,
+                id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
+                attack->attack instanceof dev.cazajefes.ai.attack.MagnetismAttack&&attack.inRange(this,current,distance));
             // First try melee sweep if in range (basic attacks have priority)
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),

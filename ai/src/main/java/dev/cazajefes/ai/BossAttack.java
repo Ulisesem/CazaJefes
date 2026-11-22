@@ -13,7 +13,7 @@ public abstract class BossAttack {
                          double radius,double damage,int warningTicks) {
         if (id == null || !id.matches("[a-z0-9_]{1,48}") || name == null || name.isBlank() || name.length() > 80
             || category == null || weight < 0 || weight > 10000 || cooldown < 1 || cooldown > 72000
-            || !Double.isFinite(radius) || radius < 0 || radius > 24 || !Double.isFinite(damage) || damage < 0 || damage > 500
+            || !Double.isFinite(radius) || radius < 0 || radius > 60 || !Double.isFinite(damage) || damage < 0 || damage > 500
             || warningTicks < 1 || warningTicks > 200) throw new IllegalArgumentException("Ataque inválido: "+id);
         this.id=id;
         this.name=name;

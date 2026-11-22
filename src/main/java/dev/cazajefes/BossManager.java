@@ -200,7 +200,8 @@ public final class BossManager implements Listener {
       }
    }
 
-   public LivingEntity spawnBoss(String var1, Location var2, String var3) {
+   public LivingEntity spawnBoss(String var1, Location var2, String var3) {return spawnBoss(var1,var2,var3,false);}
+   private LivingEntity spawnBoss(String var1, Location var2, String var3,boolean fromEgg) {
       BossCatalog.Definition var4 = BossCatalog.get(var1);
       if (var4 != null && var2.getWorld() != null) {
          LivingEntity var5;
@@ -219,6 +220,8 @@ public final class BossManager implements Listener {
          }
 
          if(!var5.isValid()){plugin.getLogger().warning("Aparición cancelada por el servidor u otro plugin: "+var4.id());var5.remove();return null;}
+         var hatchBounds=var5.getBoundingBox();
+         double hatchInitialScale=var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue();
          UUID var19 = UUID.randomUUID();
          var5.customName(this.bossDisplay(var4));
          var5.setCustomNameVisible(true);
@@ -255,6 +258,7 @@ public final class BossManager implements Listener {
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          AnimalBossSizing.apply(var5,var4);MiniBossSizing.apply(var5,var4);
+         if(fromEgg&&!HatchSpace.clear(var5,Math.max(hatchBounds.getWidthX(),hatchBounds.getWidthZ())*(var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue())/Math.max(.01,hatchInitialScale),hatchBounds.getHeight()*(var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue())/Math.max(.01,hatchInitialScale))){var5.remove();return null;}
          fitBossBody(var5,var4);
          if(!((CazaJefesPlugin)plugin).safety.place(var5)){plugin.getLogger().warning("Sin espacio seguro para "+var4.id()+" en "+var2.getWorld().getName()+" "+var2.getBlockX()+","+var2.getBlockY()+","+var2.getBlockZ());var5.remove();return null;}
          ArenaBoundary.pin(var5,var5.getLocation());
@@ -397,8 +401,8 @@ public final class BossManager implements Listener {
             if(!hatch){var3.sendMessage("No tienes permiso para despertar huevos: cazajefes.hunter.hatch.");return;}
             if(!((CazaJefesPlugin)plugin).guard.canAttackBoss(var3)){var3.sendMessage("Despierta el huevo en supervivencia o aventura.");return;}
             var shell=var2.location.getBlock().getState();var2.location.getBlock().setType(Material.AIR,false);
-            LivingEntity awakened;try{awakened=this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName());}catch(RuntimeException failure){shell.update(true,false);plugin.getLogger().log(java.util.logging.Level.SEVERE,"Error al despertar "+var2.definition.id(),failure);var3.sendMessage("No se pudo despertar; el huevo se ha conservado. Revisa la consola.");return;}
-            if(awakened==null){shell.update(true,false);var3.sendMessage("No se pudo despertar al boss; el huevo se conserva. Revisa espacio y protecciones.");return;}
+            LivingEntity awakened;try{awakened=this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName(),true);}catch(RuntimeException failure){shell.update(true,false);plugin.getLogger().log(java.util.logging.Level.SEVERE,"Error al despertar "+var2.definition.id(),failure);var3.sendMessage("No se pudo despertar; el huevo se ha conservado. Revisa la consola.");return;}
+            if(awakened==null){shell.update(true,false);var3.sendMessage("No se pudo abrir espacio para el boss: bedrock, región protegida u obstáculo no rompible. El huevo se conserva.");return;}
             for(Player online:plugin.getServer().getOnlinePlayers())online.sendMessage(Component.text("✦ "+var3.getName()+" ha abierto el huevo de ",net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD).append(Component.text(var2.definition.name(),var2.definition.tier().color)));
             this.eggsByBlock.remove(this.key(var2.location));
             this.encounters.remove(var2.id);

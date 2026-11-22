@@ -10,9 +10,11 @@ final class BossFamilyAttacks {
     static JsonObject withDefaults(BossCatalog.Definition boss,boolean aquatic){
         var original=boss.custom().ai();
         var config=original==null?BossProfile.defaults(boss.custom().damage(),aquatic):original.deepCopy();
-        if(!boss.custom().options().legacyAttacks())return config;
+
         var attacks=config.has("attacks")?config.getAsJsonArray("attacks")
             :BossProfile.defaults(boss.custom().damage(),aquatic).getAsJsonArray("attacks");
+        var magnet=spec("magnetismo","Magnetismo","MAGNETISM",0);magnet.addProperty("radius",30);magnet.addProperty("cooldownTicks",400);magnet.addProperty("warningTicks",40);magnet.addProperty("weight",10);add(attacks,magnet);config.add("attacks",attacks);
+        if(!boss.custom().options().legacyAttacks())return config;
         if(attacks.isEmpty())return config;
         double damage=boss.custom().damage();
         switch(boss.entityType()){

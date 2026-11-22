@@ -38,6 +38,7 @@ final class ThreatTable {
          if (value <= score(weakest.getValue().value(), now - weakest.getValue().updated())) return;
          fight.scores.remove(weakest.getKey());
       }
+      fight.forced=id;fight.forcedUntil=now+1500;
       fight.scores.compute(id, (ignored, old) -> new Entry(Math.min(2000, value
          + (old == null ? 0 : score(old.value(), now - old.updated()))), now));
    }
@@ -58,17 +59,12 @@ final class ThreatTable {
       boolean shouldRotate = fight != null && fight.lastTarget != null
          && now - fight.lastTargetTime > 8000; // Rotate every 8 seconds max
       // Keep focus only briefly (2 seconds) so the boss cycles through players
-      if (!shouldRotate && now<fight.ready && fight.focus != null) {
+      if (false && now<fight.ready && fight.focus != null) {
          for (Player candidate : candidates) {
             if (candidate.getUniqueId().equals(fight.focus)) return candidate;
          }
       }
-      Player selected=candidates.stream().max(Comparator.comparingDouble(player->{
-         Entry e=fight.scores.get(player.getUniqueId());
-         double weight=e==null?0:score(e.value(),now-e.updated());
-         if(shouldRotate&&player.getUniqueId().equals(fight.lastTarget))return -Double.MAX_VALUE;
-         return weight-player.getLocation().distanceSquared(at)*.01;
-      })).orElseThrow();
+      Player selected=candidates.stream().min(Comparator.comparingDouble(player->player.getLocation().distanceSquared(at))).orElseThrow();
       if (fight != null) {
          fight.focus = selected.getUniqueId();
          fight.ready=now+2000;

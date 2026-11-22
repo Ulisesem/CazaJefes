@@ -41,7 +41,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                 int weight=integer(row,"weight",1,0,10000);
                 long cooldown=integer(row,"cooldownTicks",120,1,72000);
                 int warn=integer(row,"warningTicks",25,1,200);
-                double radius=number(row,"radius",2,0,24);
+                double radius=number(row,"radius",2,0,60);
                 double damage=number(row,"damage",Math.min(baseDamage,500),0,500);
                 entries.add(switch(text(row,"type","")){
                     case "FAMILY_VOLLEY" -> new dev.cazajefes.ai.attack.FamilyVolleyAttack(id,name,category,weight,cooldown,
@@ -50,6 +50,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                         number(row,"speed",1.6,.1,4),number(row,"area",0,0,8),row.has("guided")&&row.get("guided").getAsBoolean());
                     case "LIGHTNING_CHAIN" -> new dev.cazajefes.ai.attack.LightningChainAttack(id,name,category,weight,cooldown,
                         radius,damage,warn,integer(row,"strikes",6,1,9),integer(row,"intervalTicks",20,5,60),integer(row,"minimumPhase",1,1,3));
+                    case "MAGNETISM" -> new dev.cazajefes.ai.attack.MagnetismAttack(id,name,weight,cooldown,radius,warn);
                     case "SHOCKWAVE" -> new dev.cazajefes.ai.attack.ShockwaveAttack(id,name,weight,cooldown,radius,damage,warn);
                     case "FAULT_LINE" -> new dev.cazajefes.ai.attack.FaultLineAttack(id,name,weight,cooldown,radius,damage,warn);
                     case "MELEE_SWEEP" -> new dev.cazajefes.ai.attack.MeleeSweep(id,name,category,weight,cooldown,radius,damage,warn);
