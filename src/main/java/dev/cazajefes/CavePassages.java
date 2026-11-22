@@ -44,7 +44,7 @@ final class CavePassages {
     }
 
     boolean open(LivingEntity boss,Player target,Location attempted){
-        if(!available||blocks.size()>=512||!attempted.isChunkLoaded()||boss.isInWater())return false;
+        if(!available||blocks.size()>=512||!attempted.isChunkLoaded())return false;
         var world=attempted.getWorld();
         if(target.getWorld()!=world||!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.MOB_GRIEFING))
             ||!ArenaBoundary.allowsTerrain(boss,attempted))return false;

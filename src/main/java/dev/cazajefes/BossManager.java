@@ -637,11 +637,11 @@ public final class BossManager implements Listener {
       var bounds=boss.getBoundingBox();
       double width=Math.max(bounds.getWidthX(),bounds.getWidthZ());
       double reduction=Math.min(1,Math.min(1.7/Math.max(.1,width),2.85/Math.max(.1,bounds.getHeight())));
-      if(reduction<1)scale.setBaseValue(Math.max(.1,scale.getBaseValue()*reduction));
+      if(reduction<1)scale.setBaseValue(Math.max(2.0,scale.getBaseValue()*reduction));
    }
 
    private void setScale(LivingEntity boss,double scale) {
-      this.setAttribute(boss,Attribute.SCALE,scale);
+      this.setAttribute(boss,Attribute.SCALE,Math.max(2.0,scale));
    }
 
    private void restoreEggs() {
@@ -835,7 +835,7 @@ public final class BossManager implements Listener {
                      this.attackNearby(var2);
                      this.attacks++;
 
-                     if (this.attacks % 300 == 0) {
+                     if (this.attacks % 150 == 0) {
                         this.summonMinions(var2);
                      }
 

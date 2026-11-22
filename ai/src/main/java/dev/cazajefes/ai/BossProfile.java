@@ -66,12 +66,12 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         }
         if(!entries.isEmpty()&&entries.size()<24&&!(json.has("disableDefaultFaultLine")&&json.get("disableDefaultFaultLine").getAsBoolean())
             &&entries.stream().noneMatch(attack->attack instanceof dev.cazajefes.ai.attack.FaultLineAttack||attack.id().equals("falla_del_terreno"))){
-            entries.add(new dev.cazajefes.ai.attack.FaultLineAttack("falla_del_terreno","Falla del Terreno",12,100,12,
+            entries.add(new dev.cazajefes.ai.attack.FaultLineAttack("falla_del_terreno","Falla del Terreno",12,50,12,
                 Math.min(baseDamage*.9,500),16));
         }
         if(!entries.isEmpty()&&entries.size()<24&&!(json.has("disableDefaultShockwave")&&json.get("disableDefaultShockwave").getAsBoolean())
             &&entries.stream().noneMatch(attack->attack instanceof dev.cazajefes.ai.attack.ShockwaveAttack||attack.id().equals("pulso_de_fractura"))){
-            entries.add(new dev.cazajefes.ai.attack.ShockwaveAttack("pulso_de_fractura","Pulso de Fractura",4,80,7,
+            entries.add(new dev.cazajefes.ai.attack.ShockwaveAttack("pulso_de_fractura","Pulso de Fractura",4,40,7,
                 Math.min(baseDamage*1.2,500),14));
         }
         var config=json.has("tactics")?json.getAsJsonObject("tactics"):new JsonObject();
@@ -93,23 +93,23 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         json.addProperty("speed",aquatic?.32:.29);
         json.addProperty("gravity",.08);
         json.addProperty("detectionRange",60);
-        json.addProperty("globalCooldownTicks",10);
-        json.addProperty("basicRecoveryTicks",4);
-        json.addProperty("specialRecoveryTicks",30);
+        json.addProperty("globalCooldownTicks",5);
+        json.addProperty("basicRecoveryTicks",2);
+        json.addProperty("specialRecoveryTicks",15);
         json.addProperty("aquatic",aquatic);
         json.add("equipment",new JsonObject());
         var attacks=new com.google.gson.JsonArray();
-        attacks.add(defaultAttack("golpe_cercano","Ruptura de Guardia","MELEE_SWEEP","SHORT_RANGE",6,24,8,3,baseDamage));
-        var shot=defaultAttack("descarga_media","Descarga de la Grieta","LINEAR_PROJECTILE","MID_RANGE",6,40,12,.45,baseDamage*.85);
+        attacks.add(defaultAttack("golpe_cercano","Ruptura de Guardia","MELEE_SWEEP","SHORT_RANGE",6,12,8,3,baseDamage));
+        var shot=defaultAttack("descarga_media","Descarga de la Grieta","LINEAR_PROJECTILE","MID_RANGE",6,20,12,.45,baseDamage*.85);
         shot.addProperty("speed",1.65);
         shot.addProperty("lifetimeTicks",30);
         attacks.add(shot);
-        var meteor=defaultAttack("meteoro","Meteorito de la Grieta","METEORITE_AOE","MID_RANGE",2,120,20,4,baseDamage*1.25);
+        var meteor=defaultAttack("meteoro","Meteorito de la Grieta","METEORITE_AOE","MID_RANGE",2,60,20,4,baseDamage*1.25);
         meteor.addProperty("height",10);
         meteor.addProperty("speed",.85);
         meteor.addProperty("material","MAGMA_BLOCK");
         attacks.add(meteor);
-        var far=defaultAttack("meteoro_distante","Lluvia Incandescente","METEORITE_AOE","LONG_RANGE",2,140,25,4.5,baseDamage*1.35);
+        var far=defaultAttack("meteoro_distante","Lluvia Incandescente","METEORITE_AOE","LONG_RANGE",2,70,25,4.5,baseDamage*1.35);
         far.addProperty("height",12);
         far.addProperty("speed",1);
         far.addProperty("material","MAGMA_BLOCK");

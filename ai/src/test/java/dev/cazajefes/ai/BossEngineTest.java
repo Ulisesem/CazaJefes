@@ -57,9 +57,9 @@ public class BossEngineTest {
         assertEquals(3,preset.attacks().size());
         assertTrue(preset.attacks().stream().anyMatch(a->a.id().equals("falla_del_terreno")));
         assertTrue(preset.attacks().stream().anyMatch(a->a.id().equals("pulso_de_fractura")));
-        assertEquals(10,preset.globalCooldown());
-        assertEquals(4,preset.basicRecovery());
-        assertEquals(30,preset.specialRecovery());
+        assertEquals(5,preset.globalCooldown());
+        assertEquals(2,preset.basicRecovery());
+        assertEquals(15,preset.specialRecovery());
         var invalid=JsonParser.parseString("{\"globalCooldownTicks\":0}").getAsJsonObject();
         assertThrows(IllegalArgumentException.class,()->BossProfile.read(invalid,40,true));
     }

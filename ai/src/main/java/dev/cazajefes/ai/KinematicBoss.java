@@ -12,6 +12,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
     private int idleTicks,blockedTicks,verticalBlockedTicks,strafe=1,pursuitTicks;
     private double jump;
     private int farmingResponseTicks; // tracks how long we've been trying to reach an elevated player
+    private int stuckInWaterTicks;   // tracks how long the boss has been stuck in water
 
     // Ranged-melee weapon swap controller
     private final RangedMeleeSwap weaponSwap = new RangedMeleeSwap();
@@ -80,6 +81,15 @@ public final class KinematicBoss extends AbstractCustomBoss {
         boolean wet=body().isInWater()||water(origin);
         if(wet)hasEnteredWater=true;
         boolean swim=profile().aquatic()&&wet;
+
+        // Track how long the boss has been stuck in water
+        if(wet){
+            // Check if the boss is actually stuck (blocked horizontally in water)
+            if(blockedTicks>0) stuckInWaterTicks++;
+            else stuckInWaterTicks=Math.max(0,stuckInWaterTicks-3);
+        } else {
+            stuckInWaterTicks=Math.max(0,stuckInWaterTicks-5);
+        }
         double distance=direction.length();
         Vector horizontal=new Vector(direction.getX(),0,direction.getZ());
         if(!approach||horizontal.lengthSquared()<.0001)horizontal.zero();
@@ -106,25 +116,23 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }
         
         // Proactive path clearing: break blocks between boss and target
-        if(approach&&target!=null&&!swim){
+        if(approach&&target!=null){
             double distSq=origin.distanceSquared(target.getLocation());
-            if(distSq<=64){
+            if(distSq<=100){
                 // Try to break blocks in the path toward the target every few ticks
-                int pathBreakInterval=10;
+                int pathBreakInterval=6;
                 if(++verticalBlockedTicks%pathBreakInterval==0){
                     // Calculate direction to target and check blocks along the path
                     Vector toTarget=target.getLocation().toVector().subtract(origin.toVector());
                     double dist=toTarget.length();
-                    if(dist>1&&dist<=8){
+                    if(dist>1&&dist<=12){
                         toTarget.normalize();
                         // Check blocks at mid-point and near the boss
                         Location midPoint=origin.clone().add(toTarget.clone().multiply(dist*0.5));
                         Location nearBoss=origin.clone().add(toTarget.clone().multiply(1.5));
-                        if(!environment().canSee(this,target)){
-                            // Break blocks that block line of sight
-                            environment().blocked(this,target,midPoint);
-                            environment().blocked(this,target,nearBoss);
-                        }
+                        // Always try to break blocks, not just when line of sight is blocked
+                        environment().blocked(this,target,midPoint);
+                        environment().blocked(this,target,nearBoss);
                     }
                 }
             }
@@ -146,6 +154,20 @@ public final class KinematicBoss extends AbstractCustomBoss {
             &&target.getY()-origin.getY()>1.5&&origin.distanceSquared(target.getLocation())<=36
             &&jump==0)jump=.52;
         
+        // Escape water when stuck: swim upward aggressively
+        if(wet&&stuckInWaterTicks>=20){
+            // Try to swim upward to escape being stuck in water
+            Location above=origin.clone().add(0,1.5,0);
+            if(clear(above)){
+                jump=Math.max(jump,.55);
+                stuckInWaterTicks=Math.max(0,stuckInWaterTicks-2);
+            } else if(stuckInWaterTicks>=40){
+                // If still stuck after 40 ticks, try breaking blocks above
+                environment().blocked(this,target,above);
+                jump=Math.max(jump,.6);
+            }
+        }
+
         fall=jump>0?jump:swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
         if(jump>0)jump=Math.max(0,jump-.10);
@@ -203,19 +225,17 @@ public final class KinematicBoss extends AbstractCustomBoss {
             }
         }
         // Aggressive vertical block breaking when player is farming above
-        if(approach&&target!=null&&!swim&&Math.abs(target.getY()-origin.getY())>=1.5
+        if(approach&&target!=null&&Math.abs(target.getY()-origin.getY())>=1.5
             &&origin.distanceSquared(target.getLocation())<=49){
             // More frequent block breaking attempts when farming is detected
             int breakInterval=farmingResponseTicks>30?2:4;
             if(++verticalBlockedTicks%breakInterval==0){
                 Location above=origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0);
-                if(environment().blocked(this,target,above)){
-                    pursuitTicks=50;
-                    // Also try to break blocks directly under the player to collapse their platform
-                    if(farmingResponseTicks>40){
-                        Location underPlayer=target.getLocation().clone().subtract(0,.5,0);
-                        environment().blocked(this,target,underPlayer);
-                    }
+                environment().blocked(this,target,above);
+                // Also try to break blocks directly under the player to collapse their platform
+                if(farmingResponseTicks>40){
+                    Location underPlayer=target.getLocation().clone().subtract(0,.5,0);
+                    environment().blocked(this,target,underPlayer);
                 }
             }
         }else verticalBlockedTicks=0;
