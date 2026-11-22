@@ -34,13 +34,15 @@ public final class CazaJefesPlugin extends JavaPlugin {
    private RelicItems relicItems;
    private HuntTracker tracker;
    private ConfiguredText text;
+   TerrainRestoration terrain;
    Languages languages;
    CustomEncounter customEncounter;
    ConfiguredText text() { return text; }
 
    public void onEnable() {
       this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);VisualProviders.load(this);
-      ConfigMigration.run(this);
+      ConfigMigration.run(this);terrain=new TerrainRestoration(this);
+      getServer().getPluginManager().registerEvents(new BedrockProtection(),this);
       languages = new Languages(this);
       text = new ConfiguredText(this);
       var languageMenu = new LanguageMenu(this,languages);
@@ -116,6 +118,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossManager bosses() { return bossManager; }
 
    public void onDisable() {
+      if(terrain!=null)terrain.stop();
       if(customEncounter!=null)customEncounter.stop();
       if(jailRares!=null)jailRares.stop();if(rangedRares!=null)rangedRares.stop();if(rareCombat!=null)rareCombat.stop();BossEffects.clear();BossWarnings.clear();SpecialDamage.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();

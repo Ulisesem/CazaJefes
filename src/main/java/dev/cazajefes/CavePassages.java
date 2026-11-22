@@ -19,11 +19,10 @@ final class CavePassages {
      Block block=boss.getWorld().getBlockAt(x,y,z);if(!block.isPassable())batch.add(block);
     }
   var delta=target.getEyeLocation().toVector().subtract(boss.getEyeLocation().toVector());if(delta.lengthSquared()>.01){var hit=boss.getWorld().rayTraceBlocks(boss.getEyeLocation(),delta.clone().normalize(),Math.min(3,delta.length()),FluidCollisionMode.NEVER,true);if(hit!=null&&hit.getHitBlock()!=null)batch.add(hit.getHitBlock());}
-  boolean changed=false;
-  for(Block block:batch){if(block.getType()==Material.BEDROCK||!ArenaBoundary.allowsTerrain(boss,block.getLocation()))continue;var data=block.getBlockData();if(!new EntityChangeBlockEvent(boss,block,Material.CAVE_AIR.createBlockData()).callEvent()||!data.equals(block.getBlockData()))continue;
-   if(block.getState() instanceof org.bukkit.block.Container)block.breakNaturally();else block.setType(Material.CAVE_AIR,false);
-   CosmeticFX.emit(Particle.BLOCK,block.getLocation().add(.5,.5,.5),4,.2,.2,.2,0,data);changed=true;
-  }
+  List<Block> accepted=new ArrayList<>();
+  for(Block block:batch){if(block.getType()==Material.BEDROCK||!ArenaBoundary.allowsTerrain(boss,block.getLocation()))continue;var data=block.getBlockData();if(!new EntityChangeBlockEvent(boss,block,Material.CAVE_AIR.createBlockData()).callEvent()||!data.equals(block.getBlockData()))continue;accepted.add(block);}
+  if(accepted.isEmpty()||!plugin.terrain.remember(boss,accepted))return false;
+  boolean changed=false;for(Block block:accepted){var data=block.getBlockData();block.setType(Material.CAVE_AIR,false);CosmeticFX.emit(Particle.BLOCK,block.getLocation().add(.5,.5,.5),4,.2,.2,.2,0,data);changed=true;}
   if(changed)boss.getWorld().playSound(attempted,Sound.BLOCK_STONE_BREAK,.8f,1.25f);return changed;
  }
  void release(UUID ignored){}

@@ -220,7 +220,9 @@ final class CustomEncounter implements BossEnvironment {
         return plugin.abilities.signature(boss.body(),definition,target,BossStages.phase(boss.body()),requested);
     }
 
+    @Override public double movementSpeed(CustomBoss boss){var effect=boss.body().getPotionEffect(org.bukkit.potion.PotionEffectType.SPEED);return effect==null?1:1+.2*(effect.getAmplifier()+1);}
     @Override public void heartbeat(CustomBoss boss){
+        BossBuffs.apply(boss.body());
         var tracker=stages.get(boss.body().getUniqueId());
         if(tracker!=null)tracker.update();
         var body=boss.body();

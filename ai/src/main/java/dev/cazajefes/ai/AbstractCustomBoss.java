@@ -255,7 +255,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         motion=null;
         pending=null;
         requested=null;
-        gcdUntil=tick+(special?profile.globalCooldown():profile.basicRecovery());
+        gcdUntil=tick+(special?profile.globalCooldown():Math.min(2,profile.basicRecovery()));
     }
 
     @Override public final void close(){

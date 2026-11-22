@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 public final class MeleeSweep extends BossAttack {
     public MeleeSweep(String id,String name,AttackCategory category,int weight,long cooldown,
                       double radius,double damage,int warningTicks) {
-        super(id,name,category,weight,Math.min(cooldown,12),radius,damage,Math.min(warningTicks,3));
+        super(id,name,category,weight,Math.min(cooldown,10),radius,damage,Math.min(warningTicks,1));
     }
 
     @Override public boolean inRange(CustomBoss boss,Player target,double distance){

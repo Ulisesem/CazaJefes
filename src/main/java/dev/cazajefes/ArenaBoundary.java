@@ -60,16 +60,11 @@ final class ArenaBoundary {
       return at==null || at.length!=3 || allows(new Location(entity.getWorld(),at[0],at[1],at[2]),destination);
    }
 
-   static boolean allowsTerrain(org.bukkit.entity.Entity boss,Location destination) {
-      if(plugin==null||!plugin.getServer().getPluginManager().isPluginEnabled("WorldGuard"))
-         return allows(boss,destination);
-      if(api==null||!allows(boss,destination))return false;
-      try{
-         Object set=applicable(destination);
-         var all=(Iterable<?>)api.regions().invoke(set);
-         // Every claimed region protects terrain, independently of its PvP setting.
-         return !all.iterator().hasNext();
-      }
+   static boolean allowsTerrain(org.bukkit.entity.Entity boss,Location destination){return allows(boss,destination)&&terrainUnclaimed(destination);}
+   static boolean terrainUnclaimed(Location destination){
+      if(plugin==null||!plugin.getServer().getPluginManager().isPluginEnabled("WorldGuard"))return true;
+      if(api==null)return false;
+      try{Object set=applicable(destination);return !((Iterable<?>)api.regions().invoke(set)).iterator().hasNext();}
       catch(ReflectiveOperationException|RuntimeException failure){warn(failure);return false;}
    }
 

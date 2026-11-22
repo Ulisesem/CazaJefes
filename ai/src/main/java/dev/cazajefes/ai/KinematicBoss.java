@@ -96,7 +96,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         else {
             var tactics=profile().tactics();
             double groundDistance=horizontal.length();
-            horizontal.normalize().multiply(profile().speed());
+            horizontal.normalize().multiply(Math.min(groundDistance,profile().speed()*environment().movementSpeed(this)));
             CombatStyle.Tactics.Move moveDecision=tactics.move(groundDistance,pursuitTicks==0&&environment().canSee(this,target));
 
             if(moveDecision==CombatStyle.Tactics.Move.RETREAT){
@@ -120,7 +120,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
             double distSq=origin.distanceSquared(target.getLocation());
             if(distSq<=100){
                 // Try to break blocks in the path toward the target every few ticks
-                int pathBreakInterval=6;
+                int pathBreakInterval=2;
                 if(++verticalBlockedTicks%pathBreakInterval==0){
                     // Calculate direction to target and check blocks along the path
                     Vector toTarget=target.getLocation().toVector().subtract(origin.toVector());
@@ -170,6 +170,13 @@ public final class KinematicBoss extends AbstractCustomBoss {
 
         fall=jump>0?jump:swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
+        if(!profile().aquatic()){
+            Double surface=WaterSurface.level(origin);
+            if(surface!=null){fall=WaterSurface.rise(origin.getY(),surface);grounded=Math.abs(surface-origin.getY())<.15;}
+            if(approach&&target!=null&&target.getY()-origin.getY()>2&&new Vector(direction.getX(),0,direction.getZ()).lengthSquared()<=36){
+                Location upward=origin.clone().add(0,.35,0);if(!clear(upward))environment().blocked(this,target,upward);if(clear(upward))fall=.35;
+            }
+        }
         if(jump>0)jump=Math.max(0,jump-.10);
         Location next=origin.clone();
         Location y=origin.clone().add(0,fall,0);
@@ -228,7 +235,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         if(approach&&target!=null&&Math.abs(target.getY()-origin.getY())>=1.5
             &&origin.distanceSquared(target.getLocation())<=49){
             // More frequent block breaking attempts when farming is detected
-            int breakInterval=farmingResponseTicks>30?2:4;
+            int breakInterval=1;
             if(++verticalBlockedTicks%breakInterval==0){
                 Location above=origin.clone().add(0,Math.copySign(.75,target.getY()-origin.getY()),0);
                 environment().blocked(this,target,above);

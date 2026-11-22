@@ -19,8 +19,10 @@ final class Languages {
 
     record Language(String id,String name,String textureHash,JsonObject file,JsonObject defaults) {}
     private final List<Language> entries;
+    private final boolean forceSpanish;
 
     Languages(CazaJefesPlugin plugin){
+        forceSpanish=plugin.getConfig().getBoolean("language.force-spanish",true);
         var loaded=new ArrayList<Language>(IDS.size());
         for(String id:IDS){
             String resource="lenguajes/"+id+".json";
@@ -58,7 +60,7 @@ final class Languages {
     List<Language> all(){return entries;}
 
     Language of(Player player){
-        if(player==null)return entries.getFirst();
+        if(forceSpanish||player==null)return entries.getFirst();
         String saved=player.getPersistentDataContainer().get(LANGUAGE,PersistentDataType.STRING);
         if(saved==null)saved=player.locale().getLanguage().toLowerCase(Locale.ROOT);
         for(var language:entries)if(language.id().equals(saved))return language;
@@ -66,6 +68,7 @@ final class Languages {
     }
 
     void select(Player player,Language language){
+        if(forceSpanish&&!language.id().equals("es")){player.sendMessage("Este servidor utiliza español.");return;}
         player.getPersistentDataContainer().set(LANGUAGE,PersistentDataType.STRING,language.id());
     }
 
@@ -86,6 +89,7 @@ final class Languages {
     }
 
     String state(Player player,String state){
+        String translated=switch(state){case "IDLE"->"EN ESPERA";case "MOVING"->"EN PERSECUCIÓN";case "ATTACKING"->"ATACANDO";case "STUNNED"->"ATURDIDO";default->null;};if(translated!=null)return translated;
         if(state.startsWith("IMPACTO "))return text(player,"attack.impact","IMPACTO")+" "+state.substring(8);
         if(state.startsWith("COMBINACIÓN · "))return text(player,"attack.combo","COMBINACIÓN")+" · "+state.substring(14);
         String key=switch(state){

@@ -258,7 +258,7 @@ public final class BossManager implements Listener {
          this.setScale(var5, var8);
          var5.setHealth(Math.min(var10, var5.getAttribute(Attribute.MAX_HEALTH).getValue()));
          AnimalBossSizing.apply(var5,var4);MiniBossSizing.apply(var5,var4);
-         if(fromEgg&&!HatchSpace.clear(var5,Math.max(hatchBounds.getWidthX(),hatchBounds.getWidthZ())*(var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue())/Math.max(.01,hatchInitialScale),hatchBounds.getHeight()*(var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue())/Math.max(.01,hatchInitialScale))){var5.remove();return null;}
+         if(fromEgg&&!HatchSpace.clear(var5,Math.max(hatchBounds.getWidthX(),hatchBounds.getWidthZ())*(var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue())/Math.max(.01,hatchInitialScale),hatchBounds.getHeight()*(var5.getAttribute(Attribute.SCALE)==null?1:var5.getAttribute(Attribute.SCALE).getValue())/Math.max(.01,hatchInitialScale),((CazaJefesPlugin)plugin).terrain)){var5.remove();return null;}
          fitBossBody(var5,var4);
          if(!((CazaJefesPlugin)plugin).safety.place(var5)){plugin.getLogger().warning("Sin espacio seguro para "+var4.id()+" en "+var2.getWorld().getName()+" "+var2.getBlockX()+","+var2.getBlockY()+","+var2.getBlockZ());var5.remove();return null;}
          ArenaBoundary.pin(var5,var5.getLocation());
@@ -610,6 +610,7 @@ public final class BossManager implements Listener {
          NamespacedKey paid = new NamespacedKey(plugin,"loot_paid");
          if (var3.has(paid, PersistentDataType.BYTE)) return;
          var3.set(paid, PersistentDataType.BYTE,(byte)1);
+         ((CazaJefesPlugin)plugin).terrain.defeated(var2.getUniqueId());
          ((CazaJefesPlugin)plugin).customEncounter.remove(var2.getUniqueId());
          final boolean credited=((CazaJefesPlugin)plugin).guard.canDrop(var2);
          final BossCatalog.Definition defeated=var7;
@@ -732,12 +733,7 @@ public final class BossManager implements Listener {
    }
 
    private void restoreSupport(BossManager.Encounter encounter) {
-      if(encounter.location.getWorld()==null||encounter.supportData==null)return;
-      Block support=encounter.location.getBlock().getRelative(BlockFace.DOWN);
-      if(support.getType()==Material.BEDROCK) {
-         try { support.setBlockData(Bukkit.createBlockData(encounter.supportData),false); }
-         catch(IllegalArgumentException invalid) { plugin.getLogger().warning("No se pudo restaurar el pedestal: datos guardados inválidos."); }
-      }
+      // The bedrock pedestal remains in place; no cleanup may replace bedrock.
    }
 
    @EventHandler(ignoreCancelled = true)
@@ -795,9 +791,6 @@ public final class BossManager implements Listener {
             if(boss instanceof Mob mob&&definition.custom().options().fearless())PassiveHostility.clearFear(mob);
             BossEquipment.maintainPiglin(boss,definition);
             AquaticCombat.maintain(boss);
-            int speed=definition.id().equals("kitsar_acechador_carmesi")?0:1;
-            PotionEffect effect=boss.getPotionEffect(PotionEffectType.SPEED);
-            if(effect==null||effect.getAmplifier()!=speed||effect.getDuration()<40){boss.removePotionEffect(PotionEffectType.SPEED);BossEffects.applyFrom(boss,boss,BossEffects.effect(PotionEffectType.SPEED,100,speed,true,false));}
             stages.update();if(((CazaJefesPlugin)plugin).species.defending(boss))return;
             Player var2=tactics.pickTarget();
             if (var2 != null) {

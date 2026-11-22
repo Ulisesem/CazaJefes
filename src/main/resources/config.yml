@@ -59,3 +59,7 @@ particles:
 
 messages:
   attack: '<gold><bold><state></bold></gold> <dark_gray>·</dark_gray> <white><attack></white>'
+
+# Idioma de los avisos, menús y combate del plugin.
+language:
+  force-spanish: true
