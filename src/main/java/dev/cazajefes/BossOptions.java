@@ -25,6 +25,12 @@ record BossOptions(JsonObject json) {
     int rocketCharges(int fallback){return (int)number("rocketCharges",PillagerRules.rocketCharges(fallback),1,9);}
     double heartChance(double fallback){return number("heartChance",fallback,0,1);}
 
+    /** Return the boons configuration for this boss, falling back to BossBoons defaults. */
+    JsonObject boons(){
+        if(json.has("boons")&&json.get("boons").isJsonObject())return json.getAsJsonObject("boons");
+        return BossBoons.defaults();
+    }
+
     CombatScripts.Plan plan(CombatScripts.Plan fallback, Map<String,CombatScripts.Skill> shared){
         boolean override=json.keySet().stream().anyMatch(PLAN_KEYS::contains);
         if(!override)return fallback;

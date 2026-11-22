@@ -136,12 +136,24 @@ final class CustomEncounter implements BossEnvironment {
         else victim.damage(damage,boss.body());
     }
 
+    @Override public void meteorDamage(CustomBoss boss,LivingEntity victim,double damage){
+        if(damage<=0)return;
+        if(victim instanceof Player player)
+            SpecialDamage.hit(boss.body(),player,damage);
+        else if(mayHit(boss,victim))
+            victim.damage(damage,boss.body());
+    }
+
     @Override public void warning(CustomBoss boss,Player target,BossAttack attack,int ticks){
         var at=boss.body().getLocation();
         var definition=BossCatalog.get(boss.body().getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
         effect(boss,attack,"charge",BossParticles.Shape.RING,at,
             Math.max(.85,boss.body().getWidth()*.65),boss.body().getHeight(),true);
+        CombatTelegraph.charge(boss.body(),target,attack);
+        plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
+            boss.body().getUniqueId(),target.getUniqueId(),attack.id(),
+            dev.cazajefes.api.event.BossAttackEvent.Stage.CHARGE,at));
         for(Player viewer:at.getWorld().getNearbyPlayers(at,32)){
             if(!ArenaBoundary.allows(boss.body(),viewer.getLocation()))continue;
             String id=definition==null?attack.id():definition.id()+"."+attack.id();
@@ -155,6 +167,10 @@ final class CustomEncounter implements BossEnvironment {
         var at=boss.body().getLocation();
         effect(boss,attack,"release",BossParticles.Shape.BEAM,at,
             Math.max(.8,boss.body().getWidth()*.55),boss.body().getHeight(),false);
+        CombatTelegraph.release(boss.body(),attack);
+        plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
+            boss.body().getUniqueId(),null,attack.id(),
+            dev.cazajefes.api.event.BossAttackEvent.Stage.RELEASE,at));
     }
 
     @Override public void impact(CustomBoss boss,BossAttack attack,Location at){
@@ -164,6 +180,10 @@ final class CustomEncounter implements BossEnvironment {
         }
         effect(boss,attack,"impact",BossParticles.Shape.PULSE,at,
             Math.max(1,attack.radius()),1.1,false);
+        VisualProviders.impact(boss.body());
+        plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
+            boss.body().getUniqueId(),null,attack.id(),
+            dev.cazajefes.api.event.BossAttackEvent.Stage.IMPACT,at));
     }
 
     private void effect(CustomBoss boss,BossAttack attack,String stage,BossParticles.Shape fallback,

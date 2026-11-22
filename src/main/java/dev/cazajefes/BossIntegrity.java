@@ -4,6 +4,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.persistence.PersistentDataType;
 /** Owns native slime lifecycle without replacing the living boss or resetting its HP. */
 final class BossIntegrity implements Listener {
@@ -26,4 +27,5 @@ final class BossIntegrity implements Listener {
  @EventHandler(priority=EventPriority.HIGHEST)public void split(SlimeSplitEvent e){if(boss(e.getEntity())||e.getEntity().getPersistentDataContainer().has(new NamespacedKey("cazajefes","death_visual"),PersistentDataType.BYTE))e.setCancelled(true);}
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void fire(EntityDamageEvent e){if(boss(e.getEntity())&&switch(e.getCause()){case FIRE,FIRE_TICK,LAVA,HOT_FLOOR->true;default->false;}){e.setCancelled(true);e.getEntity().setFireTicks(0);}}
  @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)public void ignite(EntityCombustEvent e){if(boss(e.getEntity()))e.setCancelled(true);}
+@EventHandler(priority=EventPriority.HIGHEST)public void preventMount(VehicleEnterEvent e){if(boss(e.getVehicle()))e.setCancelled(true);}
 }

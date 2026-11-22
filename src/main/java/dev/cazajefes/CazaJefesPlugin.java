@@ -27,7 +27,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    BossRebirth rebirth;
    BossDeathVisuals deathVisuals;
    DamageDiagnostics damageDiagnostics;
-   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;RareCombat rareCombat;RangedRares rangedRares;JailRares jailRares;BossSpecies species;SkeletonCombat archers;MageCombat mages;
+   BossParticipation participation;BossStatistics statistics;EncounterSafety safety;DuelRelics duel;RareCombat rareCombat;RangedRares rangedRares;JailRares jailRares;BossSpecies species;SkeletonCombat archers;MageCombat mages;RareDiagnostics rareDiagnostics;BossBoons bossBoons;SpecialDamage specialDamage;
    public BossStatistics statistics(){return statistics;}
    private NamespacedKey itemKey;
    private BossManager bossManager;
@@ -39,7 +39,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    ConfiguredText text() { return text; }
 
    public void onEnable() {
-      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);
+      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);VisualProviders.load(this);
       ConfigMigration.run(this);
       languages = new Languages(this);
       text = new ConfiguredText(this);
@@ -91,7 +91,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.getCommand("ri").setTabCompleter(var1);
       this.getServer().getPluginManager().registerEvents(var1, this);
       duel=new DuelRelics(this,relicItems);getServer().getPluginManager().registerEvents(duel,this);
-      getServer().getPluginManager().registerEvents(new RareTools(this,relicItems),this);rareCombat=new RareCombat(this,relicItems);getServer().getPluginManager().registerEvents(rareCombat,this);rangedRares=new RangedRares(this,relicItems);getServer().getPluginManager().registerEvents(rangedRares,this);jailRares=new JailRares(this,relicItems);getServer().getPluginManager().registerEvents(jailRares,this);
+      getServer().getPluginManager().registerEvents(new RareTools(this,relicItems),this);rareCombat=new RareCombat(this,relicItems);getServer().getPluginManager().registerEvents(rareCombat,this);rangedRares=new RangedRares(this,relicItems);getServer().getPluginManager().registerEvents(rangedRares,this);jailRares=new JailRares(this,relicItems);getServer().getPluginManager().registerEvents(jailRares,this);rareDiagnostics=new RareDiagnostics(this,relicItems);bossBoons=new BossBoons(this);getServer().getPluginManager().registerEvents(bossBoons,this);specialDamage=new SpecialDamage();getServer().getPluginManager().registerEvents(specialDamage,this);getServer().getPluginManager().registerEvents(new RegionProtection(),this);
       this.relicItems.registerRecipes();
       this.bestiary=new BestiaryMenu(this,bossManager,relicItems);
       this.getCommand("bestiario").setExecutor(bestiary);
@@ -117,13 +117,13 @@ public final class CazaJefesPlugin extends JavaPlugin {
 
    public void onDisable() {
       if(customEncounter!=null)customEncounter.stop();
-      if(jailRares!=null)jailRares.stop();if(rangedRares!=null)rangedRares.stop();if(rareCombat!=null)rareCombat.stop();BossEffects.clear();BossWarnings.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
+      if(jailRares!=null)jailRares.stop();if(rangedRares!=null)rangedRares.stop();if(rareCombat!=null)rareCombat.stop();BossEffects.clear();BossWarnings.clear();SpecialDamage.clear();if(relicItems!=null)relicItems.stopArmorRares();if(mages!=null)mages.stop();if(archers!=null)archers.stop();if(species!=null)species.stop();if(duel!=null)duel.stop();if(safety!=null)safety.stop();if(statistics!=null)statistics.stop();if(pillagers!=null)pillagers.stop();
       if(burstLaunch!=null)burstLaunch.stop();
       if(animalMinions!=null)animalMinions.stop();
       if(spawnpoints!=null)spawnpoints.stop();
       if(deathVisuals!=null)deathVisuals.stop();
       if(relicItems!=null)relicItems.stopLootAnimations();
-      CosmeticFX.clear();if(auras!=null)auras.stop();
+      CosmeticFX.clear();VisualProviders.stop();if(auras!=null)auras.stop();
       if(abilities!=null)abilities.stop();
       if(crystals!=null)crystals.stop();
       if(cinematics!=null)cinematics.stop();

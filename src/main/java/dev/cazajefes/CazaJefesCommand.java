@@ -63,6 +63,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                break;
             case "diagnostico":
                ((CazaJefesPlugin)plugin).damageDiagnostics.inspect(var1);break;
+            case "rares-debug":
+               ((CazaJefesPlugin)plugin).rareDiagnostics.inspect(var1);break;
             case "spawnpoint":
             case "sp":
                this.spawnpoint(var1, var4);
@@ -163,7 +165,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if(args.length==1){
          out.add("provocar");out.addAll(List.of("help","estadisticas","ranking","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
          for(String action:List.of("spawnpoint","egg","boss","reload"))if(isAdmin(sender,"rareitemhunter.admin."+action))out.add(action);
-         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.add("diagnostico");
+         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.addAll(List.of("diagnostico","rares-debug"));
       }else if(root.equals("particulas")){if(args.length==2)out.addAll(List.of("baja","media","alta","off"));}
       else if(root.equals("spawnpoint")&&isAdmin(sender,"rareitemhunter.admin.spawnpoint")){
          if(args.length==2)out.addAll(List.of("list","timer","off","delete"));

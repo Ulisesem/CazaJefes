@@ -25,5 +25,24 @@ public interface BossEnvironment {
     default boolean occupied(CustomBoss boss){return false;}
     default boolean blocked(CustomBoss boss,Player target,Location attempted) {return false;}
     default void groundWarning(CustomBoss boss,Location center,double radius,int age) {}
+
+    /** Check if the boss may affect the given entity (arena boundary, eligibility, etc.). Default delegates to mayHit. */
+    default boolean mayAffect(CustomBoss boss, LivingEntity entity) { return mayHit(boss, entity); }
+
+    /** Apply melee damage. Default delegates to damage(). */
+    default void meleeDamage(CustomBoss boss, LivingEntity victim, double damage) { damage(boss, victim, damage); }
+
+    /** Apply meteor (fixed) damage that bypasses normal damage events. Default delegates to damage(). */
+    default void meteorDamage(CustomBoss boss, LivingEntity victim, double damage) { damage(boss, victim, damage); }
+
+    /** Apply precision (fixed) damage. Default delegates to damage(). */
+    default void precisionDamage(CustomBoss boss, LivingEntity victim, double damage) { damage(boss, victim, damage); }
+
+    /** Return the movement speed multiplier for the boss. Default is 1.0 (no modification). */
+    default double movementSpeed(CustomBoss boss) { return 1.0; }
+
+    /** Return true to show a meteor trail particle effect. Default is false. */
+    default boolean meteorTrail(CustomBoss boss) { return false; }
+
     BossVisuals visuals();
 }

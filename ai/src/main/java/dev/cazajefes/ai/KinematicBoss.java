@@ -145,6 +145,16 @@ public final class KinematicBoss extends AbstractCustomBoss {
                 var side=new Vector(-horizontal.getZ(),0,horizontal.getX());
                 if(++blockedTicks%3==0&&target!=null&&(pursuitTicks>0||!environment().canSee(this,target))
                     &&environment().blocked(this,target,horizontalMove))pursuitTicks=50;
+                // Stuck detection: if blocked for too long, try aggressive jump and break blocks
+                if(blockedTicks>=20&&!swim&&grounded){
+                    // Aggressive jump to escape being stuck
+                    if(jump==0)jump=.6;
+                    // Try breaking blocks above head when stuck
+                    if(blockedTicks%4==0){
+                        Location above=origin.clone().add(0,1.5,0);
+                        environment().blocked(this,target,above);
+                    }
+                }
                 if(clear(horizontalMove))next=horizontalMove;
                 else if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));
                 else if(clear(next.clone().subtract(side.clone().multiply(strafe)))){
