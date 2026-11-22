@@ -21,6 +21,7 @@ final class RecipeSettings {
         config = ConfigMigration.recipes((CazaJefesPlugin)plugin,file,YamlConfiguration.loadConfiguration(file));
     }
     boolean enabled(String id) {
+        if(id.startsWith("armadura_"))return false;
         var path = "recipes." + id + ".enabled";
         if (!config.contains(path)) {
             config.set(path,true);

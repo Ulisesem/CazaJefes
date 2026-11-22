@@ -94,6 +94,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             case "tribute":
                this.giveMaterial(var1, var4, "tribute");
                break;
+            case "equipo":
+               new EquipmentCommand(items).onCommand(var1,var2,"ri equipo",java.util.Arrays.copyOfRange(var4,1,var4.length));break;
             case "armor":
             case "armadura":
                this.giveGear(var1, var4, true);
@@ -161,11 +163,11 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    public List<String> onTabComplete(CommandSender sender,Command command,String label,String[] args){
-      if(args.length==0)return List.of();List<String> out=new ArrayList<>();String root=AdminArguments.root(args[0]);
+      if(args.length==0)return List.of();if(AdminArguments.root(args[0]).equals("equipo")&&args.length>=2)return new EquipmentCommand(items).onTabComplete(sender,command,"ri equipo",java.util.Arrays.copyOfRange(args,1,args.length));List<String> out=new ArrayList<>();String root=AdminArguments.root(args[0]);
       if(args.length==1){
          out.add("provocar");out.addAll(List.of("help","estadisticas","ranking","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
          for(String action:List.of("spawnpoint","egg","boss","reload"))if(isAdmin(sender,"rareitemhunter.admin."+action))out.add(action);
-         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.addAll(List.of("diagnostico","rares-debug"));
+         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon","equipo"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.addAll(List.of("diagnostico","rares-debug"));
       }else if(root.equals("particulas")){if(args.length==2)out.addAll(List.of("baja","media","alta","off"));}
       else if(root.equals("spawnpoint")&&isAdmin(sender,"rareitemhunter.admin.spawnpoint")){
          if(args.length==2)out.addAll(List.of("list","timer","off","delete"));
@@ -176,7 +178,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          if(args.length==2)out.addAll(BossCatalog.ids());else if(args.length==3){out.add("here");var section=plugin.getConfig().getConfigurationSection("spawnpoints");if(section!=null)out.addAll(section.getKeys(false));}
       }else if(isAdmin(sender,"rareitemhunter.admin.essence")){
          if(root.equals("give")){if(args.length==2)out.add("rare");else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else if(args.length==4){out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}else if(args.length==5)out.addAll(onlinePlayerNames());}}
-         else if(root.equals("rare")||root.equals("book")||root.equals("essence")||root.equals("esscence")||root.equals("esencia")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():items.catalogIds());else if(args.length==3){for(int level=1;level<=items.maxLevel(args[1].toLowerCase(java.util.Locale.ROOT));level++)out.add(Integer.toString(level));out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
+         else if(root.equals("rare")||root.equals("book")||root.equals("essence")||root.equals("esscence")||root.equals("esencia")){if(args.length==2)out.addAll(root.equals("rare")?items.rareIds():RareAliases.commandNames());else if(args.length==3){for(int level=1;level<=items.maxLevel(RareAliases.canonical(args[1]));level++)out.add(Integer.toString(level));out.addAll(onlinePlayerNames());}else if(args.length==4)out.addAll(onlinePlayerNames());}
          else if(root.equals("get")){if(args.length==2)out.addAll(List.of("compass","essence","fragment","tribute","rare","hacha","espada","arco"));else if(args[1].equalsIgnoreCase("rare")){if(args.length==3)out.addAll(items.rareIds());else{out.addAll(List.of("1","2","3","4","5"));out.addAll(onlinePlayerNames());}}else if(args.length==3)out.addAll(onlinePlayerNames());}
          else if(root.equals("armor")||root.equals("weapon")){if(args.length==2)out.addAll(List.of("comun","raro","epico","legendario","mitico","abismal"));else if(args.length==3)out.addAll(onlinePlayerNames());}
          else if((root.equals("fragment")||root.equals("tribute")||root.equals("compass"))&&args.length==2)out.addAll(onlinePlayerNames());
@@ -223,7 +225,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (!this.isAdmin(var1, "rareitemhunter.admin.essence")) {
          this.deny(var1);
       } else {
-         boolean var3 = var2.length > 1 && this.items.catalogIds().contains(var2[1].toLowerCase());
+         boolean var3 = var2.length > 1 && this.items.catalogIds().contains(RareAliases.canonical(var2[1]));
          int var4 = 1;
          byte var5 = 2;
          if (var3 && var2.length > 2) {
@@ -239,8 +241,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             : (var2.length > 1 ? this.plugin.getServer().getPlayerExact(var2[1]) : (var1 instanceof Player var7 ? var7 : null));
          if (var6 == null) {
             var1.sendMessage("Uso: /ri essence <id> [nivel] [jugador] • también: /ri essence [jugador]");
-         } else if (!var3 || var4 >= 1 && var4 <= this.items.maxLevel(var2[1])) {
-            ItemStack var10 = var3 ? this.items.commandEssence(var2[1].toLowerCase(), var4) : this.items.essence();
+         } else if (!var3 || var4 >= 1 && var4 <= this.items.maxLevel(RareAliases.canonical(var2[1]))) {
+            ItemStack var10 = var3 ? this.items.commandEssence(RareAliases.canonical(var2[1]), var4) : this.items.essence();
             var6.getInventory().addItem(new ItemStack[]{var10}).values().forEach(var1x -> var6.getWorld().dropItemNaturally(var6.getLocation(), var1x));
             var1.sendMessage(
                Component.text(
@@ -252,7 +254,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                )
             );
          } else {
-            var1.sendMessage("Nivel máximo para " + var2[1] + ": " + this.items.maxLevel(var2[1]) + ".");
+            var1.sendMessage("Nivel máximo para " + var2[1] + ": " + this.items.maxLevel(RareAliases.canonical(var2[1])) + ".");
          }
       }
    }
@@ -260,7 +262,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    private void giveBook(CommandSender var1, String[] var2) {
       if (!this.isAdmin(var1, "rareitemhunter.admin.essence")) {
          this.deny(var1);
-      } else if (var2.length >= 3 && this.items.catalogIds().contains(var2[1].toLowerCase())) {
+      } else if (var2.length >= 3 && this.items.catalogIds().contains(RareAliases.canonical(var2[1]))) {
          int var3;
          try {
             var3 = Integer.parseInt(var2[2]);
@@ -269,13 +271,13 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             return;
          }
 
-         int var4 = this.items.maxLevel(var2[1]);
+         int var4 = this.items.maxLevel(RareAliases.canonical(var2[1]));
          if (var3 >= 1 && var3 <= var4) {
             Player var5 = var2.length > 3 ? this.plugin.getServer().getPlayerExact(var2[3]) : (var1 instanceof Player var6 ? var6 : null);
             if (var5 == null) {
                var1.sendMessage("Jugador no encontrado. Uso: /ri book <id-rare> <nivel> [jugador].");
             } else {
-               ItemStack var8 = this.items.commandBook(var2[1].toLowerCase(), var3);
+               ItemStack var8 = this.items.commandBook(RareAliases.canonical(var2[1]), var3);
                var5.getInventory().addItem(new ItemStack[]{var8}).values().forEach(var1x -> var5.getWorld().dropItemNaturally(var5.getLocation(), var1x));
                var1.sendMessage(
                   Component.text(
@@ -551,46 +553,6 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       );
       var1.add(
          new CazaJefesCommand.VisualRecipe(
-            "armadura_grieta_yelmo",
-            "Yelmo: Warden de la Grieta",
-            this.items.craftedArmor("nharzul_soberano_del_abismo", 0),
-            this.items.craftedArmor("nharzul_soberano_del_abismo", 0),
-            new String[]{"MHM", "N N", "F F"},
-            Map.of('M', var2, 'H', var5, 'N', new ItemStack(Material.NETHERITE_INGOT), 'F', this.items.fragment(1))
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "armadura_grieta_pechera",
-            "Pechera: Coloso",
-            this.items.craftedArmor("gorath_quebrantador_de_mundos", 1),
-            this.items.craftedArmor("gorath_quebrantador_de_mundos", 1),
-            new String[]{"N N", "MGM", "NPN"},
-            Map.of('N', new ItemStack(Material.NETHERITE_INGOT), 'M', var2, 'G', var3, 'P', var4)
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "armadura_grieta_grebas",
-            "Grebas: Leviatán del End",
-            this.items.craftedArmor("leviatan_del_end", 2),
-            this.items.craftedArmor("leviatan_del_end", 2),
-            new String[]{"NPN", "M M", "F F"},
-            Map.of('N', new ItemStack(Material.NETHERITE_INGOT), 'P', var4, 'M', var2, 'F', this.items.fragment(1))
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "armadura_grieta_botas",
-            "Botas: Rey de las Brasas",
-            this.items.craftedArmor("rey_de_las_brasas", 3),
-            this.items.craftedArmor("rey_de_las_brasas", 3),
-            new String[]{"P P", "M M", "B B"},
-            Map.of('P', var4, 'M', var2, 'B', var6)
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
             "brujula_caza",
             "Brújula de Caza",
             this.items.compass(),
@@ -862,7 +824,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                var11.setItem(24, var14);
                var11.setItem(25, var9);
                var11.setItem(30, this.menuItem(Material.EMERALD, "§a§lABRIR MERCADO", "§7Canjea esta pieza por los materiales indicados."));
-               var11.setItem(49, this.menuItem(Material.ARROW, "§d§lVOLVER A RECETAS", "§7Regresar a armas y armaduras."));
+               var11.setItem(49, this.menuItem(Material.ARROW, "§d§lVOLVER A RECETAS", "§7Regresar a las categorías de recetas."));
                var1.openInventory(var11);
             }
          }
@@ -1320,6 +1282,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          ArenaBoundary.load((CazaJefesPlugin)this.plugin);
          CombatScripts.load((CazaJefesPlugin)this.plugin);
          ((CazaJefesPlugin)this.plugin).recipeSettings.reload();
+         RareBalance.load(this.plugin);
          this.items.reloadRares();
          var1.sendMessage(Component.text("Configuración recargada.", NamedTextColor.GREEN));
       }
@@ -1541,6 +1504,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       if (this.isAdmin(var1, "rareitemhunter.admin.essence")) {
          var1.sendMessage(Component.text("OBJETOS Y FORJA", NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
          var1.sendMessage(Component.text("/ri book <rare> <nivel> [jugador]", NamedTextColor.WHITE));
+         var1.sendMessage(Component.text("/ri equipo <categoría> [armadura|espada|hacha|todo] [jugador]", NamedTextColor.WHITE));
          var1.sendMessage(Component.text("/ri rare <id> [nivel] [jugador]", NamedTextColor.WHITE));
          var1.sendMessage(Component.text("/ri essence · /ri fragment · /ri tribute", NamedTextColor.WHITE));
          var1.sendMessage(Component.text("/ri armor <rango> [jugador] · /ri weapon <rango> [jugador]", NamedTextColor.WHITE));

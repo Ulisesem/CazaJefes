@@ -39,6 +39,7 @@ final class PillagerCombat implements Listener {
     }
     private final CazaJefesPlugin plugin;
     private final Map<UUID, Raider> raiders = new HashMap<>();
+    private final Map<UUID, Long> supportReady = new HashMap<>();
     private final Map<UUID, Shot> shots = new LinkedHashMap<>();
     private final Map<UUID, Volley> volleys = new HashMap<>();
     private final Map<UUID, Firework> rockets = new LinkedHashMap<>();
@@ -55,6 +56,26 @@ final class PillagerCombat implements Listener {
             new Raider(pillager, definition, plugin.getConfig().getInt("combat.pillager-retaliation-hits", 5)));
     }
     boolean charging(UUID id) { Raider state = raiders.get(id); return state != null && (state.chargeUntil > 0 || state.burst.active() || state.rocketRemaining > 0); }
+
+    /** Used by the custom AI as well as the legacy crossbow controller. */
+    boolean support(LivingEntity boss,BossCatalog.Definition definition,Player target,long now) {
+        if(!SupportHordeSettings.matches(boss,definition))return false;
+        var settings=SupportHordeSettings.of(definition);
+        if(!settings.enabled() || !boss.isValid() || boss.isDead() || boss.isInvulnerable()
+            || target==null || !CombatGuard.eligible(target) || target.getWorld()!=boss.getWorld()
+            || BossStages.phase(boss)<settings.minimumPhase() || plugin.abilities.occupied(boss))return false;
+        long ready=supportReady.computeIfAbsent(boss.getUniqueId(),id->now+settings.firstDelayTicks()*50L);
+        if(now<ready)return false;
+        String parent=boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"),PersistentDataType.STRING);
+        if(!SupportHordeSettings.room(plugin.safety.minionCount(parent),plugin.safety.minionCount(null),settings.count()))return false;
+        // Failed placements retry after one second; successful summons use their own full cooldown.
+        supportReady.put(boss.getUniqueId(),now+1000);
+        plugin.bosses().summonConfiguredHorde(boss,definition,target);
+        if(!plugin.pendingHordes.contains(boss.getUniqueId()))return false;
+        supportReady.put(boss.getUniqueId(),now+settings.cooldownTicks()*50L);
+        plugin.abilities.rest(boss);
+        return true;
+    }
     static boolean specialShot(Entity entity) {
         return entity.getPersistentDataContainer().has(SPECIAL, PersistentDataType.BYTE);
     }
@@ -120,6 +141,7 @@ final class PillagerCombat implements Listener {
                 continue;
             }
             if (player == null || plugin.abilities.occupied(boss)) continue;
+            if (support(boss,state.definition,player,now)) continue;
             if (now >= state.nextVolley && state.hits.charged(now)) {
                 state.rocketMode=state.nextRockets;
                 state.nextRockets=!state.nextRockets;
@@ -311,6 +333,7 @@ final class PillagerCombat implements Listener {
     @EventHandler public void death(EntityDeathEvent event) { remove(event.getEntity().getUniqueId()); }
     @EventHandler public void unload(ChunkUnloadEvent event) { for (Entity entity : event.getChunk().getEntities()) remove(entity.getUniqueId()); }
     private void remove(UUID id) {
+        supportReady.remove(id);
         Raider state = raiders.remove(id); if (state == null) return; if (state.boss.isValid()) state.boss.setChargingAttack(false);
         rockets.values().removeIf(rocket -> {
             if (!(rocket.getShooter() instanceof Pillager boss) || !boss.getUniqueId().equals(id)) return false;
@@ -319,5 +342,5 @@ final class PillagerCombat implements Listener {
         });
         for (Iterator<Shot> it = shots.values().iterator(); it.hasNext();) { Shot shot = it.next(); if (shot.owner().equals(id)) { shot.arrow().remove(); it.remove(); } }
     }
-    void stop() { timer.cancel(); for (UUID id : new ArrayList<>(raiders.keySet())) remove(id); for (Shot shot : shots.values()) shot.arrow().remove(); shots.clear(); volleys.clear(); for(var rocket:rockets.values())rocket.remove();rockets.clear(); }
+    void stop() { timer.cancel(); supportReady.clear(); for (UUID id : new ArrayList<>(raiders.keySet())) remove(id); for (Shot shot : shots.values()) shot.arrow().remove(); shots.clear(); volleys.clear(); for(var rocket:rockets.values())rocket.remove();rockets.clear(); }
 }

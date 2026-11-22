@@ -84,19 +84,21 @@ final class AttackPresentation {
       }.runTaskTimer(plugin,1,1);
    }
 
-   void thrownAxe(Location start, Location impact) {
+   void thrownAxe(Location start, Location impact, ItemStack axe, AxeThrowSettings settings) {
       if (activeDisplays >= GLOBAL_DISPLAYS || !impact.isChunkLoaded() || !start.isChunkLoaded()) return;
       clearProp();
       clearProjectile();
       var item = start.getWorld().spawn(start,ItemDisplay.class,display -> {
          display.setPersistent(false);
-         display.setItemStack(new ItemStack(Material.NETHERITE_AXE));
+         display.setVisibleByDefault(true);
+         display.setItemStack(axe.clone());
          display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
          display.setBrightness(new Display.Brightness(15,15));
-         display.setTeleportDuration(9);
-         display.setInterpolationDuration(9);
+         // The first position update is sent next tick, so interpolation uses the remaining flight time.
+         display.setTeleportDuration(Math.max(1,settings.flightTicks()-1));
+         display.setInterpolationDuration(Math.max(1,settings.flightTicks()-1));
          display.setTransformation(new Transformation(new Vector3f(),new AxisAngle4f(.7f,0,0,1),
-            new Vector3f(2.1f),new AxisAngle4f()));
+            new Vector3f(settings.visualScale()),new AxisAngle4f()));
       });
       if (!item.isValid()) return;
       projectile = item;
@@ -105,9 +107,22 @@ final class AttackPresentation {
          if (!item.isValid()) return;
          item.setInterpolationDelay(0);
          item.setTransformation(new Transformation(new Vector3f(),new AxisAngle4f(-.55f,0,0,1),
-            new Vector3f(2.1f),new AxisAngle4f()));
+            new Vector3f(settings.visualScale()),new AxisAngle4f()));
          item.teleport(impact.clone().add(0,.32,0));
       });
+   }
+
+   /** Transfer a lodged axe to its weapon cycle instead of deleting it when the cast ends. */
+   Runnable detachProjectile() {
+      var item=projectile;
+      projectile=null;
+      if(item==null)return () -> {};
+      var removed=new java.util.concurrent.atomic.AtomicBoolean();
+      return () -> {
+         if(!removed.compareAndSet(false,true))return;
+         item.remove();
+         activeDisplays--;
+      };
    }
 
    private void add(Location at, Material material, boolean falling) {

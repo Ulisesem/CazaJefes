@@ -57,6 +57,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
       this.participation=new BossParticipation(this);getServer().getPluginManager().registerEvents(participation,this);
       this.itemKey = new NamespacedKey(this, "relic_id");
       this.relicItems = new RelicItems(this, this.itemKey);
+      RareBalance.load(this);
       getServer().getPluginManager().registerEvents(new AquaticCombat(),this);
       getServer().getPluginManager().registerEvents(new BossIntegrity(),this);
       burstLaunch=new BurstLaunch(this);getServer().getPluginManager().registerEvents(burstLaunch,this);

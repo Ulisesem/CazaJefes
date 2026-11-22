@@ -116,6 +116,7 @@ public final class RelicItems implements Listener {
    }
 
    public int maxLevel(String var1) {
+      var1=RareAliases.canonical(var1);
       var definition=RareDefinitions.get(var1);if(definition!=null)return definition.maximum();return var1.equals("despertar")?1:ArmorRareRules.title(var1)!=null?ArmorRareRules.maximum(var1):Math.max(1, Math.min(6, this.rareConfig.getInt(var1 + ".maxLvl", var1.equalsIgnoreCase("haste") ? 6 : 5)));
    }
 
@@ -253,7 +254,7 @@ public final class RelicItems implements Listener {
          }
 
          if (var3 != 0 && var2.getFoodLevel() > 0) {
-            float var9 = 0.5F + 0.5F * var3;
+            float var9 = (float)RareBalance.healing("saturacion",0.5F + 0.5F * var3);
             var2.setSaturation(Math.min((float)var2.getFoodLevel(), var2.getSaturation() + var9));
          }
       }
@@ -583,7 +584,7 @@ public final class RelicItems implements Listener {
    }
 
    @EventHandler(ignoreCancelled=true,priority=EventPriority.HIGH)
-   public void onRareDefense(EntityDamageEvent event){if(!(event.getEntity() instanceof Player p))return;int fall=armorRares.level(p,"nofalldamage");if(event.getCause()==DamageCause.FALL&&fall>0){SafeDamage.scale(event,RareDefinitions.fallMultiplier(fall));return;}for(ItemStack piece:p.getInventory().getArmorContents())if(activePropertyLevel(piece,"guardian")>0&&consumeSaturation(p,piece,"guardian")){SafeDamage.scale(event,.82);break;}}
+   public void onRareDefense(EntityDamageEvent event){if(!(event.getEntity() instanceof Player p))return;int fall=armorRares.level(p,"nofalldamage");if(event.getCause()==DamageCause.FALL&&fall>0){SafeDamage.scale(event,RareDefinitions.fallMultiplier(fall));return;}for(ItemStack piece:p.getInventory().getArmorContents())if(activePropertyLevel(piece,"guardian")>0&&Math.random()<RareBalance.chance("guardian",activePropertyLevel(piece,"guardian"))&&consumeSaturation(p,piece,"guardian")){SafeDamage.scale(event,Math.max(.5,1-RareBalance.damage("guardian",.14+.04*Math.min(5,activePropertyLevel(piece,"guardian")))));break;}}
 
    private final Map<UUID,Integer> jumpsUsed=new HashMap<>();
    @EventHandler(ignoreCancelled=true)
@@ -641,7 +642,7 @@ public final class RelicItems implements Listener {
             if (var25 != null && var25.hasItemMeta()) {
                String var26 = (String)var25.getItemMeta().getPersistentDataContainer().get(this.rareEnchantKey, PersistentDataType.STRING);
                if (var26 != null && var26.contains("paso_viento") && this.consumePassiveSaturation(var1.getPlayer(), var25, "paso_viento")) {
-                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 30, 0, true, false, true));
+                  var1.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, RareBalance.ticks("paso_viento",30), Math.min(2,Math.max(0,(activePropertyLevel(var25,"paso_viento")-1)/2)), true, false, true));
                }
 
 
@@ -1172,6 +1173,7 @@ public final class RelicItems implements Listener {
    }
 
    public void registerRecipes() {
+      var obsolete=plugin.getServer().recipeIterator();while(obsolete.hasNext()){var recipe=obsolete.next();if(recipe instanceof Keyed key&&key.getKey().getNamespace().equals(plugin.getName().toLowerCase(Locale.ROOT))&&key.getKey().getKey().startsWith("armadura_"))obsolete.remove();}
       for(String duplicate:List.of("veneno","vampirismo"))plugin.getServer().removeRecipe(new NamespacedKey(plugin,"crear_esencia_rare_"+duplicate));
       java.util.List<NamespacedKey> stale = new java.util.ArrayList<>();
       this.plugin.getServer().recipeIterator().forEachRemaining(r -> {
@@ -1267,7 +1269,6 @@ public final class RelicItems implements Listener {
       );
       for(BossCatalog.Tier rank:EquipmentSets.RANKS){
          BossCatalog.Definition boss=BossCatalog.all().stream().filter(d->d.tier()==rank&&!d.mini()).findFirst().orElseThrow();
-         for(int slot=0;slot<4;slot++)addRecipe("armadura_set_"+rank.name().toLowerCase(Locale.ROOT)+"_"+slot,armor(boss,slot),new String[]{" K ","CBC"," F "},Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(armor(boss,slot).getType()),'F',new ExactChoice(fragment(1))));
          for(int slot=0;slot<2;slot++)addRecipe("arma_set_"+rank.name().toLowerCase(Locale.ROOT)+"_"+slot,weaponDrop(boss,slot),new String[]{" K ","CBC"," F "},Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(weaponDrop(boss,slot).getType()),'F',new ExactChoice(fragment(1))));
       }
       ArrayList var21 = new ArrayList();

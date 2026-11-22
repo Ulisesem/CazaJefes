@@ -1,6 +1,20 @@
 package dev.cazajefes;
-import java.util.*;
+
 final class RareMenuStyle {
- static int[] slots(int count){if(count<=7){int start=22-count/2;int[] out=new int[count];for(int i=0;i<count;i++)out[i]=start+i;return out;}if(count<=14){int first=Math.min(7,(count+1)/2),second=count-first;int[] out=new int[count];for(int i=0;i<first;i++)out[i]=22-first/2+i;for(int i=0;i<second;i++)out[first+i]=31-second/2+i;return out;}return PremiumStyle.GRID;}
- static String section(RareCompatibility.Group group){return group==null?"COLECCIÓN DE RARES":group.title.toUpperCase(Locale.ROOT);}
+ static int[] slots(int count) {
+  if(count<0||count>28)throw new IllegalArgumentException("La página admite entre 0 y 28 recetas");
+  if(count==0)return new int[0];
+  int rows=(count+6)/7,firstRow=rows<=2?2:1,used=0;
+  int[] slots=new int[count];
+  for(int row=0;row<rows;row++) {
+   int amount=count/rows+(row<count%rows?1:0),half=amount/2;
+   for(int i=0;i<amount;i++) {
+    int column=4-half+i;
+    if(amount%2==0&&i>=half)column++;
+    slots[used++]=(firstRow+row)*9+column;
+   }
+  }
+  return slots;
+ }
+ static String section(RareCompatibility.Group group){return group==null?"Esencias":group.title;}
 }

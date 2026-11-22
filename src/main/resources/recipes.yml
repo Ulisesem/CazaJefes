@@ -1,4 +1,5 @@
-# v2: las armas/armaduras usan cristal de su categoría, núcleo, objeto base y fragmento.
+# Las armas usan cristal de su categoría, núcleo, objeto base y fragmento.
+# Las armaduras de bosses solo se obtienen como botín o con /ri equipo.
 # Conserva K (cristal), C (núcleo), B (objeto base), F (fragmento).
 # shape e ingredients son opcionales. Los símbolos originales no redefinidos conservan su ExactChoice.
 schema-version: 3

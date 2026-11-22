@@ -6,6 +6,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 public interface BossEnvironment {
+    default boolean pursueFlyingPlayers(CustomBoss boss){return false;}
+    default double climbSpeed(CustomBoss boss){return .35;}
+    default double climbRange(CustomBoss boss){return 6;}
+    default boolean waterWalking(CustomBoss boss){return !boss.profile().aquatic();}
+    /** A temporary attack owns the main hand until its weapon cycle completes. */
+    default boolean weaponLocked(CustomBoss boss){return false;}
     Player acquire(CustomBoss boss);
     boolean validTarget(CustomBoss boss, Player player);
     boolean mayMove(CustomBoss boss, Location destination);

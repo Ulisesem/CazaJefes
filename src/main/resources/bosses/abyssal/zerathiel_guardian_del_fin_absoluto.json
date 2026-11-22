@@ -19,7 +19,35 @@
   "combat": {
     "aura": true,
     "loot": true,
-    "caveBreach": true
+    "caveBreach": true,
+    "mobility": {
+      "pursueFlyingPlayers": false,
+      "climbSpeed": 0.35,
+      "climbRange": 6,
+      "waterWalking": true
+    },
+    "eggParticles": {
+      "radius": 1,
+      "height": 2,
+      "points": 32,
+      "removeGeneratedPedestal": true
+    },
+    "axeThrow": {
+      "enabled": true,
+      "lodgedTicks": 300,
+      "flightTicks": 10,
+      "visualScale": 2.1,
+      "swordSharpness": 10,
+      "swordUnbreaking": 10
+    },
+    "crossbowSupport": {
+      "enabled": true,
+      "count": 6,
+      "cooldownTicks": 500,
+      "firstDelayTicks": 100,
+      "lifetimeTicks": 800,
+      "minimumPhase": 1
+    }
   },
   "ai": {
     "speed": 0.33,

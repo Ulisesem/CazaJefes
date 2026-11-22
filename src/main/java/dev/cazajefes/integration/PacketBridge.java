@@ -121,10 +121,32 @@ public final class PacketBridge {
         var e = equipment;
         if (e == null || entity.getEquipment() == null || !entity.isValid()) return;
         try {
-            var stack = e.convert().invoke(null,entity.getEquipment().getItemInMainHand());
-            var slot = e.entry().newInstance(e.mainHand(),stack);
-            for (Player viewer : entity.getTrackedBy()) if (viewer.canSee(entity)) {
-                transport.send(viewer,e.packet().newInstance(entity.getEntityId(),List.of(slot)));
+            var gear = entity.getEquipment();
+            var slotType = e.entry().getParameterTypes()[0];
+            var entries = new java.util.ArrayList<Object>(6);
+            var slots = new org.bukkit.inventory.EquipmentSlot[]{
+                org.bukkit.inventory.EquipmentSlot.HAND,org.bukkit.inventory.EquipmentSlot.OFF_HAND,
+                org.bukkit.inventory.EquipmentSlot.HEAD,org.bukkit.inventory.EquipmentSlot.CHEST,
+                org.bukkit.inventory.EquipmentSlot.LEGS,org.bukkit.inventory.EquipmentSlot.FEET};
+            String[] names = {"MAIN_HAND","OFF_HAND","HELMET","CHEST_PLATE","LEGGINGS","BOOTS"};
+            for (int index = 0; index < slots.length; index++) {
+                ItemStack item = gear.getItem(slots[index]);
+                if (item == null) item = new ItemStack(org.bukkit.Material.AIR);
+                var stack = e.convert().invoke(null,item);
+                entries.add(e.entry().newInstance(slotType.getField(names[index]).get(null),stack));
+            }
+            var observers = new java.util.HashSet<>(entity.getTrackedBy());
+            // PacketBossVisuals uses the body's entity ID but hides the real body. Its
+            // viewers are intentionally absent from native tracking/canSee checks.
+            boolean packetBody = !entity.isVisibleByDefault() && entity.getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey("cazajefes","is_boss"),org.bukkit.persistence.PersistentDataType.BYTE);
+            if (packetBody) observers.addAll(entity.getWorld().getNearbyPlayers(entity.getLocation(),40));
+            var location = entity.getLocation();
+            for (Player viewer : observers) {
+                if (viewer.getWorld() != entity.getWorld() || (!packetBody && !viewer.canSee(entity))) continue;
+                if (packetBody && viewer.getLocation().distanceSquared(location) > 1600) continue;
+                if (!viewer.isChunkSent(org.bukkit.Chunk.getChunkKey(location.getBlockX() >> 4,location.getBlockZ() >> 4))) continue;
+                transport.send(viewer,e.packet().newInstance(entity.getEntityId(),entries));
             }
         } catch (ReflectiveOperationException | RuntimeException | LinkageError failure) {
             equipment = null;

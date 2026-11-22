@@ -5,9 +5,9 @@ final class RareAppearance {
  static String roman(int value){int n=Math.max(1,Math.min(100,value));StringBuilder out=new StringBuilder();int[] numbers={100,90,50,40,10,9,5,4,1};String[] letters={"C","XC","L","XL","X","IX","V","IV","I"};for(int i=0;i<numbers.length;i++)while(n>=numbers[i]){out.append(letters[i]);n-=numbers[i];}return out.toString();}
  static String title(String id){id=RareAliases.canonical(id);var definition=RareDefinitions.get(id);if(definition!=null)return definition.title();String custom=ArmorRareRules.title(id);if(custom!=null)return RareNames.title(id,custom);StringBuilder out=new StringBuilder();for(String word:id.replace('_',' ').split(" "))if(!word.isBlank()){if(!out.isEmpty())out.append(' ');out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1).toLowerCase(java.util.Locale.ROOT));}return out.toString();}
  static String description(String id){id=RareAliases.canonical(id);var definition=RareDefinitions.get(id);if(definition!=null)return definition.description();String armor=ArmorRareRules.description(id);if(armor!=null)return armor;return switch(id){
- case "guardian"->"Reduce un 18% el daño recibido al consumir saturación de la pieza equipada.";
- case "brasas"->"25% de prender fuego al objetivo durante 2 segundos más 1 segundo por nivel al golpear.";
- case "paso_viento"->"Renueva Velocidad I durante 1,5 segundos al moverte con la pieza equipada; consume saturación.";
+ case "guardian"->"Reduce 18/22/26/30/34% del daño recibido según nivel al consumir saturación de la pieza equipada.";
+ case "brasas"->"30/40/50/60/70% de prender fuego al objetivo durante 2 segundos más 1 segundo por nivel al golpear.";
+ case "paso_viento"->"Renueva Velocidad I en niveles I–II, II en III–IV y III en V al moverte durante 1,5 segundos; consume saturación.";
  case "saturacion"->"Recupera 0,5 más 0,5 de saturación por nivel cada 5 segundos. Cuenta la pieza de mayor nivel.";
  case "flame"->"Crea un efecto visual de llamas sobre tu casco al moverte. Es cosmético y consume saturación.";
  case "magneto"->"Envía al inventario los objetos extraídos con tu pico; el excedente cae al suelo.";

@@ -111,6 +111,7 @@ final class BossAbilities implements Listener {
   final CombatScripts.Skill skill;
   final LivingEntity boss;
   final BossCatalog.Definition definition;
+  final AxeThrowSettings axeSettings;
   final BossAbilityCatalog.Ultimate profile;
   final boolean ultimate;
   final Location center, beamOrigin;
@@ -126,20 +127,23 @@ final class BossAbilities implements Listener {
   final VoidAnchors anchors = new VoidAnchors();
   List<BeamPath.Segment> beamPath = List.of();
   final BossStyle style;
-  boolean modeled,central;
+  boolean modeled,central,ownsAxe,axeLaunched,axeLodged;
   int ticks, pulse, comboAt = -1, endAt = -1, axeLingerUntil;
 
   Cast(LivingEntity boss, BossCatalog.Definition definition, Player target, CombatScripts.Skill skill) {
    this.boss = boss;
    style = BossStyle.of(boss.getType());
    this.definition = definition;
+   axeSettings = AxeThrowSettings.of(definition);
    this.skill = skill;
    var base = skill.profile() == null ? BossAbilityCatalog.ultimate(definition) : skill.profile();
    profile = skill.profile() == null
       ? new BossAbilityCatalog.Ultimate(base.name(),base.pattern(),base.effect(),base.radius()+2,base.pulses(),base.angle())
       : base;
    prepare = skill.prepare();
-   charge = Math.max(definition.custom().options().warningTicks(),prepare + skill.warning());
+   int warning=style==BossStyle.EXECUTIONER&&profile.pattern()==BossAbilityCatalog.Pattern.CONE&&axeSettings.enabled()
+      ? Math.max(skill.warning(),axeSettings.flightTicks()):skill.warning();
+   charge = (Math.max(definition.custom().options().warningTicks(),prepare + warning)+4)/5*5;
    this.target = target;
    ultimate = skill.ultimate();
    center = boss.getLocation();
@@ -248,8 +252,8 @@ final class BossAbilities implements Listener {
     }
     if (ticks == charge - 10) {
      fallingMeteor();
-     if (axeImpact != null) launchAxe();
     }
+    if (axeImpact != null && !axeLaunched && ticks >= charge-axeSettings.flightTicks()) launchAxe();
     if (skill.particles()) SpellVisuals.charge(boss, definition, ticks);
     preview(audience);
    } else {
@@ -269,7 +273,8 @@ final class BossAbilities implements Listener {
      if (casts.get(boss.getUniqueId()) != this) return;
      boolean threwAxe = axeImpact != null;
      if (threwAxe) {
-      axeLingerUntil=ticks+25;
+      axeLingerUntil=ticks+axeSettings.lodgedTicks();
+      axeLodged=ThrownAxeHand.lodge(boss,plugin,presentation.detachProjectile());
       if (definition.id().equals("gorath_quebrantador_de_mundos")) {
        lodgedAxe=axeImpact.clone();
        weakPoint.add(lodgedAxe.clone().add(0,.05,0),boss.getUniqueId());
@@ -293,8 +298,9 @@ final class BossAbilities implements Listener {
       show(audience,"SIGUIENTE CORTE · CAMBIA DE LADO",.5f,net.kyori.adventure.bossbar.BossBar.Color.YELLOW);
      if (sinceCharge % skill.interval() == skill.interval() - 10) {
       fallingMeteor();
-      if (axeImpact != null) launchAxe();
      }
+     if (axeImpact != null && !axeLaunched
+         && skill.interval()-sinceCharge%skill.interval()<=axeSettings.flightTicks()) launchAxe();
      preview(audience);
     }
    }
@@ -362,13 +368,15 @@ final class BossAbilities implements Listener {
    zone = points;
    presentation.clearDisplays();
    if (!combo && style == BossStyle.EXECUTIONER && profile.pattern() == BossAbilityCatalog.Pattern.CONE
+       && axeSettings.enabled() && !ThrownAxeHand.inUse(boss)
        && pulse == profile.pulses()-1 && target.getWorld().equals(center.getWorld()) && boss.hasLineOfSight(target)) {
     Location aim = target.getLocation();
     if (aim.distanceSquared(center) <= profile.radius()*profile.radius() && aim.isChunkLoaded()) {
      var floor = aim.getWorld().rayTraceBlocks(aim.clone().add(0,.35,0),new Vector(0,-1,0),4,FluidCollisionMode.NEVER,true);
-     if (floor != null) {
+     if (floor != null && ThrownAxeHand.prepare(boss,axeSettings)) {
       axeImpact = floor.getHitPosition().toLocation(aim.getWorld());
-      if (ThrownAxeHand.prepare(boss)) presentation.clearProp();
+      ownsAxe=true;
+      presentation.clearProp();
      }
     }
    }
@@ -406,8 +414,12 @@ final class BossAbilities implements Listener {
   }
 
   private void launchAxe() {
+   var axe=ThrownAxeHand.axe(boss);
+   if(axe==null || axeLaunched)return;
+   axeLaunched=true;
    ThrownAxeHand.launch(boss);
-   presentation.thrownAxe(boss.getEyeLocation(),axeImpact);
+   int remaining=ticks<charge?charge-ticks:skill.interval()-(ticks-charge)%skill.interval();
+   presentation.thrownAxe(boss.getEyeLocation(),axeImpact,axe,axeSettings.withFlightTicks(remaining));
   }
 
   private void axeShock(List<Player> audience) {
@@ -482,7 +494,7 @@ final class BossAbilities implements Listener {
 
   void finish(boolean completed) {
    if (!casts.remove(boss.getUniqueId(), this)) return;
-   ThrownAxeHand.restore(boss,plugin);
+   if(ownsAxe&&!axeLodged)ThrownAxeHand.restore(boss,plugin);
    anchors.close();
    weakPoint.close();
    presentation.close();
@@ -502,7 +514,7 @@ final class BossAbilities implements Listener {
    if(!central)cancel();
   }
  }
- @EventHandler public void death(EntityDeathEvent event){BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
- @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){if(entity instanceof Mob mob && tracked.containsKey(entity.getUniqueId()))RepositionGoal.remove(mob);plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
- void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();for(var active:tracked.values())if(active.boss() instanceof Mob mob)RepositionGoal.remove(mob);tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);BossWarnings.clear();}
+ @EventHandler public void death(EntityDeathEvent event){ThrownAxeHand.restore(event.getEntity(),plugin);BossEffects.finish(event.getEntity());ThreatTable.remove(event.getEntity().getUniqueId());plugin.cinematics.remove(event.getEntity().getUniqueId());gaze.remove(event.getEntity().getUniqueId());tracked.remove(event.getEntity().getUniqueId());displacement.remove(event.getEntity().getUniqueId());rotations.remove(event.getEntity().getUniqueId());recovery.remove(event.getEntity().getUniqueId());Cast cast=casts.get(event.getEntity().getUniqueId());if(cast!=null)cast.finish(false);}
+ @EventHandler public void unload(ChunkUnloadEvent event){for(Entity entity:event.getChunk().getEntities()){if(entity instanceof LivingEntity living)ThrownAxeHand.restore(living,plugin);if(entity instanceof Mob mob && tracked.containsKey(entity.getUniqueId()))RepositionGoal.remove(mob);plugin.species.remove(entity.getUniqueId());ThreatTable.remove(entity.getUniqueId());plugin.cinematics.remove(entity.getUniqueId());gaze.remove(entity.getUniqueId());tracked.remove(entity.getUniqueId());displacement.remove(entity.getUniqueId());rotations.remove(entity.getUniqueId());recovery.remove(entity.getUniqueId());Cast cast=casts.get(entity.getUniqueId());if(cast!=null)cast.finish(false);}}
+ void stop(){ThreatTable.clear();gaze.stop();burstTimer.cancel();recovery.clear();for(var active:tracked.values())if(active.boss() instanceof Mob mob)RepositionGoal.remove(mob);tracked.clear();rotations.clear();BurstVisuals.stop();displacement.clear();for(Cast cast:new ArrayList<>(casts.values()))cast.finish(false);ThrownAxeHand.stop(plugin);BossWarnings.clear();}
 }

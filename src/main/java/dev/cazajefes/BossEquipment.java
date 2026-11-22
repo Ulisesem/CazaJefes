@@ -8,7 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.*;
 final class BossEquipment {
  private static final NamespacedKey WEAPON=new NamespacedKey("cazajefes","random_weapon");
- private static final NamespacedKey DISPLAY=new NamespacedKey("cazajefes","boss_display_gear");
+ static final NamespacedKey DISPLAY=new NamespacedKey("cazajefes","boss_display_gear");
  static boolean zombie(EntityType type){return switch(type){case ZOMBIE,HUSK,DROWNED,ZOMBIE_VILLAGER,ZOMBIFIED_PIGLIN,GIANT->true;default->false;};}
  private static boolean piglin(EntityType type){return type==EntityType.PIGLIN||type==EntityType.PIGLIN_BRUTE||type==EntityType.ZOMBIFIED_PIGLIN;}
  private static final NamespacedKey PIGLIN_HAND=new NamespacedKey("cazajefes","piglin_main_weapon");

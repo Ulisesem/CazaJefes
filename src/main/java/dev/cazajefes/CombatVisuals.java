@@ -8,7 +8,8 @@ final class CombatVisuals {
  static void ring(Location center,BossCatalog.Tier tier,double radius,int points){for(int i=0;i<points;i++){double a=2*Math.PI*i/points;CosmeticFX.emit(Particle.DUST,center.clone().add(Math.cos(a)*radius,.2,Math.sin(a)*radius),1,0,0,0,0,new Particle.DustOptions(color(tier),1.2f));}}
  static void special(LivingEntity boss,BossCatalog.Tier tier){ring(boss.getLocation(),tier,1.6,24);CosmeticFX.emit(Particle.SOUL_FIRE_FLAME,boss.getLocation().add(0,1,0),14,.6,.7,.6,.025);}
  static void summon(Location point,BossCatalog.Tier tier){ring(point,tier,.8,16);CosmeticFX.emit(Particle.REVERSE_PORTAL,point.clone().add(0,.6,0),18,.35,.5,.35,.03);}
- static void egg(Location point,BossCatalog.Tier tier,double angle){var black=new Particle.DustOptions(Color.fromRGB(8,0,16),1.0f);var purple=new Particle.DustOptions(Color.fromRGB(175,35,245),.8f);for(int i=0;i<24;i++){double a=angle+i*Math.PI/12;double y=.6+.55*Math.sin(a*2);double r=.85;CosmeticFX.emit(Particle.DUST,point.clone().add(Math.cos(a)*r,y,Math.sin(a)*r),1,0,0,0,0,i%2==0?black:purple);}for(int i=0;i<8;i++){double a=i*Math.PI/4-angle;CosmeticFX.emit(Particle.DUST,point.clone().add(Math.cos(a)*.95,-.4,Math.sin(a)*.95),1,0,0,0,0,purple);}}
+ static void egg(Location point,BossCatalog.Definition boss,double angle){var config=BossTuning.section(boss,"eggParticles");double radius=BossTuning.number(config,"radius",1,.5,2),height=BossTuning.number(config,"height",2,1,4);int points=(int)BossTuning.number(config,"points",32,16,64);var black=new Particle.DustOptions(Color.fromRGB(8,0,16),.9f);var purple=new Particle.DustOptions(Color.fromRGB(175,35,245),.75f);for(int i=0;i<points;i++){double t=i/(double)(points-1),a=angle+t*Math.PI*4;double y=-.65+t*height;CosmeticFX.emit(Particle.DUST,point.clone().add(Math.cos(a)*radius,y,Math.sin(a)*radius),1,0,0,0,0,i%2==0?black:purple);}}
+
 
 
 

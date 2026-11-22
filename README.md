@@ -1,3 +1,7 @@
+# CazaJefes 1.51.0 · testRefactor
+
+[Combate, balance de rares y recetario simplificado](docs/CAMBIOS-1.51.0.md). Paper 1.21.11, Java 21 y PacketEvents.
+
 # CazaJefes 1.37.2 · testRefactor
 
 [Auras y partículas por jefe y ataque](docs/AURAS-1371.md)

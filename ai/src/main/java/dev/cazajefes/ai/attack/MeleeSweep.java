@@ -92,7 +92,7 @@ public final class MeleeSweep extends BossAttack {
         for(Player candidate:at.getWorld().getNearbyPlayers(at,radius()+boss.body().getWidth())){
             if(!boss.environment().validTarget(boss,candidate)||!boss.environment().mayHit(boss,candidate)
                 ||!inRange(boss,candidate,0)||!boss.environment().canSee(boss,candidate))continue;
-            boss.environment().damage(boss,candidate,amount);
+            boss.environment().meleeDamage(boss,candidate,amount);
         }
     }
 

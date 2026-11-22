@@ -191,7 +191,7 @@ public final class BossManager implements Listener {
             this.eggsByBlock.put(this.key(var4.getLocation()), var8);
             this.saveEggs();
             this.startEggEffects(var8);
-            CombatVisuals.egg(var4.getLocation().add(.5,.7,.5),var3.tier(),0);
+            CombatVisuals.egg(var4.getLocation().add(.5,.7,.5),var3,0);
             var4.getWorld().playSound(var4.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1.2F, 0.6F);
             return true;
          }
@@ -658,7 +658,7 @@ public final class BossManager implements Listener {
                BossCatalog.Definition var5 = BossCatalog.get(String.valueOf(var2.get("type")));
                if (var5 != null && var4.getBlock().getType() == Material.DRAGON_EGG) {
                   Object var6 = var2.get("support");
-                  String var7 = var6 == null ? "minecraft:air" : String.valueOf(var6);
+                  String var7 = var6 == null ? null : String.valueOf(var6);
                   UUID var8 = UUID.randomUUID();
                   BossManager.Encounter var9 = new BossManager.Encounter(var8, var5, var4, null, "", var7);
                   this.encounters.put(var8, var9);
@@ -711,7 +711,7 @@ public final class BossManager implements Listener {
                               && var1.location.getBlock().getType() == Material.DRAGON_EGG) {
                               Location var1x = var1.location.clone().add(0.5, 0.7, 0.5);
                               this.angle += Math.PI / 12;
-                              CombatVisuals.egg(var1x,var1.definition.tier(),this.angle);
+                              CombatVisuals.egg(var1x,var1.definition,this.angle);
 
                            } else {
                               BossManager.this.stopEggEffects(var1.id);
@@ -733,7 +733,9 @@ public final class BossManager implements Listener {
    }
 
    private void restoreSupport(BossManager.Encounter encounter) {
-      // The bedrock pedestal remains in place; no cleanup may replace bedrock.
+      if(encounter.location.getWorld()==null||encounter.supportData==null||!BossTuning.flag(BossTuning.section(encounter.definition,"eggParticles"),"removeGeneratedPedestal",true))return;
+      Block support=encounter.location.getBlock().getRelative(BlockFace.DOWN);
+      try{var original=Bukkit.createBlockData(encounter.supportData);if(original.getMaterial()!=Material.BEDROCK&&support.getType()==Material.BEDROCK)support.setBlockData(original,false);}catch(IllegalArgumentException bad){plugin.getLogger().warning("El pedestal se conservó porque sus datos originales no son válidos.");}
    }
 
    @EventHandler(ignoreCancelled = true)
@@ -1115,6 +1117,8 @@ public final class BossManager implements Listener {
       private void summonCustom(EntityType type,Player player,int ignored,String flavor){horde(player,SpellVisuals.mage(definition.entityType())?new EntityType[]{EntityType.EVOKER}:new EntityType[]{type},SpellVisuals.mage(definition.entityType())?"healer":flavor);}
       private void horde(Player target,EntityType[] types,String flavor){
          var configured = CombatScripts.horde(definition.id());
+         if(configured.isEmpty() && SupportHordeSettings.matches(boss,definition))
+            configured=SupportHordeSettings.squad(SupportHordeSettings.of(definition).count());
          if (!configured.isEmpty()) {
             showHorde(target, configured.stream().map(CombatScripts.Minion::type).toArray(EntityType[]::new),
                "generic", configured.stream().map(CombatScripts.Minion::role).toList());
@@ -1125,14 +1129,15 @@ public final class BossManager implements Listener {
 
       private void showHorde(Player target,EntityType[] types,String flavor,List<CombatScripts.Role> roles){
          CazaJefesPlugin owner=(CazaJefesPlugin)plugin;String parent=boss.getPersistentDataContainer().get(new NamespacedKey(plugin,"encounter_id"),PersistentDataType.STRING);
-         if(!HordeRules.room(owner.safety.minionCount(parent),owner.safety.minionCount(null)))return;
+         int count=SupportHordeSettings.matches(boss,definition)?SupportHordeSettings.of(definition).count():HordeRules.SIZE;
+         if(!SupportHordeSettings.room(owner.safety.minionCount(parent),owner.safety.minionCount(null),count))return;
          var pendingHordes = owner.pendingHordes;
          if (pendingHordes.size() >= 32 || !pendingHordes.add(boss.getUniqueId())) return;
          List<Location> portals = new ArrayList<>();
          Location center = boss.getLocation();
          double radius = Math.max(3, boss.getWidth() / 2 + 1.5);
-         for (int i = 0; i < HordeRules.SIZE; i++) {
-            double angle = i * Math.PI * 2 / HordeRules.SIZE + attacks;
+         for (int i = 0; i < count; i++) {
+            double angle = i * Math.PI * 2 / count + attacks;
             var portal = center.clone().add(Math.cos(angle) * radius, .2, Math.sin(angle) * radius);
             if (!portal.isChunkLoaded() || !ArenaBoundary.allows(boss,portal)) {
                pendingHordes.remove(boss.getUniqueId());
@@ -1158,7 +1163,7 @@ public final class BossManager implements Listener {
                 || target.getWorld() != center.getWorld() || boss.getWorld() != center.getWorld()
                 || boss.getLocation().distanceSquared(center) > 144 || target.getLocation().distanceSquared(center) > 1024
                 || portals.stream().anyMatch(portal -> !portal.isChunkLoaded())
-                || !HordeRules.room(owner.safety.minionCount(parent), owner.safety.minionCount(null))) return;
+                || !SupportHordeSettings.room(owner.safety.minionCount(parent), owner.safety.minionCount(null),portals.size())) return;
             spawnHorde(owner, target, types, flavor, parent, portals, roles);
          }, 15L);
       }
@@ -1170,7 +1175,7 @@ public final class BossManager implements Listener {
          for(int i=0;i<batch.size();i++){
             var unit=batch.get(i);
             if(!roles.isEmpty()){
-               var role=roles.get(i);
+               var role=roles.get(i%roles.size());
                owner.hordeSpecials.apply(unit,boss,role);
                unit.customName(Component.text(switch(role){
                   case TANK -> "Bastión";
@@ -1181,7 +1186,7 @@ public final class BossManager implements Listener {
                }+" · "+definition.name(),definition.tier().color));
             }else if(flavor.equals("healer"))owner.mages.healer(unit,boss);
             CinematicFX.portal(unit.getLocation(), BossStyle.of(unit.getType()), 3);
-         }boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},800L);
+         }boss.getWorld().playSound(boss.getLocation(),Sound.ENTITY_ENDERMAN_TELEPORT,.75f,.7f);plugin.getServer().getScheduler().runTaskLater(plugin,()->{for(var unit:batch)if(unit.isValid())unit.remove();},SupportHordeSettings.matches(boss,definition)?SupportHordeSettings.of(definition).lifetimeTicks():800L);
       }
 
       private void strengthenMinion(Entity var1, String var2) {

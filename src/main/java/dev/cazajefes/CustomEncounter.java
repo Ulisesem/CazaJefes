@@ -100,6 +100,11 @@ final class CustomEncounter implements BossEnvironment {
 
     void stop(){loop.stop();stages.clear();displacement.clear();caves.stop();}
 
+    @Override public boolean pursueFlyingPlayers(CustomBoss boss){var d=definition(boss);return d!=null&&BossTuning.flag(BossTuning.section(d,"mobility"),"pursueFlyingPlayers",false);}
+    @Override public double climbSpeed(CustomBoss boss){var d=definition(boss);return d==null?.35:BossTuning.number(BossTuning.section(d,"mobility"),"climbSpeed",.35,0,.6);}
+    @Override public double climbRange(CustomBoss boss){var d=definition(boss);return d==null?6:BossTuning.number(BossTuning.section(d,"mobility"),"climbRange",6,0,12);}
+    @Override public boolean waterWalking(CustomBoss boss){var d=definition(boss);return !boss.profile().aquatic()&&(d==null||BossTuning.flag(BossTuning.section(d,"mobility"),"waterWalking",true));}
+    @Override public boolean weaponLocked(CustomBoss boss){return ThrownAxeHand.inUse(boss.body());}
     @Override public Player acquire(CustomBoss boss){
         double range=boss.profile().detectionRange();
         if(boss.profile().aquatic()&&boss.body().isInWater()){
@@ -134,6 +139,10 @@ final class CustomEncounter implements BossEnvironment {
         if(damage<=0||!mayHit(boss,victim))return;
         if(victim instanceof Player player)AbilityDamage.hit(player,boss.body(),damage,true);
         else victim.damage(damage,boss.body());
+    }
+
+    @Override public void meleeDamage(CustomBoss boss,LivingEntity victim,double damage){
+        damage(boss,victim,damage+ThrownAxeHand.meleeBonus(boss.body()));
     }
 
     @Override public void meteorDamage(CustomBoss boss,LivingEntity victim,double damage){
@@ -228,6 +237,11 @@ final class CustomEncounter implements BossEnvironment {
         var body=boss.body();
         var definition=BossCatalog.get(body.getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
+        if(definition!=null&&boss.canStartSpecial()&&!occupied(boss)
+            &&plugin.pillagers.support(body,definition,boss.target(),System.currentTimeMillis())){
+            boss.holdSpecial(20);
+            return;
+        }
         if(definition!=null&&definition.custom().options().legacyAttacks()
             &&plugin.species.tick(body,System.currentTimeMillis(),boss.canStartSpecial()&&!occupied(boss),true)){
             boss.holdSpecial(6);

@@ -70,6 +70,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         if(target==null&&grounded&&++idleTicks%10!=0)return;
         Location origin=body().getLocation();
         if(pursuitTicks>0)pursuitTicks--;
+        boolean mayClimb=target!=null&&(!target.isFlying()||environment().pursueFlyingPlayers(this));
 
         // Evaluate weapon swap (ranged ↔ melee) based on distance
         if(target!=null&&approach) weaponSwap.evaluate(this,target);
@@ -116,7 +117,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }
         
         // Proactive path clearing: break blocks between boss and target
-        if(approach&&target!=null){
+        if(approach&&target!=null&&mayClimb){
             double distSq=origin.distanceSquared(target.getLocation());
             if(distSq<=100){
                 // Try to break blocks in the path toward the target every few ticks
@@ -139,18 +140,18 @@ public final class KinematicBoss extends AbstractCustomBoss {
         }
         
         // Detect farming: player is elevated and out of melee range
-        boolean playerElevated=approach&&target!=null&&target.getY()-origin.getY()>1.5
+        boolean playerElevated=approach&&mayClimb&&target!=null&&target.getY()-origin.getY()>1.5
             &&origin.distanceSquared(target.getLocation())<=64;
         if(playerElevated)farmingResponseTicks++;
         else farmingResponseTicks=Math.max(0,farmingResponseTicks-2);
         
         // When farming detected, increase jump frequency and try to break blocks beneath player
         double jumpThreshold=farmingResponseTicks>30?2.0:1.0; // jump more aggressively when farming
-        if(approach&&target!=null&&!swim&&grounded&&pursuitTicks>0&&target.getY()-origin.getY()>jumpThreshold
+        if(approach&&mayClimb&&target!=null&&!swim&&grounded&&pursuitTicks>0&&target.getY()-origin.getY()>jumpThreshold
             &&origin.distanceSquared(target.getLocation())<=49)jump=.58;
         
         // Also try jumping toward elevated players even without pursuitTicks
-        if(approach&&target!=null&&!swim&&grounded&&farmingResponseTicks>20
+        if(approach&&mayClimb&&target!=null&&!swim&&grounded&&farmingResponseTicks>20
             &&target.getY()-origin.getY()>1.5&&origin.distanceSquared(target.getLocation())<=36
             &&jump==0)jump=.52;
         
@@ -171,10 +172,10 @@ public final class KinematicBoss extends AbstractCustomBoss {
         fall=jump>0?jump:swim?(approach?Math.clamp(direction.getY()*.12,-.18,.18):0)
             :Math.max(-.9,fall-profile().gravity());
         if(!profile().aquatic()){
-            Double surface=WaterSurface.level(origin);
+            Double surface=environment().waterWalking(this)?WaterSurface.level(origin):null;
             if(surface!=null){fall=WaterSurface.rise(origin.getY(),surface);grounded=Math.abs(surface-origin.getY())<.15;}
-            if(approach&&target!=null&&target.getY()-origin.getY()>2&&new Vector(direction.getX(),0,direction.getZ()).lengthSquared()<=36){
-                Location upward=origin.clone().add(0,.35,0);if(!clear(upward))environment().blocked(this,target,upward);if(clear(upward))fall=.35;
+            if(approach&&mayClimb&&target!=null&&environment().climbSpeed(this)>0&&target.getY()-origin.getY()>2&&new Vector(direction.getX(),0,direction.getZ()).lengthSquared()<=environment().climbRange(this)*environment().climbRange(this)){
+                Location upward=origin.clone().add(0,environment().climbSpeed(this),0);if(!clear(upward))environment().blocked(this,target,upward);if(clear(upward))fall=environment().climbSpeed(this);
             }
         }
         if(jump>0)jump=Math.max(0,jump-.10);
@@ -232,7 +233,7 @@ public final class KinematicBoss extends AbstractCustomBoss {
             }
         }
         // Aggressive vertical block breaking when player is farming above
-        if(approach&&target!=null&&Math.abs(target.getY()-origin.getY())>=1.5
+        if(approach&&mayClimb&&target!=null&&Math.abs(target.getY()-origin.getY())>=1.5
             &&origin.distanceSquared(target.getLocation())<=49){
             // More frequent block breaking attempts when farming is detected
             int breakInterval=1;

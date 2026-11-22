@@ -84,7 +84,7 @@ public final class RangedMeleeSwap {
      * Returns the current mode after evaluation.
      */
     public Mode evaluate(CustomBoss boss, Player target) {
-        if (!config.enabled() || target == null || !target.isValid()) {
+        if (!config.enabled() || target == null || !target.isValid() || boss.environment().weaponLocked(boss)) {
             return currentMode;
         }
 

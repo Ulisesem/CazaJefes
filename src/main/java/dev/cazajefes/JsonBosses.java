@@ -176,6 +176,16 @@ final class JsonBosses {
                   }
                }finally{Files.deleteIfExists(temporary);}
             }
+            if(BossTuning.complete(document)){
+               String upgraded=gson.toJson(document)+"\n";
+               candidate=readCatalog(new StringReader("["+upgraded+"]")).get(candidate.id());
+               Path temporary=Files.createTempFile(file.getParent(),".presentation-", ".tmp");
+               try{
+                  Files.writeString(temporary,upgraded);
+                  try{Files.move(temporary,file,java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+                  catch(java.nio.file.AtomicMoveNotSupportedException unsupported){Files.move(temporary,file,java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+               }finally{Files.deleteIfExists(temporary);}
+            }
             selected = candidate;
          } catch (IOException | RuntimeException error) {
             plugin.getLogger().warning("bosses/" + category + "/" + file.getFileName() + ": " + error.getMessage());
