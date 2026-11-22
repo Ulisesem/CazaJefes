@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 public final class MeleeSweep extends BossAttack {
     public MeleeSweep(String id,String name,AttackCategory category,int weight,long cooldown,
                       double radius,double damage,int warningTicks) {
-        super(id,name,category,weight,Math.min(cooldown,24),radius,damage,Math.min(warningTicks,7));
+        super(id,name,category,weight,Math.min(cooldown,12),radius,damage,Math.min(warningTicks,3));
     }
 
     @Override public boolean inRange(CustomBoss boss,Player target,double distance){
@@ -36,7 +36,7 @@ public final class MeleeSweep extends BossAttack {
         }
         // Standard single hit — melee does not require line of sight
         if(inRange(boss,target,0)){
-            boss.environment().damage(boss,target,damage());
+            strikeGroup(boss,target,damage());
             boss.environment().impact(boss,this,target.getLocation());
             // Knockback push for aggressive players
             if(distance<3){
@@ -55,13 +55,14 @@ public final class MeleeSweep extends BossAttack {
     private AttackMotion newComboAttack(CustomBoss boss,Player target,double hitDamage,int hits){
         final BossAttack self=this;
         return new AttackMotion(){
-            int struck;
+            int struck,age;
             @Override public boolean tick(){
-                if(struck>=hits)return true;
+                if(struck>=hits||++age>32)return true;
+                if(age%10!=1)return false;
                 if(!boss.environment().mayHit(boss,target))return true;
                 double dist=boss.body().getLocation().distance(target.getLocation());
                 if(dist>self.radius()*.8)return true; // target moved away, cancel combo
-                boss.environment().damage(boss,target,hitDamage);
+                strikeGroup(boss,target,hitDamage);
                 boss.environment().impact(boss,self,target.getLocation());
                 struck++;
                 return struck>=hits;
@@ -73,7 +74,7 @@ public final class MeleeSweep extends BossAttack {
     /** Upward strike that hits players slightly above the boss. */
     private AttackMotion newUpwardStrike(CustomBoss boss,Player target,double dmg){
         if(boss.environment().mayHit(boss,target)){
-            boss.environment().damage(boss,target,dmg);
+            strikeGroup(boss,target,dmg);
             boss.environment().impact(boss,this,target.getLocation());
             // Launch target upward and away
             var away=target.getLocation().toVector().subtract(boss.body().getLocation().toVector());
@@ -86,4 +87,13 @@ public final class MeleeSweep extends BossAttack {
         }
         return AttackMotion.complete();
     }
+    private void strikeGroup(CustomBoss boss,Player target,double amount){
+        var at=boss.body().getLocation();
+        for(Player candidate:at.getWorld().getNearbyPlayers(at,radius()+boss.body().getWidth())){
+            if(!boss.environment().validTarget(boss,candidate)||!boss.environment().mayHit(boss,candidate)
+                ||!inRange(boss,candidate,0)||!boss.environment().canSee(boss,candidate))continue;
+            boss.environment().damage(boss,candidate,amount);
+        }
+    }
+
 }

@@ -29,7 +29,7 @@ public class SafeDamageTest {
  @Test public void bossFloorRecoversExcessArmorWithoutBypassingCooldown(){
   var hit=event(875.063,-100,-805.284724,0,new int[1]);
   SafeDamage.normalize(hit);SafeDamage.bossFloor(hit);
-  assertEquals(1,hit.getFinalDamage(),.000001);
+  assertEquals(175.0126,hit.getFinalDamage(),.000001);
   var cooldown=event(875.063,0,0,0,new int[1]);
   cooldown.setDamage(DamageModifier.INVULNERABILITY_REDUCTION,-875.063);
   SafeDamage.bossFloor(cooldown);assertEquals(0,cooldown.getFinalDamage(),0);
@@ -37,6 +37,7 @@ public class SafeDamageTest {
   SafeDamage.normalize(absorbed);SafeDamage.bossFloor(absorbed);
   assertEquals(0,absorbed.getFinalDamage(),.000001);
  }
+ @Test public void strongerSharpnessLikeBaseHitsRetainProportionalDamage(){double previous=0;for(double base:new double[]{5,8,12,18,30}){var hit=event(base,-base*.8,-base*.19,0,new int[1]);SafeDamage.normalize(hit);SafeDamage.bossFloor(hit);assertEquals(base*.2,hit.getFinalDamage(),.00001);assertTrue(hit.getFinalDamage()>previous);previous=hit.getFinalDamage();}}
  @Test public void operatorsWithStrength100CanLandALethalDirectStrike(){
   var attack=EntityDamageEvent.DamageCause.ENTITY_ATTACK;
   assertTrue(BossDamageProgress.operatorStrike(true,true,attack,99));

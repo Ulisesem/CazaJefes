@@ -58,27 +58,22 @@ final class ThreatTable {
       boolean shouldRotate = fight != null && fight.lastTarget != null
          && now - fight.lastTargetTime > 8000; // Rotate every 8 seconds max
       // Keep focus only briefly (2 seconds) so the boss cycles through players
-      if (!shouldRotate && fight != null && fight.focus != null) {
+      if (!shouldRotate && now<fight.ready && fight.focus != null) {
          for (Player candidate : candidates) {
             if (candidate.getUniqueId().equals(fight.focus)) return candidate;
          }
       }
-      var facing=at.getDirection().setY(0).normalize();
-      Player selected = candidates.stream().max(Comparator.<Player,Boolean>comparing(player -> {
-         var direction=player.getLocation().toVector().subtract(at.toVector()).setY(0);
-         return direction.lengthSquared()>.001&&facing.dot(direction.normalize())>=.45;
-      }).thenComparingDouble(player -> {
-         // Prioritize low-health players (health ratio 0-1, lower = more priority)
-         double healthRatio = player.getHealth() / player.getMaxHealth();
-         double lowHealthBonus = healthRatio < 0.3 ? 500.0 : healthRatio < 0.5 ? 200.0 : 0;
-         Entry e = fight == null ? null : fight.scores.get(player.getUniqueId());
-         double weight = e == null ? 0 : score(e.value(), now - e.updated());
-         return weight + lowHealthBonus;
-      }).thenComparingDouble(player -> -player.getLocation().distanceSquared(at))).orElseThrow();
+      Player selected=candidates.stream().max(Comparator.comparingDouble(player->{
+         Entry e=fight.scores.get(player.getUniqueId());
+         double weight=e==null?0:score(e.value(),now-e.updated());
+         if(shouldRotate&&player.getUniqueId().equals(fight.lastTarget))return -Double.MAX_VALUE;
+         return weight-player.getLocation().distanceSquared(at)*.01;
+      })).orElseThrow();
       if (fight != null) {
          fight.focus = selected.getUniqueId();
+         fight.ready=now+2000;
+         if(!selected.getUniqueId().equals(fight.lastTarget))fight.lastTargetTime=now;
          fight.lastTarget = selected.getUniqueId();
-         fight.lastTargetTime = now;
       }
       return selected;
    }

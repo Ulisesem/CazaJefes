@@ -90,19 +90,11 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(tick%5==0){
             // Refresh all targets periodically and pick the nearest player
             refreshTargets();
-            // Prioritize nearest player instead of rotating
-            if(targets.size()>1){
-                double nearestDist=Double.MAX_VALUE;
-                int nearestIdx=0;
-                Location bossLoc=body.getLocation();
-                for(int i=0;i<targets.size();i++){
-                    var t=targets.get(i);
-                    if(t!=null&&t.isValid()){
-                        double d=bossLoc.distanceSquared(t.getLocation());
-                        if(d<nearestDist){nearestDist=d;nearestIdx=i;}
-                    }
-                }
-                targetIndex=nearestIdx;
+            // Preserve the warned target during an attack; reassess between attacks.
+            if(pending==null&&motion==null&&requested==null&&!targets.isEmpty()&&tick%60==0){
+                Player preferred=environment.acquire(this);
+                if(preferred!=null&&targets.contains(preferred))targetIndex=targets.indexOf(preferred);
+                if(tick%120==0&&targets.size()>1)targetIndex=(targetIndex+1)%targets.size();
             }
             // Observe behavior of all tracked targets for adaptive AI and magnetism
             Player current=target();
@@ -212,6 +204,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     
     /** Refresh the list of nearby eligible players. Called every 5 ticks. */
     private void refreshTargets(){
+        Player pinned=target();
         double range=profile.detectionRange();
         var at=body.getLocation();
         var newTargets=new ArrayList<Player>();
@@ -228,6 +221,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
                 targets.add(player);
             }
         }
+        if(pinned!=null&&targets.contains(pinned))targetIndex=targets.indexOf(pinned);
         // Ensure index is valid
         if(targets.isEmpty()){
             targetIndex=0;

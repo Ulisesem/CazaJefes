@@ -45,7 +45,7 @@ final class SafeDamage {
     default -> remaining+=event.getDamage(modifier);
    }
   }
-  double desired=Math.min(1,Math.min(available,remaining)*.15);
+  double desired=Math.max(0,Math.min(available,remaining)*.20);
   if(desired<=0)return;
   double beforeAbsorption=event.getFinalDamage()-event.getDamage(DamageModifier.ABSORPTION);
   double missing=desired-beforeAbsorption;

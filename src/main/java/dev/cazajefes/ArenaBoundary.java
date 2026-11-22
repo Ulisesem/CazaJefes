@@ -23,7 +23,6 @@ final class ArenaBoundary {
       api=null;
       warned=false;
       var worldGuard=owner.getServer().getPluginManager().getPlugin("WorldGuard");
-      if (protectedIds.isEmpty()) return;
       if (worldGuard==null || !worldGuard.isEnabled()) {
          owner.getLogger().warning("worldguard-arenas requiere WorldGuard habilitado.");
          return;
@@ -66,24 +65,10 @@ final class ArenaBoundary {
          return allows(boss,destination);
       if(api==null||!allows(boss,destination))return false;
       try{
-         if(regions(destination).isEmpty())return false;
          Object set=applicable(destination);
          var all=(Iterable<?>)api.regions().invoke(set);
-         for(var region:all){
-            String name=(String)api.id().invoke(region);
-            if(!protectedIds.contains(name))return false;
-         }
-         var loader=set.getClass().getClassLoader();
-         var stateFlag=loader.loadClass("com.sk89q.worldguard.protection.flags.StateFlag");
-         var flags=loader.loadClass("com.sk89q.worldguard.protection.flags.Flags");
-         var associable=loader.loadClass("com.sk89q.worldguard.protection.association.RegionAssociable");
-         var array=java.lang.reflect.Array.newInstance(stateFlag,2);
-         java.lang.reflect.Array.set(array,0,flags.getField("BUILD").get(null));
-         java.lang.reflect.Array.set(array,1,flags.getField("BLOCK_BREAK").get(null));
-         var query=loader.loadClass("com.sk89q.worldguard.protection.ApplicableRegionSet")
-            .getMethod("queryState",associable,array.getClass());
-         Object result=query.invoke(set,null,array);
-         return result==null||!result.toString().equals("DENY");
+         // Every claimed region protects terrain, independently of its PvP setting.
+         return !all.iterator().hasNext();
       }
       catch(ReflectiveOperationException|RuntimeException failure){warn(failure);return false;}
    }

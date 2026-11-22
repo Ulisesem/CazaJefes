@@ -206,13 +206,8 @@ public final class RelicItems implements Listener {
       };
    }
 
-   int activePropertyLevel(ItemStack item,String property){
-      if(rareConfig!=null&&rareConfig.getDouble(property+".useCost",0)<0)return 0;
-      if(item==null||!item.hasItemMeta())return 0;
-      String properties=item.getItemMeta().getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);
-      return properties!=null&&Arrays.stream(properties.split(",")).map(RareAliases::canonical).anyMatch(property::equals)&&RareCompatibility.accepts(property,item.getType())?Math.min(maxLevel(property),Math.max(0,propertyLevel(item,property))):0;
-   }
-   Map<String,Integer> activeProperties(ItemStack item){Map<String,Integer> out=new LinkedHashMap<>();if(item==null||!item.hasItemMeta())return out;var meta=item.getItemMeta();String stored=meta.getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);if(stored==null)return out;Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));for(String raw:stored.split(",")){String id=RareAliases.canonical(raw);if(rareConfig.getDouble(id+".useCost",0)<0||!RareCompatibility.accepts(id,item.getType()))continue;int n=Math.min(maxLevel(id),Math.max(0,levels.getOrDefault(id,1)));if(n>0)out.merge(id,n,Math::max);}return out;}
+   int activePropertyLevel(ItemStack item,String property){return activeProperties(item).getOrDefault(RareAliases.canonical(property),0);}
+   Map<String,Integer> activeProperties(ItemStack item){Map<String,Integer> out=new LinkedHashMap<>();if(item==null||!item.hasItemMeta())return out;var meta=item.getItemMeta();String stored=meta.getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));Set<String> ids=new LinkedHashSet<>(levels.keySet());if(stored!=null)for(String raw:stored.split(","))ids.add(RareAliases.canonical(raw));for(String id:ids){if(rareConfig.getDouble(id+".useCost",0)<0||!RareCompatibility.accepts(id,item.getType()))continue;int n=Math.min(maxLevel(id),Math.max(0,levels.getOrDefault(id,1)));if(n>0)out.merge(id,n,Math::max);}return out;}
    public ItemStack armorSet(BossCatalog.Tier tier,int slot){return EquipmentSets.armor(tier,slot,itemKey);}
    public ItemStack weaponSet(BossCatalog.Tier tier,int slot){return EquipmentSets.weapon(tier,slot,itemKey);}
    int armorLevel(Player player,String id){return armorRares.level(player,id);}
@@ -322,12 +317,14 @@ public final class RelicItems implements Listener {
                      switch (var3) {
                         case "haste":
                            var20.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,600*var23,Math.min(6,var23-1)));
+                           if(var20!=var4)var4.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,600*var23,Math.min(6,var23-1)));
                            break;
                         case "fireresistance":
                            var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 900 * var23, 0));
                            break;
                         case "invisibility":
                            var20.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 1200, 0));
+                           if(var20!=var4)var4.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,1200,0));
                            break;
                         case "burst":
                         case "greaterburst":
@@ -358,7 +355,7 @@ public final class RelicItems implements Listener {
 
                      if (var20 != var4 && (var3.equals("haste") || var3.equals("invisibility"))) {
                         String var11 = var3.equals("haste") ? "Haste " + var23 : "Invisibilidad";
-                        var4.sendMessage(Component.text("Le diste " + var11 + " a " + var20.getName() + ".", NamedTextColor.GREEN));
+                        var4.sendMessage(Component.text("Has dado " + var11 + " a " + var20.getName() + ".", NamedTextColor.GREEN));
                         var20.sendMessage(Component.text("Has recibido " + var11 + " de " + var4.getName() + ".", NamedTextColor.AQUA));
                      }
 
@@ -1310,7 +1307,6 @@ public final class RelicItems implements Listener {
             this.plugin.getServer().addRecipe(var27);
          }
       }
-      addRecipe("sello_resonancia_primigenia",awakeningSeal(),new String[]{"KPK","NSN","FTF"},Map.of('K',new ExactChoice(crystal(BossCatalog.Tier.EPIC,1)),'P',new ExactChoice(primordialEssence()),'N',bossCoreChoice(),'S',new MaterialChoice(Material.NETHER_STAR),'F',new ExactChoice(fragment(1)),'T',new ExactChoice(tribute("Cazador"))));
       for(String material:RangedRareCatalog.MATERIALS)addRecipe("ranged_material_"+material,rangedMaterial(material),new String[]{" R ","CEC"," F "},Map.of('R',new MaterialChoice(RangedRareCatalog.materialIcon(material)),'C',bossCoreChoice(),'E',new ExactChoice(essence()),'F',new ExactChoice(fragment(1))));
       registerSpellUpgrades();registerCrystalRecipes();if(((CazaJefesPlugin)plugin).duel!=null)((CazaJefesPlugin)plugin).duel.registerRecipes();
       ((CazaJefesPlugin)plugin).recipeSettings.saveDiscovered();

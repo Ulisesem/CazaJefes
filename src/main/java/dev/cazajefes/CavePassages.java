@@ -44,9 +44,9 @@ final class CavePassages {
     }
 
     boolean open(LivingEntity boss,Player target,Location attempted){
-        if(!available||blocks.size()>=512||!attempted.isChunkLoaded())return false;
+        if(!available||blocks.size()>=4096||!attempted.isChunkLoaded())return false;
         var world=attempted.getWorld();
-        if(target.getWorld()!=world||!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.MOB_GRIEFING))
+        if(target.getWorld()!=world||plugin.getConfig().getBoolean("combat.respect-mob-griefing",false)&&!Boolean.TRUE.equals(world.getGameRuleValue(GameRule.MOB_GRIEFING))
             ||!ArenaBoundary.allowsTerrain(boss,attempted))return false;
         var origin=boss.getLocation();
         boolean vertical=attempted.getBlockX()==origin.getBlockX()&&attempted.getBlockZ()==origin.getBlockZ()
@@ -55,7 +55,7 @@ final class CavePassages {
             &&world.getHighestBlockYAt(attempted)>attempted.getBlockY()+boss.getHeight();
         var id=boss.getUniqueId();
         var batch=new ArrayList<Saved>();
-        if(!vertical&&underRoof){
+        if(!vertical){
             var box=boss.getBoundingBox().shift(attempted.toVector().subtract(origin.toVector())).expand(-.001);
             for(int x=(int)Math.floor(box.getMinX());x<=Math.floor(box.getMaxX());x++)
                 for(int y=(int)Math.floor(box.getMinY());y<=Math.floor(box.getMaxY());y++)
@@ -134,8 +134,8 @@ final class CavePassages {
                 }
             }
         }
-        if(batch.isEmpty()||batch.size()+blocks.size()>512
-            ||blocks.stream().filter(saved->saved.boss().equals(id)).count()+batch.size()>96)return false;
+        if(batch.isEmpty()||batch.size()+blocks.size()>4096
+            ||blocks.stream().filter(saved->saved.boss().equals(id)).count()+batch.size()>1024)return false;
         blocks.addAll(batch);
         if(!save()){
             blocks.subList(blocks.size()-batch.size(),blocks.size()).clear();
