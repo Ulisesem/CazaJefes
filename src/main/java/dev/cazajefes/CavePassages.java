@@ -86,24 +86,25 @@ final class CavePassages {
             &&target.getLocation().distanceSquared(origin)<=49){
             var playerFeet=target.getLocation().clone().subtract(0,.3,0);
             if(playerFeet.isChunkLoaded()){
+                int beforeAntiFarm=batch.size();
                 // Break the block directly under the player
                 var floorBlock=playerFeet.getBlock();
                 if(!floorBlock.isPassable()&&floorBlock.getType()!=Material.BEDROCK)
                     collect(boss,floorBlock,batch);
                 // Also break adjacent blocks around the player's platform (3x3 area)
-                if(batch.isEmpty()){
+                if(beforeAntiFarm==batch.size()){
                     int bx=playerFeet.getBlockX(),by=playerFeet.getBlockY(),bz=playerFeet.getBlockZ();
-                    for(int dx=-1;dx<=1&&batch.size()<4;dx++)
-                        for(int dz=-1;dz<=1&&batch.size()<4;dz++){
+                    for(int dx=-1;dx<=1&&batch.size()<4+beforeAntiFarm;dx++)
+                        for(int dz=-1;dz<=1&&batch.size()<4+beforeAntiFarm;dz++){
                             var adjacent=world.getBlockAt(bx+dx,by,bz+dz);
                             if(!adjacent.isPassable())collect(boss,adjacent,batch);
                         }
                 }
                 // Break blocks between boss and player (vertical pillar)
-                if(batch.isEmpty()){
+                if(beforeAntiFarm==batch.size()){
                     int bx=origin.getBlockX(),bz=origin.getBlockZ();
                     int targetY=(int)Math.floor(target.getY());
-                    for(int y=origin.getBlockY()+1;y<targetY&&batch.size()<8;y++){
+                    for(int y=origin.getBlockY()+1;y<targetY&&batch.size()<8+beforeAntiFarm;y++){
                         var pillarBlock=world.getBlockAt(bx,y,bz);
                         if(!pillarBlock.isPassable())collect(boss,pillarBlock,batch);
                     }

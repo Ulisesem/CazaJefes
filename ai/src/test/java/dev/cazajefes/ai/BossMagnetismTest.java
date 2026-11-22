@@ -7,14 +7,14 @@ import static org.junit.Assert.*;
 /** Unit tests for BossMagnetism configuration parsing. */
 public class BossMagnetismTest {
 
-    @Test public void defaultConfigIsDisabled() {
+    @Test public void defaultConfigIsEnabled() {
         var cfg = BossMagnetism.DEFAULT;
-        assertFalse(cfg.enabled());
+        assertTrue(cfg.enabled());
         assertEquals(1, cfg.minPhase());
-        assertEquals(10.0, cfg.minDistance(), 0.001);
+        assertEquals(8.0, cfg.minDistance(), 0.001);
         assertEquals(25.0, cfg.maxDistance(), 0.001);
-        assertEquals(0.15, cfg.pullStrength(), 0.001);
-        assertEquals(20, cfg.cooldownTicks());
+        assertEquals(0.12, cfg.pullStrength(), 0.001);
+        assertEquals(15, cfg.cooldownTicks());
         assertTrue(cfg.onKiting());
         assertTrue(cfg.onLowHealth());
         assertEquals(0.3, cfg.lowHealthThreshold(), 0.001);
@@ -22,14 +22,14 @@ public class BossMagnetismTest {
 
     @Test public void readConfigWithNoJsonReturnsDefault() {
         var cfg = BossMagnetism.readConfig(null);
-        assertFalse(cfg.enabled());
+        assertTrue(cfg.enabled());
     }
 
     @Test public void readConfigWithMissingKeyReturnsDefault() {
         var json = new JsonObject();
         json.addProperty("speed", 0.3);
         var cfg = BossMagnetism.readConfig(json);
-        assertFalse(cfg.enabled());
+        assertTrue(cfg.enabled());
     }
 
     @Test public void readConfigEnabled() {

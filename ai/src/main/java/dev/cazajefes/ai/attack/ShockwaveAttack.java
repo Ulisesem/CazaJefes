@@ -17,7 +17,7 @@ public final class ShockwaveAttack extends BossAttack {
         boss.environment().impact(boss,this,center);
         for(var player:center.getWorld().getNearbyPlayers(center,radius())){
             if(Geometry.gapSquared(boss.body().getBoundingBox(),player.getBoundingBox())<=radius()*radius()
-                &&boss.environment().canSee(boss,player)&&boss.environment().mayHit(boss,player)){
+                &&boss.environment().mayHit(boss,player)){
                 boss.environment().damage(boss,player,damage());
                 if(!player.isDead())boss.environment().attackHit(boss,player,this);
             }

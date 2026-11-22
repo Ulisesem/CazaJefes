@@ -23,7 +23,7 @@ public final class LightningChainAttack extends BossAttack {
             @Override public boolean tick(){
                 if(tick++%interval!=0)return false;
                 if(inRange(boss,target,boss.body().getLocation().distance(target.getLocation()))
-                    &&boss.environment().canSee(boss,target)&&boss.environment().mayHit(boss,target)){
+                    &&boss.environment().mayHit(boss,target)){
                     boss.environment().lightning(boss,target.getLocation());
                     boss.environment().damage(boss,target,damage());
                 }

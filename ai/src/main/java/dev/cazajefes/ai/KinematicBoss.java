@@ -105,6 +105,31 @@ public final class KinematicBoss extends AbstractCustomBoss {
             }
         }
         
+        // Proactive path clearing: break blocks between boss and target
+        if(approach&&target!=null&&!swim){
+            double distSq=origin.distanceSquared(target.getLocation());
+            if(distSq<=64){
+                // Try to break blocks in the path toward the target every few ticks
+                int pathBreakInterval=10;
+                if(++verticalBlockedTicks%pathBreakInterval==0){
+                    // Calculate direction to target and check blocks along the path
+                    Vector toTarget=target.getLocation().toVector().subtract(origin.toVector());
+                    double dist=toTarget.length();
+                    if(dist>1&&dist<=8){
+                        toTarget.normalize();
+                        // Check blocks at mid-point and near the boss
+                        Location midPoint=origin.clone().add(toTarget.clone().multiply(dist*0.5));
+                        Location nearBoss=origin.clone().add(toTarget.clone().multiply(1.5));
+                        if(!environment().canSee(this,target)){
+                            // Break blocks that block line of sight
+                            environment().blocked(this,target,midPoint);
+                            environment().blocked(this,target,nearBoss);
+                        }
+                    }
+                }
+            }
+        }
+        
         // Detect farming: player is elevated and out of melee range
         boolean playerElevated=approach&&target!=null&&target.getY()-origin.getY()>1.5
             &&origin.distanceSquared(target.getLocation())<=64;
@@ -146,14 +171,28 @@ public final class KinematicBoss extends AbstractCustomBoss {
                 if(++blockedTicks%3==0&&target!=null&&(pursuitTicks>0||!environment().canSee(this,target))
                     &&environment().blocked(this,target,horizontalMove))pursuitTicks=50;
                 // Stuck detection: if blocked for too long, try aggressive jump and break blocks
-                if(blockedTicks>=20&&!swim&&grounded){
-                    // Aggressive jump to escape being stuck
-                    if(jump==0)jump=.6;
-                    // Try breaking blocks above head when stuck
-                    if(blockedTicks%4==0){
+                if(blockedTicks>=10&&!swim&&grounded){
+                    // Aggressive jump to escape being stuck — activate earlier at 10 ticks
+                    jump=Math.max(jump,.6);
+                    // Try breaking blocks above head when stuck, more frequently
+                    if(blockedTicks%3==0){
                         Location above=origin.clone().add(0,1.5,0);
                         environment().blocked(this,target,above);
                     }
+                }
+                // If severely stuck (40+ ticks), try breaking in all directions
+                if(blockedTicks>=40&&!swim){
+                    int dir=blockedTicks%6;
+                    Location breakTarget=origin.clone();
+                    switch(dir){
+                        case 0 -> breakTarget.add(1.5,0,0);
+                        case 1 -> breakTarget.add(-1.5,0,0);
+                        case 2 -> breakTarget.add(0,0,1.5);
+                        case 3 -> breakTarget.add(0,0,-1.5);
+                        case 4 -> breakTarget.add(0,2.0,0);
+                        case 5 -> breakTarget.add(1.5,1.5,0);
+                    }
+                    environment().blocked(this,target,breakTarget);
                 }
                 if(clear(horizontalMove))next=horizontalMove;
                 else if(clear(next.clone().add(side.clone().multiply(strafe))))next.add(side.multiply(strafe));

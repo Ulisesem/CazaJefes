@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
@@ -87,16 +88,27 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(closed)return;
         this.tick=tick;
         if(tick%5==0){
-            // Refresh all targets periodically
+            // Refresh all targets periodically and pick the nearest player
             refreshTargets();
-            // Rotate to next target after the interval
-            if(targets.size()>1&&tick>=nextTargetSwitch){
-                targetIndex=(targetIndex+1)%targets.size();
-                nextTargetSwitch=tick+160; // Switch every 8 seconds (160 ticks)
+            // Prioritize nearest player instead of rotating
+            if(targets.size()>1){
+                double nearestDist=Double.MAX_VALUE;
+                int nearestIdx=0;
+                Location bossLoc=body.getLocation();
+                for(int i=0;i<targets.size();i++){
+                    var t=targets.get(i);
+                    if(t!=null&&t.isValid()){
+                        double d=bossLoc.distanceSquared(t.getLocation());
+                        if(d<nearestDist){nearestDist=d;nearestIdx=i;}
+                    }
+                }
+                targetIndex=nearestIdx;
             }
-            // Observe current target behavior for adaptive AI
+            // Observe behavior of all tracked targets for adaptive AI and magnetism
             Player current=target();
-            if(current!=null)behaviorTracker.observe(this,current);
+            for(var t:targets){
+                if(t!=null&&t.isValid())behaviorTracker.observe(this,t);
+            }
             environment.heartbeat(this);
         }
         if(tick<stunnedUntil){
@@ -140,9 +152,14 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             // Detect player behavior for adaptive attack selection
             BehaviorTracker.PlayerBehavior behavior=current!=null?behaviorTracker.getBehavior(current):BehaviorTracker.PlayerBehavior.NEUTRAL;
             
-            // Apply magnetism pull if configured
+            // Apply magnetism pull to all tracked targets
             int currentPhase=environment.phase(this);
-            applyMagnetism(current,behavior,currentPhase);
+            for(var t:targets){
+                if(t!=null&&t.isValid()){
+                    BehaviorTracker.PlayerBehavior tBehavior=targets.size()==1?behavior:behaviorTracker.getBehavior(t);
+                    applyMagnetism(t,tBehavior,currentPhase);
+                }
+            }
             
             // First try melee sweep if in range (basic attacks have priority)
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,

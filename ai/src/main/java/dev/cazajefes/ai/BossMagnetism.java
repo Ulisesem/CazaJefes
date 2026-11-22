@@ -42,14 +42,14 @@ import org.bukkit.util.Vector;
  */
 public final class BossMagnetism {
 
-    /** Default configuration — disabled by default. */
+    /** Default configuration — enabled by default so all bosses pull players. */
     public static final Config DEFAULT = new Config(
-        false,     // disabled by default; enable per-boss in JSON
+        true,      // enabled by default; works on all bosses automatically
         1,         // phase 1+
-        10.0,      // activate when player is beyond 10 blocks
-        25.0,      // deactivate when player is within 25 blocks
-        0.15,      // pull strength per application
-        20,        // cooldown of 20 ticks (1 second) between pulls
+        8.0,       // activate when player is beyond 8 blocks
+        25.0,      // deactivate when player is beyond 25 blocks
+        0.12,      // pull strength per application (subtle but effective)
+        15,        // cooldown of 15 ticks (0.75s) between pulls
         true,      // activate on kiting
         true,      // activate on low health
         0.3        // 30% health threshold

@@ -27,15 +27,15 @@ public final class MeleeSweep extends BossAttack {
         boolean elevated=yDelta>0.5&&distance<=radius();
         
         // Phase 2+: multi-hit combo for more dynamic combat
-        if(phase>=2&&!elevated&&boss.environment().canSee(boss,target)){
+        if(phase>=2&&!elevated){
             return newComboAttack(boss,target,damage()/3,3);
         }
         // Upward strike for slightly elevated targets
-        if(elevated&&yDelta<2.5&&boss.environment().canSee(boss,target)){
+        if(elevated&&yDelta<2.5){
             return newUpwardStrike(boss,target,damage());
         }
-        // Standard single hit
-        if(boss.environment().canSee(boss,target)&&inRange(boss,target,0)){
+        // Standard single hit — melee does not require line of sight
+        if(inRange(boss,target,0)){
             boss.environment().damage(boss,target,damage());
             boss.environment().impact(boss,this,target.getLocation());
             // Knockback push for aggressive players
@@ -61,11 +61,9 @@ public final class MeleeSweep extends BossAttack {
                 if(!boss.environment().mayHit(boss,target))return true;
                 double dist=boss.body().getLocation().distance(target.getLocation());
                 if(dist>self.radius()*.8)return true; // target moved away, cancel combo
-                if(boss.environment().canSee(boss,target)){
-                    boss.environment().damage(boss,target,hitDamage);
-                    boss.environment().impact(boss,self,target.getLocation());
-                    struck++;
-                }
+                boss.environment().damage(boss,target,hitDamage);
+                boss.environment().impact(boss,self,target.getLocation());
+                struck++;
                 return struck>=hits;
             }
             @Override public void close(){}
@@ -74,7 +72,7 @@ public final class MeleeSweep extends BossAttack {
     
     /** Upward strike that hits players slightly above the boss. */
     private AttackMotion newUpwardStrike(CustomBoss boss,Player target,double dmg){
-        if(boss.environment().canSee(boss,target)&&boss.environment().mayHit(boss,target)){
+        if(boss.environment().mayHit(boss,target)){
             boss.environment().damage(boss,target,dmg);
             boss.environment().impact(boss,this,target.getLocation());
             // Launch target upward and away
