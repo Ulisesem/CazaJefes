@@ -25,7 +25,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     private BossAttack pending;
     private BossAttack requested;
     private AttackMotion motion;
-    private long releaseAt,gcdUntil,specialUntil,stunnedUntil,tick;
+    private long releaseAt,gcdUntil,specialUntil,stunnedUntil,meleeUntil,tick;
     private boolean specialMotion;
 
     protected AbstractCustomBoss(LivingEntity body,BossProfile profile,BossEnvironment environment){
@@ -116,12 +116,13 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             }else if(pending!=null&&tick>=releaseAt){
                 var attack=pending;
                 pending=null;
-                ready.put(attack.id(),tick+attack.cooldown());
+                released(attack);
                 environment.release(this,attack);
                 specialMotion=attack.special();
                 motion=attack.execute(this,target());
-            }else if(motion!=null&&motion.tick()){
-                finish();
+            }else if(motion!=null){
+                if(motion.tick())finish();
+                else pressure();
             }
             move(target(),motion!=null&&motion.mobile()||mobileWindup());
         }else if(targets.isEmpty()){
@@ -158,7 +159,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             // First try melee sweep if in range (basic attacks have priority)
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
-                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&attack.inRange(this,current,distance),
+                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&available(attack)&&attack.inRange(this,current,distance),
                 behavior);
             // Try signature attack from environment (legacy integration)
             if(free&&choice==null&&tick>=specialUntil)motion=environment.signature(this,current);
@@ -187,7 +188,30 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(!closed)view.move(body.getLocation());
     }
 
-    private boolean available(BossAttack attack){return !attack.special()||tick>=specialUntil;}
+    private boolean available(BossAttack attack){
+        if(attack instanceof dev.cazajefes.ai.attack.MeleeSweep)return tick>=meleeUntil;
+        return !attack.special()||tick>=specialUntil;
+    }
+
+    private void released(BossAttack attack){
+        ready.put(attack.id(),tick+attack.cooldown());
+        if(attack instanceof dev.cazajefes.ai.attack.MeleeSweep)meleeUntil=tick+Math.max(10,attack.cooldown());
+    }
+
+    /** A released mobile spell does not stop contact attacks. Its warning and cast stay untouched. */
+    private void pressure(){
+        if(!specialMotion||!profile.melee().duringMobileSpecials()||!motion.mobile()
+            ||tick<meleeUntil||environment.occupied(this))return;
+        Player current=target();
+        if(current==null||!environment.validTarget(this,current))return;
+        var basic=DecisionMaker.choose(profile.attacks(),tick,id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
+            attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&available(attack)&&attack.inRange(this,current,0));
+        if(basic==null)return;
+        released(basic);
+        environment.release(this,basic);
+        var strike=basic.execute(this,current);
+        if(strike!=null)strike.close();
+    }
 
     private boolean mobileWindup(){
         return pending!=null&&!(pending instanceof dev.cazajefes.ai.attack.MeleeSweep)
@@ -255,7 +279,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         motion=null;
         pending=null;
         requested=null;
-        gcdUntil=tick+(special?profile.globalCooldown():Math.min(2,profile.basicRecovery()));
+        gcdUntil=tick+(special?profile.globalCooldown():profile.basicRecovery());
     }
 
     @Override public final void close(){

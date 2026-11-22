@@ -27,10 +27,15 @@
       "waterWalking": true
     },
     "eggParticles": {
-      "radius": 1,
-      "height": 2,
-      "points": 32,
-      "removeGeneratedPedestal": true
+      "points": 48,
+      "removeGeneratedPedestal": true,
+      "radii": [
+        1,
+        2,
+        3
+      ],
+      "ringHeight": 0.12,
+      "ringSpacing": 0.16
     },
     "axeThrow": {
       "enabled": true,
@@ -47,6 +52,16 @@
       "firstDelayTicks": 100,
       "lifetimeTicks": 800,
       "minimumPhase": 1
+    },
+    "difficulty": {
+      "meleeDamageMultiplier": 1.06,
+      "specialDamageMultiplier": 1.05
+    },
+    "specialWeaponLoot": {
+      "enabled": false,
+      "item": "lanza_magma",
+      "chance": 0,
+      "level": 1
     }
   },
   "ai": {
@@ -111,6 +126,11 @@
         "durationTicks": 200,
         "intervalTicks": 10
       }
-    ]
+    ],
+    "melee": {
+      "intervalTicks": 12,
+      "warningTicks": 1,
+      "duringMobileSpecials": true
+    }
   }
 }

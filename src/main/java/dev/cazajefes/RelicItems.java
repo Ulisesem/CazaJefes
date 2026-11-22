@@ -963,6 +963,8 @@ public final class RelicItems implements Listener {
          };
          if (stack!=null) { stack.setAmount(reward.amount()); var4.add(prepareBossDrop(stack)); }
       }
+      var special=SpecialWeaponLoot.roll(var2,ThreadLocalRandom.current());
+      if(special!=null){ItemStack weapon=specialWeaponDrop(special);if(weapon!=null)var4.add(prepareBossDrop(weapon));}
       String rangedMaterial=RangedRareCatalog.drop(var2.entityType());if(rangedMaterial!=null&&Math.random()<(var2.mini()?.12:.25))var4.add(rangedMaterial(rangedMaterial));
       if(LootRules.heartEligible(var2.mini(),Math.random(),var2.custom().options().heartChance(plugin.getConfig().getDouble("loot.boss-heart-chance",0.01))))var4.add(bossHeart(var2));
       List<ItemStack> merged=new ArrayList<>();for(ItemStack stack:var4){ItemStack same=merged.stream().filter(existing->existing.isSimilar(stack)).findFirst().orElse(null);if(same==null)merged.add(stack);else same.setAmount(same.getAmount()+stack.getAmount());}var4.clear();var4.addAll(merged);
@@ -1105,6 +1107,27 @@ public final class RelicItems implements Listener {
    @EventHandler(priority=EventPriority.HIGHEST)public void sealSmithing(org.bukkit.event.inventory.PrepareSmithingEvent e){e.setResult(carryBossSeal(e.getResult(),e.getInventory().getItem(1)));}
    private ItemStack prepareBossDrop(ItemStack stack){if(!RareAppearance.equipment(stack.getType()))return stack;ItemStack out=stack.clone();var meta=out.getItemMeta();meta.getPersistentDataContainer().remove(rareEnchantKey);meta.getPersistentDataContainer().remove(rareLevelsKey);meta.getPersistentDataContainer().remove(new NamespacedKey(plugin,"infusion_unlocked"));meta.getPersistentDataContainer().set(new NamespacedKey(plugin,"boss_reward"),PersistentDataType.BYTE,(byte)1);out.setItemMeta(meta);return refreshAppearance(out);}
 
+   private ItemStack specialWeaponDrop(SpecialWeaponLoot.Selection selected){
+      ItemStack result;
+      if(selected.item().startsWith("pvp_gear_")){
+         var relic=DuelCatalog.get(selected.item().substring("pvp_gear_".length()));
+         var duel=((CazaJefesPlugin)plugin).duel;if(relic==null||relic.armor()||duel==null)return null;
+         result=duel.gear(relic);
+      }else result=rare(selected.item(),1);
+      // These rewards have vanilla enchantments and no pre-applied essence. A higher
+      // configured forge level improves its offensive vanilla enchantment.
+      Enchantment damage=result.getType()==Material.CROSSBOW?Enchantment.PIERCING:result.getType()==Material.BOW?Enchantment.POWER:
+          result.getType()==Material.TRIDENT?Enchantment.IMPALING:Enchantment.SHARPNESS;
+      if(selected.level()>1)result.addUnsafeEnchantment(damage,Math.max(1,result.getEnchantmentLevel(damage))+selected.level()-1);
+      var meta=result.getItemMeta();var removed=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));
+      List<Component> lore=new ArrayList<>(meta.lore()==null?List.of():meta.lore());
+      lore.removeIf(line->{String text=PlainTextComponentSerializer.plainText().serialize(line);
+         return text.startsWith("Arma rare")||text.startsWith("Rare especial")||removed.keySet().stream().anyMatch(id->
+             text.startsWith("✦ "+RareAppearance.title(id)+" ")||text.startsWith("✦ "+RareNames.original(id)+" "));});
+      lore.add(Component.text("Botín especial · Forja "+RareAppearance.roman(selected.level()),NamedTextColor.GOLD));
+      meta.lore(lore);result.setItemMeta(meta);return result;
+   }
+
    ItemStack refreshAppearance(ItemStack stack){
       if(stack==null||!stack.hasItemMeta())return stack;String id=customId(stack);var meta=stack.getItemMeta();String property=RareAliases.canonical(meta.getPersistentDataContainer().get(rareBookKey,PersistentDataType.STRING));if(property!=null)meta.getPersistentDataContainer().set(rareBookKey,PersistentDataType.STRING,property);if(RareAppearance.magmaEssence(property,meta.getPersistentDataContainer().has(new NamespacedKey(plugin,"admin_rare_book"),PersistentDataType.BYTE))){stack.setType(Material.MAGMA_CREAM);meta.setEnchantmentGlintOverride(true);stack.setItemMeta(meta);}if(property!=null&&spellIds().contains(property)){ItemStack renewed=meta.getPersistentDataContainer().has(new NamespacedKey(plugin,"admin_rare_essence"),PersistentDataType.BYTE)?commandEssence(property,meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1)):rareBook(property,meta.getPersistentDataContainer().getOrDefault(rareEssenceLevelKey,PersistentDataType.INTEGER,1));renewed.setAmount(stack.getAmount());return renewed;}Map<String,Integer> levels=parseLevels(meta.getPersistentDataContainer().get(rareLevelsKey,PersistentDataType.STRING));
       if(RareCompatibility.material(stack.getType())==RareCompatibility.Group.ARMOR&&levels.containsKey("spore")){levels.put("aura_esporas",levels.remove("spore"));meta.getPersistentDataContainer().set(rareLevelsKey,PersistentDataType.STRING,serializeLevels(levels));String stored=meta.getPersistentDataContainer().get(rareEnchantKey,PersistentDataType.STRING);if(stored!=null)meta.getPersistentDataContainer().set(rareEnchantKey,PersistentDataType.STRING,Arrays.stream(stored.split(",")).map(key->key.equals("spore")?"aura_esporas":key).collect(java.util.stream.Collectors.joining(",")));}
@@ -1157,7 +1180,6 @@ public final class RelicItems implements Listener {
       ItemMeta meta=stack.getItemMeta();meta.setEnchantmentGlintOverride(true);stack.setItemMeta(meta);return stack;
    }
    public void registerCrystalRecipes() {
-      addRecipe("tributo_cazador",tribute("Cazador"),new String[]{"FFF","FFF","FFF"},Map.of('F',new ExactChoice(fragment(1))));
       for (BossCatalog.Tier tier:BossCatalog.Tier.values()) {
          if(tier==BossCatalog.Tier.COMMON)continue;
          RecipeChoice previous=tier.ordinal()==0 ? new ExactChoice(fragment(1)) : new ExactChoice(crystal(BossCatalog.Tier.values()[tier.ordinal()-1],1));
@@ -1186,12 +1208,10 @@ public final class RelicItems implements Listener {
 
       this.plugin.getServer().removeRecipe(new NamespacedKey(this.plugin, "amuleto_coloso"));
       this.plugin.getServer().removeRecipe(new NamespacedKey(this.plugin, "amuleto_grieta"));
-      this.addRecipe(
-         "brujula_caza",
-         this.compass(),
-         new String[]{" M ", "MCM", " M "},
-         Map.of('M', new ExactChoice(this.essence()), 'C', new MaterialChoice(Material.COMPASS))
-      );
+      Map<Character,RecipeChoice> compassIngredients=new HashMap<>();
+      CompassRecipe.MATERIALS.forEach((symbol,material)->compassIngredients.put(symbol,new MaterialChoice(material)));
+      compassIngredients.put('F',new ExactChoice(fragment(1)));
+      this.addRecipe("brujula_caza",this.compass(),CompassRecipe.shape(),compassIngredients);
       ExactChoice var29 = new ExactChoice(this.fragment(1));
       ExactChoice var30 = this.exactRiftMaterial(0);
       ExactChoice var3 = this.exactRiftMaterial(1);
@@ -1239,38 +1259,6 @@ public final class RelicItems implements Listener {
          }
       }
 
-      ExactChoice var31 = this.bossCoreChoice();
-      ExactChoice var32 = this.exactRiftMaterial(0);
-      ExactChoice var33 = this.exactRiftMaterial(1);
-      ExactChoice var34 = this.exactRiftMaterial(2);
-      ExactChoice var11 = this.exactRiftMaterial(3);
-      MaterialChoice var12 = new MaterialChoice(Material.NETHERITE_INGOT);
-      MaterialChoice var13 = new MaterialChoice(Material.STICK);
-      ExactChoice var15 = new ExactChoice(this.tribute("Cazador"));
-      this.addRecipe(
-         "hacha_sismica",
-         this.rare("hacha_sismica"),
-         new String[]{"GMP", " NB", " S "},
-         Map.of('G', var32, 'M', var31, 'P', var33, 'N', var12, 'B', var11, 'S', var13)
-      );
-      this.addRecipe(
-         "espada_brezal", this.rare("espada_brezal"), new String[]{" P ", "NMB", " F "}, Map.of('P', var34, 'N', var12, 'M', var31, 'B', var11, 'F', var29)
-      );
-      this.addRecipe("arco_ceniciento", this.rare("arco_ceniciento"), new String[]{"PFB", "M B", "PFB"}, Map.of('P', var33, 'F', var29, 'B', var11, 'M', var31));
-      this.addRecipe(
-         "lanza_magma", this.rare("lanza_magma"), new String[]{" P ", "MFB", " T "}, Map.of('P', var34, 'M', var31, 'F', var29, 'B', var11, 'T', var15)
-      );
-      ExactChoice var16 = new ExactChoice(new ItemStack[]{this.abyssalEssence(), this.abyssalEssenceFromBoss()});
-      this.addRecipe(
-         "mandoble_vacio",
-         this.rare("mandoble_vacio"),
-         new String[]{"HAN", "MFM", " T "},
-         Map.of('H', var34, 'A', var16, 'N', var12, 'M', var31, 'F', var29, 'T', var15)
-      );
-      for(BossCatalog.Tier rank:EquipmentSets.RANKS){
-         BossCatalog.Definition boss=BossCatalog.all().stream().filter(d->d.tier()==rank&&!d.mini()).findFirst().orElseThrow();
-         for(int slot=0;slot<2;slot++)addRecipe("arma_set_"+rank.name().toLowerCase(Locale.ROOT)+"_"+slot,weaponDrop(boss,slot),new String[]{" K ","CBC"," F "},Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(weaponDrop(boss,slot).getType()),'F',new ExactChoice(fragment(1))));
-      }
       ArrayList var21 = new ArrayList();
 
       for (Material var25 : Material.values()) {
@@ -1336,11 +1324,7 @@ public final class RelicItems implements Listener {
    void addDuelRecipe(String id,ItemStack result,String[] shape,Map<Character,RecipeChoice> choices){addRecipe(id,result,shape,choices);}
    RecipeChoice coreChoice(){return bossCoreChoice();}
    private void addRecipe(String var1, ItemStack var2, String[] var3, Map<Character, RecipeChoice> var4) {
-      if (var1.startsWith("armadura_set_") || var1.startsWith("arma_set_")) {
-         BossCatalog.Tier rank=equipmentTier(var2);
-         var3=new String[]{" K ","CBC"," F "};
-         var4=Map.of('K',new ExactChoice(crystal(rank,1)),'C',bossCoreChoice(),'B',new MaterialChoice(var2.getType()),'F',new ExactChoice(fragment(1)));
-      }
+      if(!CraftAvailability.allowed(var1,var2.getType()))return;
       if(RecipeAlchemy.usesLegacyProfile(var1,rareIds().contains(var1))){
          String property=var1.startsWith("crear_esencia_rare_")?var1.substring("crear_esencia_rare_".length()):var1.startsWith("crear_libro_rare_")?var1.substring("crear_libro_rare_".length()):var1;
          RecipeAlchemy.Profile profile=RecipeAlchemy.profile(property);

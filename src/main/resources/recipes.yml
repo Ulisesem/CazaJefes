@@ -1,16 +1,10 @@
-# Las armas usan cristal de su categoría, núcleo, objeto base y fragmento.
-# Las armaduras de bosses solo se obtienen como botín o con /ri equipo.
-# Conserva K (cristal), C (núcleo), B (objeto base), F (fragmento).
+# Las armas, armaduras de bosses y tributos no tienen receta.
+# El equipo sigue disponible como botín y con /ri equipo.
 # shape e ingredients son opcionales. Los símbolos originales no redefinidos conservan su ExactChoice.
-schema-version: 3
+schema-version: 4
 recipes:
-  hacha_sismica:
+  brujula_caza:
     enabled: true
-  espada_brezal:
-    enabled: true
-  arco_ceniciento:
-    enabled: true
-  lanza_magma:
-    enabled: true
-  mandoble_vacio:
-    enabled: true
+    # F = fragmento de tributo; D = diamante; E = esmeralda;
+    # C = brújula normal; I = lingote de hierro; R = redstone.
+    shape: [FDF, ECI, FRF]

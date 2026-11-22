@@ -403,7 +403,7 @@ public final class BossManager implements Listener {
             var shell=var2.location.getBlock().getState();var2.location.getBlock().setType(Material.AIR,false);
             LivingEntity awakened;try{awakened=this.spawnBoss(var2.definition.id(),var2.location.clone().add(.5,0,.5),var3.getName(),true);}catch(RuntimeException failure){shell.update(true,false);plugin.getLogger().log(java.util.logging.Level.SEVERE,"Error al despertar "+var2.definition.id(),failure);var3.sendMessage("No se pudo despertar; el huevo se ha conservado. Revisa la consola.");return;}
             if(awakened==null){shell.update(true,false);var3.sendMessage("No se pudo abrir espacio para el boss: bedrock, región protegida u obstáculo no rompible. El huevo se conserva.");return;}
-            for(Player online:plugin.getServer().getOnlinePlayers())online.sendMessage(Component.text("✦ "+var3.getName()+" ha abierto el huevo de ",net.kyori.adventure.text.format.NamedTextColor.GOLD).decorate(TextDecoration.BOLD).append(Component.text(var2.definition.name(),var2.definition.tier().color)));
+            for(Player online:plugin.getServer().getOnlinePlayers())online.sendMessage(BossAnnouncements.awakened(var3.getName(),var2.definition));
             this.eggsByBlock.remove(this.key(var2.location));
             this.encounters.remove(var2.id);
             this.stopEggEffects(var2.id);

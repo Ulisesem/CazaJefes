@@ -1,16 +1,16 @@
 {
+  "schemaVersion": 2,
   "title": "Forja de la Grieta",
-  "accent": "CYAN_STAINED_GLASS_PANE",
+  "accent": "BLUE_STAINED_GLASS_PANE",
   "pageSize": 28,
   "homeSlots": [20, 22, 24, 29, 31, 33],
   "labels": {
     "ESSENCES": "Esencias",
     "SPELLS": "Libros",
-    "WEAPONS": "Armas forjadas",
     "CRYSTALS": "Cristales",
     "MATERIALS": "Materiales",
-    "CURRENCIES": "Tributos",
-    "PVP": "Reliquias PvP",
-    "ALL": "Todas las recetas"
+    "CURRENCIES": "Brújula",
+    "ALL": "Todas las recetas",
+    "PVP": "Defensas PvP"
   }
 }

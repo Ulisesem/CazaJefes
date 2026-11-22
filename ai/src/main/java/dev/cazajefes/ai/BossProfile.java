@@ -10,9 +10,16 @@ import java.util.List;
 public record BossProfile(double speed,double gravity,double detectionRange,int globalCooldown,int basicRecovery,int specialRecovery,
                           boolean aquatic,CombatStyle.Tactics tactics,List<BossAttack> attacks,
                           RangedMeleeSwap.Config rangedMeleeSwap,
-                          BossMagnetism.Config magnetism) {
+                          BossMagnetism.Config magnetism,MeleeSettings melee) {
     public BossProfile {
         attacks=List.copyOf(attacks);
+    }
+
+    public BossProfile(double speed,double gravity,double detectionRange,int globalCooldown,int basicRecovery,int specialRecovery,
+                       boolean aquatic,CombatStyle.Tactics tactics,List<BossAttack> attacks,
+                       RangedMeleeSwap.Config rangedMeleeSwap,BossMagnetism.Config magnetism) {
+        this(speed,gravity,detectionRange,globalCooldown,basicRecovery,specialRecovery,aquatic,tactics,attacks,
+            rangedMeleeSwap,magnetism,new MeleeSettings(10,1,true));
     }
 
     public static BossProfile read(JsonObject json,double baseDamage,boolean aquatic) {
@@ -27,6 +34,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         int gcd=integer(json,"globalCooldownTicks",18,1,600);
         int basicRecovery=integer(json,"basicRecoveryTicks",8,1,100);
         int specialRecovery=integer(json,"specialRecoveryTicks",55,10,600);
+        var melee=MeleeSettings.read(json);
         var entries=new ArrayList<BossAttack>();
         {
             var attacks=json.has("attacks")?json.getAsJsonArray("attacks"):defaults(baseDamage,aquatic).getAsJsonArray("attacks");
@@ -53,7 +61,8 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
                     case "MAGNETISM" -> new dev.cazajefes.ai.attack.MagnetismAttack(id,name,weight,cooldown,radius,warn);
                     case "SHOCKWAVE" -> new dev.cazajefes.ai.attack.ShockwaveAttack(id,name,weight,cooldown,radius,damage,warn);
                     case "FAULT_LINE" -> new dev.cazajefes.ai.attack.FaultLineAttack(id,name,weight,cooldown,radius,damage,warn);
-                    case "MELEE_SWEEP" -> new dev.cazajefes.ai.attack.MeleeSweep(id,name,category,weight,cooldown,radius,damage,warn);
+                    case "MELEE_SWEEP" -> new dev.cazajefes.ai.attack.MeleeSweep(id,name,category,weight,
+                        melee.intervalTicks(),radius,damage,melee.warningTicks());
                     case "LINEAR_PROJECTILE" -> new LinearProjectileAttack(id,name,category,weight,cooldown,
                         radius,damage,warn,number(row,"speed",1.4,.1,4),integer(row,"lifetimeTicks",30,1,100));
                     case "METEORITE_AOE" -> new MeteoriteAoEAttack(id,name,category,weight,cooldown,radius,damage,warn,
@@ -86,7 +95,7 @@ public record BossProfile(double speed,double gravity,double detectionRange,int 
         var tactics=new CombatStyle.Tactics(style,near,far,orbit,mobile);
         var swapConfig=RangedMeleeSwap.readConfig(json);
         var magnetismConfig=BossMagnetism.readConfig(json);
-        return new BossProfile(speed,gravity,range,gcd,basicRecovery,specialRecovery,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries,swapConfig,magnetismConfig);
+        return new BossProfile(speed,gravity,range,gcd,basicRecovery,specialRecovery,json.has("aquatic")?json.get("aquatic").getAsBoolean():aquatic,tactics,entries,swapConfig,magnetismConfig,melee);
     }
 
     public static JsonObject defaults(double baseDamage,boolean aquatic){

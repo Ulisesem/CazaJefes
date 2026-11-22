@@ -1,3 +1,7 @@
+# CazaJefes 1.52.0 · testRefactor
+
+[Anillos de huevos, combate por rareza y recetas de botín](docs/CAMBIOS-1.52.0.md). Paper 1.21.11, Java 21 y PacketEvents.
+
 # CazaJefes 1.51.0 · testRefactor
 
 [Combate, balance de rares y recetario simplificado](docs/CAMBIOS-1.51.0.md). Paper 1.21.11, Java 21 y PacketEvents.

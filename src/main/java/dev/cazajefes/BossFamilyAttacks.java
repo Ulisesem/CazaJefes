@@ -10,6 +10,8 @@ final class BossFamilyAttacks {
     static JsonObject withDefaults(BossCatalog.Definition boss,boolean aquatic){
         var original=boss.custom().ai();
         var config=original==null?BossProfile.defaults(boss.custom().damage(),aquatic):original.deepCopy();
+        // Merge missing cadence controls without replacing custom attacks, items or damage.
+        BossTuning.merge(config,"melee",BossDifficulty.meleeDefaults(boss.tier(),boss.mini()));
 
         var attacks=config.has("attacks")?config.getAsJsonArray("attacks")
             :BossProfile.defaults(boss.custom().damage(),aquatic).getAsJsonArray("attacks");

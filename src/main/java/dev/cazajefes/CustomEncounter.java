@@ -142,7 +142,7 @@ final class CustomEncounter implements BossEnvironment {
     }
 
     @Override public void meleeDamage(CustomBoss boss,LivingEntity victim,double damage){
-        damage(boss,victim,damage+ThrownAxeHand.meleeBonus(boss.body()));
+        BossHitContext.melee(()->damage(boss,victim,damage+ThrownAxeHand.meleeBonus(boss.body())));
     }
 
     @Override public void meteorDamage(CustomBoss boss,LivingEntity victim,double damage){
@@ -157,12 +157,15 @@ final class CustomEncounter implements BossEnvironment {
         var at=boss.body().getLocation();
         var definition=BossCatalog.get(boss.body().getPersistentDataContainer().get(
             new NamespacedKey("cazajefes","boss_type"),PersistentDataType.STRING));
-        effect(boss,attack,"charge",BossParticles.Shape.RING,at,
-            Math.max(.85,boss.body().getWidth()*.65),boss.body().getHeight(),true);
-        CombatTelegraph.charge(boss.body(),target,attack);
+        if(attack.special()){
+            effect(boss,attack,"charge",BossParticles.Shape.RING,at,
+                Math.max(.85,boss.body().getWidth()*.65),boss.body().getHeight(),true);
+            CombatTelegraph.charge(boss.body(),target,attack);
+        }
         plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
             boss.body().getUniqueId(),target.getUniqueId(),attack.id(),
             dev.cazajefes.api.event.BossAttackEvent.Stage.CHARGE,at));
+        if(!attack.special())return;
         for(Player viewer:at.getWorld().getNearbyPlayers(at,32)){
             if(!ArenaBoundary.allows(boss.body(),viewer.getLocation()))continue;
             String id=definition==null?attack.id():definition.id()+"."+attack.id();
@@ -174,9 +177,11 @@ final class CustomEncounter implements BossEnvironment {
 
     @Override public void release(CustomBoss boss,BossAttack attack){
         var at=boss.body().getLocation();
-        effect(boss,attack,"release",BossParticles.Shape.BEAM,at,
-            Math.max(.8,boss.body().getWidth()*.55),boss.body().getHeight(),false);
-        CombatTelegraph.release(boss.body(),attack);
+        if(attack.special()){
+            effect(boss,attack,"release",BossParticles.Shape.BEAM,at,
+                Math.max(.8,boss.body().getWidth()*.55),boss.body().getHeight(),false);
+            CombatTelegraph.release(boss.body(),attack);
+        }
         plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
             boss.body().getUniqueId(),null,attack.id(),
             dev.cazajefes.api.event.BossAttackEvent.Stage.RELEASE,at));
@@ -187,9 +192,14 @@ final class CustomEncounter implements BossEnvironment {
             CosmeticFX.emit(org.bukkit.Particle.BUBBLE_POP,at.clone().add(0,.5,0),30,2,.5,2,.12);
             at.getWorld().playSound(at,org.bukkit.Sound.ITEM_TRIDENT_RIPTIDE_2,1,.75f);
         }
-        effect(boss,attack,"impact",BossParticles.Shape.PULSE,at,
+        if(attack.special())effect(boss,attack,"impact",BossParticles.Shape.PULSE,at,
             Math.max(1,attack.radius()),1.1,false);
-        VisualProviders.impact(boss.body());
+        else{
+            boss.body().swingMainHand();
+            CosmeticFX.emit(org.bukkit.Particle.CRIT,at.clone().add(0,.7,0),4,.2,.3,.2,.02);
+            at.getWorld().playSound(at,org.bukkit.Sound.ENTITY_PLAYER_ATTACK_STRONG,.4f,1.15f);
+        }
+        if(attack.special())VisualProviders.impact(boss.body());
         plugin.getServer().getPluginManager().callEvent(new dev.cazajefes.api.event.BossAttackEvent(
             boss.body().getUniqueId(),null,attack.id(),
             dev.cazajefes.api.event.BossAttackEvent.Stage.IMPACT,at));

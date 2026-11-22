@@ -10,11 +10,11 @@ final class RecipePresentation {
  static final int LIST_BACK=50,ARMOR_LIST_SEAL=51;
  static final int[] CATEGORIES={20,22,24,29,31,33};
  static final List<RaresMenu.Category> HOME=List.of(RaresMenu.Category.ESSENCES,RaresMenu.Category.SPELLS,
-     RaresMenu.Category.WEAPONS,RaresMenu.Category.CRYSTALS,RaresMenu.Category.MATERIALS,RaresMenu.Category.CURRENCIES);
+     RaresMenu.Category.CRYSTALS,RaresMenu.Category.MATERIALS,RaresMenu.Category.CURRENCIES,RaresMenu.Category.ALL);
  enum Parent {ROOT,GROUPS,RANKS,LIST}
 
  static boolean visible(String key) {
-  return key!=null&&!key.startsWith("armadura_")&&!key.equals("sello_resonancia_primigenia");
+  return CraftAvailability.allowed(key)&&!key.equals("sello_resonancia_primigenia");
  }
  static Map<Integer,RaresMenu.Category> homeCategories(List<Integer> slots) {
   if(slots.size()!=HOME.size())throw new IllegalArgumentException("Se requieren seis apartados");
@@ -36,19 +36,17 @@ final class RecipePresentation {
   return switch(category) {
    case ESSENCES -> "Habilidades para mejorar tu equipo.";
    case SPELLS -> "Habilidades que activas con un libro.";
-   case WEAPONS -> "Espadas y hachas con filo por categoría.";
+   case ALL -> "Explora todas las recetas disponibles.";
    case CRYSTALS -> "Combina cristales y mejora su categoría.";
    case MATERIALS -> "Componentes para crear esencias y reliquias.";
-   case CURRENCIES -> "Combina fragmentos, tributos y sellos.";
+   case CURRENCIES -> "Crea una brújula para encontrar huevos de jefe.";
    default -> "Consulta sus ingredientes y resultado.";
   };
  }
  static void frame(Inventory inventory,Material accent) {
-  PremiumStyle.frame(inventory,accent);
-  ItemStack dark=PremiumStyle.tile(Material.BLACK_STAINED_GLASS_PANE," ",NamedTextColor.DARK_GRAY,false);
-  ItemStack line=PremiumStyle.tile(accent," ",NamedTextColor.DARK_GRAY,false);
-  for(int slot:new int[]{0,1,7,8,45,46,47,48,49,50,51,52,53})inventory.setItem(slot,dark);
-  for(int slot:new int[]{0,8,18,27,45,53})inventory.setItem(slot,line);
+  ItemStack pane=PremiumStyle.tile(accent," ",NamedTextColor.DARK_GRAY,false);
+  for(int slot=0;slot<inventory.getSize();slot++)inventory.setItem(slot,pane);
+  for(int slot:PremiumStyle.GRID)inventory.setItem(slot,null);
  }
- static Material accent(RaresMenu.Category category){return Material.CYAN_STAINED_GLASS_PANE;}
+ static Material accent(RaresMenu.Category category){return Material.BLUE_STAINED_GLASS_PANE;}
 }

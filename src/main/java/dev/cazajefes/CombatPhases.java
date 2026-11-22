@@ -26,7 +26,16 @@ final class CombatPhases implements Listener {
   }
   if(event.getEntity() instanceof LivingEntity living&&isBoss(living))SafeDamage.setBase(event,event.getDamage()*PhaseRules.incoming(phase(living))*BossProtection.incoming(living)*plugin.crystals.incoming(living)*(warden(living)?0.85:1)*(BossRebirth.used(living)?1.15:1));
   if(event instanceof EntityDamageByEntityEvent hit&&source(hit.getDamager()) instanceof LivingEntity attacker&&isBoss(attacker)
-      &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive())SafeDamage.setBase(event,Math.min(AbilityDamage.active()||PillagerCombat.specialShot(hit.getDamager())||SkeletonCombat.shot(hit.getDamager())?200:80,(event.getDamage()+(!(hit.getDamager() instanceof Projectile)&&!AbilityDamage.active()?BossEquipment.virtualSharpness(attacker):0))*PhaseRules.outgoing(phase(attacker))*PhaseRules.finalBonus(phase(attacker),BossRebirth.used(attacker))*(warden(attacker)?1.35:1)));
+      &&event.getEntity() instanceof Player target&&CombatGuard.eligible(target)&&!LightningRetaliation.isActive()){
+   boolean projectile=hit.getDamager() instanceof Projectile;
+   boolean melee=!projectile&&(!AbilityDamage.active()||BossHitContext.melee());
+   double base=event.getDamage()+(!projectile&&!AbilityDamage.active()?BossEquipment.virtualSharpness(attacker):0);
+   double scaled=base*PhaseRules.outgoing(phase(attacker))
+       *PhaseRules.finalBonus(phase(attacker),BossRebirth.used(attacker))*(warden(attacker)?1.35:1)
+       *BossDifficulty.multiplier(attacker,melee);
+   double maximum=AbilityDamage.active()||PillagerCombat.specialShot(hit.getDamager())||SkeletonCombat.shot(hit.getDamager())?200:80;
+   SafeDamage.setBase(event,Math.min(maximum,scaled));
+  }
  }
  @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true) public void effects(EntityDamageByEntityEvent event){
   if(!(source(event.getDamager()) instanceof LivingEntity attacker)||!isBoss(attacker)||!(event.getEntity() instanceof Player target)||!CombatGuard.eligible(target)||event.getFinalDamage()<=0)return;
@@ -39,7 +48,7 @@ final class CombatPhases implements Listener {
     BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.NAUSEA,600,0));
     BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.MINING_FATIGUE,80,1));
     BossEffects.applyFrom(attacker,target,BossEffects.effect(PotionEffectType.HUNGER,100,1));
-    
+
    }
    effects.put(id,now+6000);
   }

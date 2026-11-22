@@ -19,9 +19,21 @@ final class RecipeSettings {
         file = new File(plugin.getDataFolder(), "recipes.yml");
         if (!file.exists()) plugin.saveResource("recipes.yml", false);
         config = ConfigMigration.recipes((CazaJefesPlugin)plugin,file,YamlConfiguration.loadConfiguration(file));
+        dirty=false;
+        if(config.getInt("schema-version",0)<4){
+            // Only discard the old shipped compass pattern; keep custom administrator recipes.
+            if(config.getStringList("recipes.brujula_caza.shape").equals(List.of(" M ","MCM"," M "))){
+                config.set("recipes.brujula_caza.shape",null);config.set("recipes.brujula_caza.ingredients",null);
+            }
+            config.set("schema-version",4);dirty=true;
+        }
+        var recipes=config.getConfigurationSection("recipes");
+        if(recipes!=null)for(String key:List.copyOf(recipes.getKeys(false)))if(CraftAvailability.retired(key)){
+            config.set("recipes."+key,null);dirty=true;
+        }
     }
     boolean enabled(String id) {
-        if(id.startsWith("armadura_"))return false;
+        if(!CraftAvailability.allowed(id))return false;
         var path = "recipes." + id + ".enabled";
         if (!config.contains(path)) {
             config.set(path,true);

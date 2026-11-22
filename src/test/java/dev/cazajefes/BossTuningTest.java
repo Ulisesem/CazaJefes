@@ -10,7 +10,7 @@ public class BossTuningTest {
   assertTrue(BossTuning.complete(document));
   assertEquals(.2,mobility.get("climbSpeed").getAsDouble(),0);
   assertFalse(mobility.get("pursueFlyingPlayers").getAsBoolean());
-  assertEquals(2,combat.getAsJsonObject("eggParticles").get("height").getAsDouble(),0);
+  assertEquals(3,combat.getAsJsonObject("eggParticles").getAsJsonArray("radii").size());
   assertTrue(combat.getAsJsonObject("eggParticles").get("removeGeneratedPedestal").getAsBoolean());
   assertEquals("keep-me",document.getAsJsonObject("ai").get("customAttack").getAsString());
   assertFalse(BossTuning.complete(document));

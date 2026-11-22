@@ -2,14 +2,12 @@ package dev.cazajefes.ai.attack;
 
 import dev.cazajefes.ai.*;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
-/** Dynamic melee attack that varies based on phase and target position.
- * Uses multi-hit combos for aggressive play and upward strikes for elevated targets. */
+/** Full-strength contact attacks. The encounter owns cadence instead of splitting hits into weak combos. */
 public final class MeleeSweep extends BossAttack {
     public MeleeSweep(String id,String name,AttackCategory category,int weight,long cooldown,
                       double radius,double damage,int warningTicks) {
-        super(id,name,category,weight,Math.min(cooldown,10),radius,damage,Math.min(warningTicks,1));
+        super(id,name,category,weight,cooldown,radius,damage,warningTicks);
     }
 
     @Override public boolean inRange(CustomBoss boss,Player target,double distance){
@@ -21,79 +19,21 @@ public final class MeleeSweep extends BossAttack {
     @Override public AttackMotion execute(CustomBoss boss,Player target) {
         if(!boss.environment().mayHit(boss,target))return AttackMotion.complete();
         
-        double distance=boss.body().getLocation().distance(target.getLocation());
-        double yDelta=target.getY()-boss.body().getY();
-        int phase=boss.environment().phase(boss);
-        boolean elevated=yDelta>0.5&&distance<=radius();
-        
-        // Phase 2+: multi-hit combo for more dynamic combat
-        if(phase>=2&&!elevated){
-            return newComboAttack(boss,target,damage()/3,3);
-        }
-        // Upward strike for slightly elevated targets
-        if(elevated&&yDelta<2.5){
-            return newUpwardStrike(boss,target,damage());
-        }
-        // Standard single hit — melee does not require line of sight
-        if(inRange(boss,target,0)){
-            strikeGroup(boss,target,damage());
+        if(inRange(boss,target,0)&&strikeGroup(boss,target,damage())){
             boss.environment().impact(boss,this,target.getLocation());
-            // Knockback push for aggressive players
-            if(distance<3){
-                var push=target.getLocation().toVector().subtract(boss.body().getLocation().toVector()).setY(0);
-                if(push.lengthSquared()>.01){
-                    push.normalize().multiply(.15);
-                    var v=target.getVelocity();
-                    target.setVelocity(new Vector(v.getX()+push.getX(),v.getY(),v.getZ()+push.getZ()));
-                }
-            }
         }
         return AttackMotion.complete();
     }
-    
-    /** Multi-hit combo attack for phase 2+ that creates dynamic melee combat. */
-    private AttackMotion newComboAttack(CustomBoss boss,Player target,double hitDamage,int hits){
-        final BossAttack self=this;
-        return new AttackMotion(){
-            int struck,age;
-            @Override public boolean tick(){
-                if(struck>=hits||++age>32)return true;
-                if(age%10!=1)return false;
-                if(!boss.environment().mayHit(boss,target))return true;
-                double dist=boss.body().getLocation().distance(target.getLocation());
-                if(dist>self.radius()*.8)return true; // target moved away, cancel combo
-                strikeGroup(boss,target,hitDamage);
-                boss.environment().impact(boss,self,target.getLocation());
-                struck++;
-                return struck>=hits;
-            }
-            @Override public void close(){}
-        };
-    }
-    
-    /** Upward strike that hits players slightly above the boss. */
-    private AttackMotion newUpwardStrike(CustomBoss boss,Player target,double dmg){
-        if(boss.environment().mayHit(boss,target)){
-            strikeGroup(boss,target,dmg);
-            boss.environment().impact(boss,this,target.getLocation());
-            // Launch target upward and away
-            var away=target.getLocation().toVector().subtract(boss.body().getLocation().toVector());
-            if(away.lengthSquared()>.01){
-                away.normalize().multiply(.25);
-                away.setY(.35);
-                var v=target.getVelocity();
-                target.setVelocity(new Vector(v.getX()+away.getX(),v.getY()+away.getY(),v.getZ()+away.getZ()));
-            }
-        }
-        return AttackMotion.complete();
-    }
-    private void strikeGroup(CustomBoss boss,Player target,double amount){
+    private boolean strikeGroup(CustomBoss boss,Player target,double amount){
         var at=boss.body().getLocation();
+        boolean struckTarget=false;
         for(Player candidate:at.getWorld().getNearbyPlayers(at,radius()+boss.body().getWidth())){
             if(!boss.environment().validTarget(boss,candidate)||!boss.environment().mayHit(boss,candidate)
                 ||!inRange(boss,candidate,0)||!boss.environment().canSee(boss,candidate))continue;
             boss.environment().meleeDamage(boss,candidate,amount);
+            if(candidate.equals(target))struckTarget=true;
         }
+        return struckTarget;
     }
 
 }

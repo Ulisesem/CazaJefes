@@ -18,16 +18,20 @@ final class RaresMenu implements CommandExecutor, Listener {
   this.plugin=plugin;this.items=items;settings=new RecipeMenuSettings(plugin);
  }
  enum Category {
-  CURRENCIES("Tributos",Material.DISC_FRAGMENT_5),CRYSTALS("Cristales",Material.AMETHYST_CLUSTER),
+  CURRENCIES("Brújula",Material.COMPASS),CRYSTALS("Cristales",Material.AMETHYST_CLUSTER),
   WEAPONS("Armas forjadas",Material.NETHERITE_SWORD),ARMOR("Armaduras de categoría",Material.NETHERITE_CHESTPLATE),
   ESSENCES("Esencias",Material.MAGMA_CREAM),SPELLS("Libros",Material.ENCHANTED_BOOK),
-  PVP("Reliquias PvP",Material.NETHERITE_AXE),MATERIALS("Materiales",Material.ECHO_SHARD),ALL("Todas las recetas",Material.NETHER_STAR);
+  PVP("Defensas PvP",Material.NETHERITE_CHESTPLATE),MATERIALS("Materiales",Material.ECHO_SHARD),ALL("Todas las recetas",Material.NETHER_STAR);
   final String title;final Material icon;
   Category(String title,Material icon){this.title=title;this.icon=icon;}
-  boolean matches(String key){return this==ALL||this==category(key);}
+  boolean matches(String key) {
+   if(this==ALL)return true;
+   if(this==CURRENCIES)return "brujula_caza".equals(key);
+   return this==category(key);
+  }
   static Category category(String key) {
    if(key.equals("sello_resonancia_primigenia"))return ESSENCES;
-   if(key.startsWith("ranged_material_")||key.startsWith("pvp_material_"))return MATERIALS;
+   if(key.startsWith("ranged_material_")||key.startsWith("pvp_material_")||List.of("esencia_rara","esencia_primordial","esencia_abisal").contains(key))return MATERIALS;
    if(key.startsWith("pvp_gear_"))return PVP;
    if(key.startsWith("armadura_"))return ARMOR;
    if(key.startsWith("arma_set_"))return WEAPONS;
@@ -57,7 +61,8 @@ final class RaresMenu implements CommandExecutor, Listener {
   List<ShapedRecipe> out=new ArrayList<>();
   Bukkit.recipeIterator().forEachRemaining(recipe->{
    if(recipe instanceof ShapedRecipe shaped&&shaped.getKey().getNamespace().equals("cazajefes")
-       &&RecipePresentation.visible(shaped.getKey().getKey()))out.add(shaped);
+       &&RecipePresentation.visible(shaped.getKey().getKey())
+       &&CraftAvailability.allowed(shaped.getKey().getKey(),shaped.getResult().getType()))out.add(shaped);
   });
   out.sort(Comparator.comparing(recipe->net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
       .plainText().serialize(recipe.getResult().effectiveName()),String.CASE_INSENSITIVE_ORDER));
@@ -144,11 +149,11 @@ final class RaresMenu implements CommandExecutor, Listener {
    inventory.setItem(entry.getKey(),PremiumStyle.tile(category.icon,settings.label(category),NamedTextColor.AQUA,true,
        RecipePresentation.description(category),count+" recetas · Clic para explorar."));
   }
-  inventory.setItem(45,PremiumStyle.tile(Material.BOOK,"Todas las recetas",NamedTextColor.AQUA,false,"Explora el recetario completo."));
+  inventory.setItem(45,PremiumStyle.tile(Material.BOOK,"Guía de esencias",NamedTextColor.AQUA,false,"Aprende a mejorar tu equipo."));
   inventory.setItem(47,PremiumStyle.tile(Material.ECHO_SHARD,"Guía de materiales",NamedTextColor.AQUA,false,"Consulta cómo conseguir los materiales."));
   inventory.setItem(49,PremiumStyle.tile(Material.EMERALD,"Mercado de la Grieta",NamedTextColor.GOLD,true,"Intercambia tus tributos y sellos."));
   inventory.setItem(51,PremiumStyle.tile(Material.HEART_OF_THE_SEA,"Corazones de jefe",NamedTextColor.AQUA,false,"Descubre los trofeos más difíciles de conseguir."));
-  inventory.setItem(53,PremiumStyle.tile(Material.NETHERITE_AXE,settings.label(Category.PVP),NamedTextColor.AQUA,false,"Equipo especial para combatir."));
+  inventory.setItem(53,PremiumStyle.tile(Material.NETHERITE_CHESTPLATE,settings.label(Category.PVP),NamedTextColor.AQUA,false,"Cuatro piezas especiales para resistir en PvP."));
  }
  private void list(Menu menu,List<ShapedRecipe> recipes,int pageSize,int pages,String section) {
   Inventory inventory=menu.inventory;
@@ -188,7 +193,9 @@ final class RaresMenu implements CommandExecutor, Listener {
       "Consume los ingredientes al confirmar.","Necesitas espacio para recibir el resultado.",
       menu.category==Category.PVP?"La pieza base también se consume.":"Clic para fabricar una receta."));
   String key=recipe.getKey().getKey();
-  if(menu.category==Category.PVP||menu.category==Category.MATERIALS&&key.startsWith("pvp_material_"))
+  String linked=menu.category==Category.PVP?key.replace("pvp_gear_","pvp_material_"):key.replace("pvp_material_","pvp_gear_");
+  if((menu.category==Category.PVP||menu.category==Category.MATERIALS&&key.startsWith("pvp_material_"))
+      &&recipes().stream().anyMatch(candidate->candidate.getKey().getKey().equals(linked)))
    inventory.setItem(43,PremiumStyle.tile(Material.ECHO_SHARD,menu.category==Category.PVP?"Ver su material":"Ver su reliquia",
        NamedTextColor.AQUA,false,"Abre la receta relacionada."));
   back(inventory,"Volver a las recetas");
@@ -202,9 +209,10 @@ final class RaresMenu implements CommandExecutor, Listener {
  }
  private void activate(Player player,Menu menu,int slot) {
   if(menu.category==null) {
-   if(slot==45)open(player,Category.ALL,0,null);else if(slot==47)plugin.trophies.open(player,true,0);
+   if(slot==45)help(player);else if(slot==47)plugin.trophies.open(player,true,0);
    else if(slot==49)plugin.market.open(player);else if(slot==51)plugin.trophies.open(player,false,0);
-   else if(slot==53)groupMenu(player,Category.PVP);else if(menu.categories.containsKey(slot))select(player,menu.categories.get(slot));
+   else if(slot==53)open(player,Category.PVP,0,null);
+   else if(menu.categories.containsKey(slot))select(player,menu.categories.get(slot));
    return;
   }
   if(slot==RecipePresentation.LIST_BACK) {
@@ -227,8 +235,7 @@ final class RaresMenu implements CommandExecutor, Listener {
     String key=menu.detail.getKey().getKey();
     String linked=menu.category==Category.PVP?key.replace("pvp_gear_","pvp_material_"):key.replace("pvp_material_","pvp_gear_");
     recipes().stream().filter(recipe->recipe.getKey().getKey().equals(linked)).findFirst().ifPresent(recipe->
-        open(player,menu.category==Category.PVP?Category.MATERIALS:Category.PVP,0,recipe,null,
-            menu.category==Category.MATERIALS?RareCompatibility.recipe(linked):null));
+        open(player,menu.category==Category.PVP?Category.MATERIALS:Category.PVP,0,recipe,null,null));
    }
   } else if(slot==45&&menu.page>0)open(player,menu.category,menu.page-1,null,menu.rank,menu.group);
   else if(slot==53)open(player,menu.category,menu.page+1,null,menu.rank,menu.group);
@@ -236,8 +243,8 @@ final class RaresMenu implements CommandExecutor, Listener {
   else if(menu.recipes.containsKey(slot))open(player,menu.category,menu.page,menu.recipes.get(slot),menu.rank,menu.group);
  }
  private void select(Player player,Category category) {
-  if(category==Category.ESSENCES||category==Category.PVP)groupMenu(player,category);
-  else if(category==Category.WEAPONS||category==Category.CRYSTALS)rankMenu(player,category);
+  if(category==Category.ESSENCES)groupMenu(player,category);
+  else if(category==Category.CRYSTALS)rankMenu(player,category);
   else open(player,category,0,null);
  }
  @EventHandler public void drag(InventoryDragEvent event) {
@@ -245,7 +252,7 @@ final class RaresMenu implements CommandExecutor, Listener {
  }
  private void craft(Player player,ShapedRecipe shown){
   if(!player.hasPermission("rareitemhunter.hunter.craft")){player.sendMessage("No tienes permiso para fabricar.");return;}
-  if(!RecipePresentation.visible(shown.getKey().getKey())||!(Bukkit.getRecipe(shown.getKey()) instanceof ShapedRecipe recipe)){player.closeInventory();return;}
+  if(!RecipePresentation.visible(shown.getKey().getKey())||!(Bukkit.getRecipe(shown.getKey()) instanceof ShapedRecipe recipe)||!CraftAvailability.allowed(recipe.getKey().getKey(),recipe.getResult().getType())){player.closeInventory();return;}
   items.migrateCurrencies(player);ItemStack[] original=player.getInventory().getStorageContents();ItemStack[] planned=Arrays.stream(original).map(i->i==null?null:i.clone()).toArray(ItemStack[]::new);
   Map<Character,RecipeChoice> choices=recipe.getChoiceMap();List<RecipeChoice> costs=new ArrayList<>();for(String row:recipe.getShape())for(char symbol:row.toCharArray())if(choices.get(symbol)!=null)costs.add(choices.get(symbol));costs.sort(Comparator.comparingInt(c->c instanceof RecipeChoice.ExactChoice?0:1));
   List<java.util.function.IntPredicate> requirements=new ArrayList<>();for(RecipeChoice choice:costs)requirements.add(slot->original[slot]!=null&&choice.test(original[slot])&&(!(choice instanceof RecipeChoice.MaterialChoice)||items.customId(original[slot])==null));

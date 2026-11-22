@@ -354,14 +354,6 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       var1.add(new CazaJefesCommand.TradeOffer(this.items.primordialEssence(), 8, 3, "Esencia Primordial"));
       var1.add(new CazaJefesCommand.TradeOffer(this.items.abyssalEssence(), 20, 8, "Esencia Abisal"));
       var1.add(new CazaJefesCommand.TradeOffer(this.items.amulet(), 32, 0, "Amuleto del Coloso"));
-      int var2 = 0;
-
-      for (String var4 : this.items.rareIds()) {
-         ItemStack var5 = this.items.rare(var4);
-         var1.add(new CazaJefesCommand.TradeOffer(var5, 7 + var2 * 2, 2 + var2, var4));
-         var2++;
-      }
-
       for (String var10 : this.items.catalogIds().stream().distinct().toList()) {
          if (this.items.rareBook(var10) != null) {
             boolean var12 = this.items.spellIds().contains(var10);
@@ -387,18 +379,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
                );
             }
 
-            for (int var15 = 0; var15 < 2; var15++) {
-               var1.add(
-                  new CazaJefesCommand.TradeOffer(
-                     this.items.craftedWeapon(var13.id(), var15),
-                     var11.fragments(),
-                     var11.tributes(),
-                     "componente_",
-                     var11.cores(),
-                     (var15 == 0 ? "Espada" : "Hacha") + " de rango " + var11.display()
-                  )
-               );
-            }
+
          }
       }
 
@@ -490,75 +471,13 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
       ItemStack var6 = this.items.riftMaterialForRecipe(3);
       var1.add(
          new CazaJefesCommand.VisualRecipe(
-            "hacha_sismica",
-            "Hacha Sísmica",
-            this.items.rare("hacha_sismica"),
-            this.items.rare("hacha_sismica"),
-            new String[]{"GMP", " NB", " S "},
-            Map.of('G', var3, 'M', var2, 'P', var4, 'N', new ItemStack(Material.NETHERITE_INGOT), 'B', var6, 'S', new ItemStack(Material.STICK))
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "espada_brezal",
-            "Espada del Brezal",
-            this.items.rare("espada_brezal"),
-            this.items.rare("espada_brezal"),
-            new String[]{" P ", "NMB", " F "},
-            Map.of('P', var5, 'N', new ItemStack(Material.NETHERITE_INGOT), 'M', var2, 'B', var6, 'F', this.items.fragment(1))
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "arco_ceniciento",
-            "Arco Ceniciento",
-            this.items.rare("arco_ceniciento"),
-            this.items.rare("arco_ceniciento"),
-            new String[]{"PFB", "M B", "PFB"},
-            Map.of('P', var4, 'F', this.items.fragment(1), 'B', var6, 'M', var2)
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "lanza_magma",
-            "Lanza de Magma",
-            this.items.rare("lanza_magma"),
-            this.items.rare("lanza_magma"),
-            new String[]{" P ", "MFB", " T "},
-            Map.of('P', var5, 'M', var2, 'F', this.items.fragment(1), 'B', var6, 'T', this.items.tribute("Cazador"))
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
-            "mandoble_vacio",
-            "Mandoble del Vacío",
-            this.items.rare("mandoble_vacio"),
-            this.items.rare("mandoble_vacio"),
-            new String[]{"HAN", "MFM", " T "},
-            Map.of(
-               'H',
-               var5,
-               'A',
-               this.items.abyssalEssenceFromBoss(),
-               'N',
-               new ItemStack(Material.NETHERITE_INGOT),
-               'M',
-               var2,
-               'F',
-               this.items.fragment(1),
-               'T',
-               this.items.tribute("Cazador")
-            )
-         )
-      );
-      var1.add(
-         new CazaJefesCommand.VisualRecipe(
             "brujula_caza",
             "Brújula de Caza",
             this.items.compass(),
             this.items.compass(),
-            new String[]{" M ", "MCM", " M "},
-            Map.of('M', this.items.essence(), 'C', new ItemStack(Material.COMPASS))
+            CompassRecipe.shape(),
+            Map.of('F',this.items.fragment(1),'D',new ItemStack(Material.DIAMOND),'E',new ItemStack(Material.EMERALD),
+               'I',new ItemStack(Material.IRON_INGOT),'R',new ItemStack(Material.REDSTONE),'C',new ItemStack(Material.COMPASS))
          )
       );
       var1.add(
@@ -591,39 +510,6 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             Map.of('P', this.items.primordialEssence(), 'T', this.items.tribute("Cazador"), 'N', new ItemStack(Material.NETHER_STAR))
          )
       );
-
-      for (CazaJefesCommand.GearTierSpec var8 : this.gearTierSpecs()) {
-         BossCatalog.Definition var9 = this.firstBoss(var8.tier());
-         if (var9 != null) {
-            for (int var10 = 0; var10 < 4; var10++) {
-               ItemStack var11 = this.items.craftedArmor(var9.id(), var10);
-               var1.add(
-                  new CazaJefesCommand.VisualRecipe(
-                     "tradegear:" + var8.key() + ":armor:" + var10,
-                     this.armorSlotName(var10) + " de " + var8.display(),
-                     var11,
-                     var11,
-                     new String[]{"   ", "   ", "   "},
-                     Map.of()
-                  )
-               );
-            }
-
-            for (int var18 = 0; var18 < 2; var18++) {
-               ItemStack var20 = this.items.craftedWeapon(var9.id(), var18);
-               var1.add(
-                  new CazaJefesCommand.VisualRecipe(
-                     "tradegear:" + var8.key() + ":weapon:" + var18,
-                     (var18 == 0 ? "Espada" : "Hacha") + " de rango " + var8.display(),
-                     var20,
-                     var20,
-                     new String[]{"   ", "   ", "   "},
-                     Map.of()
-                  )
-               );
-            }
-         }
-      }
 
       for (String var16 : this.items.catalogIds().stream().distinct().toList()) {
          ItemStack var17 = this.items.rareBook(var16, 1);
