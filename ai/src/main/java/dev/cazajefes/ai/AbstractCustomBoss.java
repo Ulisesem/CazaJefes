@@ -1,7 +1,9 @@
 package dev.cazajefes.ai;
 
 import dev.cazajefes.ai.visual.BossVisuals;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.entity.LivingEntity;
@@ -15,8 +17,9 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     private final Map<String,Long> ready=new HashMap<>();
     private final BehaviorTracker behaviorTracker=new BehaviorTracker();
     private BossState state=BossState.IDLE;
-    private Player target;
-    private Player lastTarget;
+    private final List<Player> targets=new ArrayList<>();
+    private int targetIndex=0;
+    private long nextTargetSwitch=0;
     private boolean closed;
     private BossAttack pending;
     private BossAttack requested;
@@ -37,7 +40,13 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     @Override public final BossProfile profile(){return profile;}
     @Override public final BossEnvironment environment(){return environment;}
     @Override public final BossState state(){return state;}
-    @Override public final Player target(){return target;}
+    @Override public final Player target(){
+        if(targets.isEmpty())return null;
+        return targets.get(targetIndex);
+    }
+    
+    /** Return the number of active targets tracked by this boss. */
+    int targetCount(){return targets.size();}
 
     /** Package-private access for BossManager to clean up behavior profiles when a player quits. */
     BehaviorTracker getBehaviorTracker(){return behaviorTracker;}
@@ -46,7 +55,8 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(!canRequest(player)||tick<specialUntil)return false;
         var signature=start.get();
         if(signature==null)return false;
-        target=player;
+        if(!targets.contains(player))targets.add(player);
+        targetIndex=targets.indexOf(player);
         motion=signature;
         specialMotion=true;
         state=BossState.ATTACKING;
@@ -64,7 +74,8 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         for(var attack:profile.attacks()){
             if(attack.id().equals(id)&&available(attack)&&attack.weight()>0&&tick>=ready.getOrDefault(id,0L)
                 &&attack.inRange(this,player,Math.sqrt(distance))){
-                target=player;
+                if(!targets.contains(player))targets.add(player);
+                targetIndex=targets.indexOf(player);
                 requested=attack;
                 return true;
             }
@@ -76,14 +87,16 @@ public abstract class AbstractCustomBoss implements CustomBoss {
         if(closed)return;
         this.tick=tick;
         if(tick%5==0){
-            if(pending==null&&motion==null&&requested==null&&!environment.validTarget(this,target)){
-                // Forget behavior of previous target when switching
-                if(lastTarget!=null&&target!=null&&lastTarget!=target)behaviorTracker.forget(lastTarget);
-                target=environment.acquire(this);
-                lastTarget=target;
+            // Refresh all targets periodically
+            refreshTargets();
+            // Rotate to next target after the interval
+            if(targets.size()>1&&tick>=nextTargetSwitch){
+                targetIndex=(targetIndex+1)%targets.size();
+                nextTargetSwitch=tick+160; // Switch every 8 seconds (160 ticks)
             }
             // Observe current target behavior for adaptive AI
-            if(target!=null)behaviorTracker.observe(this,target);
+            Player current=target();
+            if(current!=null)behaviorTracker.observe(this,current);
             environment.heartbeat(this);
         }
         if(tick<stunnedUntil){
@@ -91,71 +104,73 @@ public abstract class AbstractCustomBoss implements CustomBoss {
             move(null,false);
         }else if(pending!=null||motion!=null){
             state=BossState.ATTACKING;
-            if(!environment.validTarget(this,target)){
+            Player current=target();
+            if(current==null||!environment.validTarget(this,current)){
                 finish();
-                if(target!=null)behaviorTracker.forget(target);
-                lastTarget=null;
-                target=null;
+                for(var t:targets)behaviorTracker.forget(t);
+                targets.clear();
+                targetIndex=0;
             }else if(pending!=null&&tick>=releaseAt){
                 var attack=pending;
                 pending=null;
                 ready.put(attack.id(),tick+attack.cooldown());
                 environment.release(this,attack);
                 specialMotion=attack.special();
-                motion=attack.execute(this,target);
+                motion=attack.execute(this,target());
             }else if(motion!=null&&motion.tick()){
                 finish();
             }
-            move(target,motion!=null&&motion.mobile()||mobileWindup());
-        }else if(!environment.validTarget(this,target)){
-            if(target!=null)behaviorTracker.forget(target);
-            lastTarget=null;
-            target=null;
+            move(target(),motion!=null&&motion.mobile()||mobileWindup());
+        }else if(targets.isEmpty()){
+            for(var t:targets)behaviorTracker.forget(t);
+            targets.clear();
+            targetIndex=0;
             requested=null;
             state=BossState.IDLE;
             move(null,false);
         }else{
-            double distanceSquared=body.getLocation().distanceSquared(target.getLocation());
+            Player current=target();
+            double distanceSquared=body.getLocation().distanceSquared(current.getLocation());
             double distance=Math.sqrt(distanceSquared);
             boolean free=tick>=gcdUntil&&!environment.occupied(this);
             BossAttack choice=requested;
             requested=null;
-            if(choice!=null&&(!free||!choice.inRange(this,target,distance)))choice=null;
+            if(choice!=null&&(!free||!choice.inRange(this,current,distance)))choice=null;
             
             // Detect player behavior for adaptive attack selection
-            BehaviorTracker.PlayerBehavior behavior=target!=null?behaviorTracker.getBehavior(target):BehaviorTracker.PlayerBehavior.NEUTRAL;
+            BehaviorTracker.PlayerBehavior behavior=current!=null?behaviorTracker.getBehavior(current):BehaviorTracker.PlayerBehavior.NEUTRAL;
             
             // Apply magnetism pull if configured
             int currentPhase=environment.phase(this);
-            applyMagnetism(target,behavior,currentPhase);
+            applyMagnetism(current,behavior,currentPhase);
             
             // First try melee sweep if in range (basic attacks have priority)
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
-                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&attack.inRange(this,target,distance),
+                attack->attack instanceof dev.cazajefes.ai.attack.MeleeSweep&&attack.inRange(this,current,distance),
                 behavior);
             // Try signature attack from environment (legacy integration)
-            if(free&&choice==null&&tick>=specialUntil)motion=environment.signature(this,target);
+            if(free&&choice==null&&tick>=specialUntil)motion=environment.signature(this,current);
             if(motion!=null){
                 specialMotion=true;
                 state=BossState.ATTACKING;
-                move(target,motion.mobile());
+                move(current,motion.mobile());
                 view.move(body.getLocation());
                 return;
             }
             // Choose special attack adapted to player behavior
             if(free&&choice==null)choice=DecisionMaker.choose(profile.attacks(),tick,
                 id->ready.getOrDefault(id,0L),ThreadLocalRandom.current(),
-                attack->available(attack)&&attack.inRange(this,target,distance),behavior);
+                attack->available(attack)&&attack.inRange(this,current,distance),behavior);
             if(choice==null){
                 state=BossState.MOVING;
-                move(target,true);
+                move(current,true);
             }else{
                 pending=choice;
                 releaseAt=tick+choice.warningTicks();
                 state=BossState.ATTACKING;
-                environment.warning(this,target,choice,choice.warningTicks());
-                move(target,mobileWindup());
+                environment.warning(this,current,choice,choice.warningTicks());
+                move(current,mobileWindup());
             }
         }
         if(!closed)view.move(body.getLocation());
@@ -176,6 +191,32 @@ public abstract class AbstractCustomBoss implements CustomBoss {
      */
     protected void applyMagnetism(Player target,BehaviorTracker.PlayerBehavior behavior,int phase){
         // No-op by default; KinematicBoss overrides this
+    }
+    
+    /** Refresh the list of nearby eligible players. Called every 5 ticks. */
+    private void refreshTargets(){
+        double range=profile.detectionRange();
+        var at=body.getLocation();
+        var newTargets=new ArrayList<Player>();
+        for(var player:body.getWorld().getNearbyPlayers(at,range)){
+            if(environment.validTarget(this,player)){
+                newTargets.add(player);
+            }
+        }
+        // Remove players no longer valid
+        targets.removeIf(t->!newTargets.contains(t));
+        // Add new players
+        for(var player:newTargets){
+            if(!targets.contains(player)){
+                targets.add(player);
+            }
+        }
+        // Ensure index is valid
+        if(targets.isEmpty()){
+            targetIndex=0;
+        }else if(targetIndex>=targets.size()){
+            targetIndex=0;
+        }
     }
 
     @Override public final boolean canStartSpecial(){

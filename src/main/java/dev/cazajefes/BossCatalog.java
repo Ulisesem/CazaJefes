@@ -47,12 +47,12 @@ public final class BossCatalog {
    }
 
    public static enum Tier {
-      COMMON("Común", NamedTextColor.GRAY, 1.3, 700.0, 22.0),
-      RARE("Raro", NamedTextColor.GREEN, 1.6, 1100.0, 32.0),
-      EPIC("Épico", NamedTextColor.LIGHT_PURPLE, 2.0, 1700.0, 44.0),
-      LEGENDARY("Legendario", NamedTextColor.GOLD, 2.5, 2500.0, 60.0),
-      MYTHIC("Mítico", NamedTextColor.DARK_PURPLE, 3.1, 3600.0, 82.0),
-      ABYSSAL("Abismal", NamedTextColor.DARK_RED, 4.0, 5200.0, 110.0);
+      COMMON("Común", NamedTextColor.GRAY, 2.0, 700.0, 22.0),
+      RARE("Raro", NamedTextColor.GREEN, 2.5, 1100.0, 32.0),
+      EPIC("Épico", NamedTextColor.LIGHT_PURPLE, 3.1, 1700.0, 44.0),
+      LEGENDARY("Legendario", NamedTextColor.GOLD, 3.8, 2500.0, 60.0),
+      MYTHIC("Mítico", NamedTextColor.DARK_PURPLE, 4.6, 3600.0, 82.0),
+      ABYSSAL("Abismal", NamedTextColor.DARK_RED, 5.8, 5200.0, 110.0);
 
       public final String display;
       public final NamedTextColor color;
