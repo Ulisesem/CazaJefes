@@ -17,7 +17,6 @@ smelt: { useCost: 1, maxLvl: 1, cooldownSeconds: 0 }
 spore: { useCost: 1, maxLvl: 1, cooldownSeconds: 0 }
 veinminer: { useCost: 1, maxLvl: 3, cooldownSeconds: 0 }
 treefeller: { useCost: 1, maxLvl: 3, cooldownSeconds: 0 }
-burst: { useCost: 2, maxLvl: 5, cooldownSeconds: 20 }
 craftitem: { useCost: 1, maxLvl: 1, cooldownSeconds: 5 }
 fireresistance: { useCost: 6, maxLvl: 5, cooldownSeconds: 30 }
 greaterburst: { useCost: 4, maxLvl: 3, cooldownSeconds: 30 }

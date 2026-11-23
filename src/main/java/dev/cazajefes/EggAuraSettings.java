@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.util.Vector;
 
-/** Three bounded orbital rings share one particle allowance, rather than one allowance each. */
+/** Animated spherical shell with a bounded particle allowance. */
 record EggAuraSettings(List<Double> radii, int points, double ringHeight, double ringSpacing) {
  record Dot(Vector offset, int ring, int index) {}
  static EggAuraSettings read(JsonObject json) {
@@ -18,25 +18,22 @@ record EggAuraSettings(List<Double> radii, int points, double ringHeight, double
         &&edited.get(0)<edited.get(1)&&edited.get(1)<edited.get(2))radii=new ArrayList<>(edited);
    }
   }catch(RuntimeException invalid){/* Keep all three valid default rings together. */}
+  if(json.has("radius")){double radius=BossTuning.number(json,"radius",3,.5,6);radii=new ArrayList<>(List.of(radius/3,radius*2/3,radius));}
   return new EggAuraSettings(List.copyOf(radii),(int)BossTuning.number(json,"points",48,24,64),
       BossTuning.number(json,"ringHeight",.12,0,3),BossTuning.number(json,"ringSpacing",.16,0,1));
  }
  List<Dot> dots(double angle) {
-  var out=new ArrayList<Dot>(points);double sum=radii.stream().mapToDouble(Double::doubleValue).sum();int used=0;
-  for(int ring=0;ring<3;ring++) {
-   int count=ring==2?points-used:Math.max(4,(int)Math.round(points*radii.get(ring)/sum));
-   count=Math.min(count,points-used-(2-ring)*4);used+=count;
-   double rotation=(ring%2==0?1:-1)*angle*(1+.15*ring),radius=radii.get(ring);
-   for(int index=0;index<count;index++) {
-    double a=rotation+2*Math.PI*index/count;
-    out.add(new Dot(new Vector(Math.cos(a)*radius,ringHeight+ringSpacing*ring,Math.sin(a)*radius),ring,index));
-   }
-  }
-  return out;
+  var out=new ArrayList<Dot>(points);double radius=radii.get(2);
+  for(int i=0;i<points;i++){
+   double y=1-2*(i+.5)/points,radial=Math.sqrt(1-y*y),a=i*2.399963229728653+angle;
+   double x=Math.cos(a)*radial,z=Math.sin(a)*radial;
+   double tilt=.25*Math.sin(angle*.7),yy=y*Math.cos(tilt)-z*Math.sin(tilt),zz=y*Math.sin(tilt)+z*Math.cos(tilt);
+   out.add(new Dot(new Vector(radius*x,.5+radius*yy,radius*zz),0,i));
+  }return out;
  }
  static JsonObject defaults() {
   var json=new JsonObject();var rings=new com.google.gson.JsonArray();for(int radius=1;radius<=3;radius++)rings.add(radius);
-  json.add("radii",rings);json.addProperty("points",48);json.addProperty("ringHeight",.12);json.addProperty("ringSpacing",.16);
-  json.addProperty("removeGeneratedPedestal",true);return json;
+  json.addProperty("shape","SPHERE");json.addProperty("radius",3);json.addProperty("points",48);
+  json.addProperty("primaryColor","#0C0014");json.addProperty("accentColor","#AF23F5");json.addProperty("particleSize",.65);json.addProperty("rotationSpeed",1);json.addProperty("removeGeneratedPedestal",true);return json;
  }
 }

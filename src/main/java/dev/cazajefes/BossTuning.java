@@ -5,6 +5,7 @@ final class BossTuning {
  static JsonObject section(BossCatalog.Definition boss,String name){var root=boss.custom().options().json();return root.has(name)&&root.get(name).isJsonObject()?root.getAsJsonObject(name):new JsonObject();}
  static double number(JsonObject json,String key,double fallback,double min,double max){try{double value=json.has(key)?json.get(key).getAsDouble():fallback;return Double.isFinite(value)?Math.clamp(value,min,max):fallback;}catch(RuntimeException ex){return fallback;}}
  static boolean flag(JsonObject json,String key,boolean fallback){try{return json.has(key)?json.get(key).getAsBoolean():fallback;}catch(RuntimeException ex){return fallback;}}
+ static org.bukkit.Color color(JsonObject json,String key,org.bukkit.Color fallback){try{return org.bukkit.Color.fromRGB(Integer.parseInt(json.get(key).getAsString().replace("#",""),16));}catch(RuntimeException invalid){return fallback;}}
  static JsonObject mobilityDefaults(){var j=new JsonObject();j.addProperty("pursueFlyingPlayers",false);j.addProperty("climbSpeed",.35);j.addProperty("climbRange",6);j.addProperty("waterWalking",true);return j;}
  static JsonObject eggDefaults(){return EggAuraSettings.defaults();}
  /** Add only missing options; keep every administrator override and attack definition. */
@@ -16,6 +17,10 @@ final class BossTuning {
   changed|=merge(combat,"mobility",mobilityDefaults());
   if(combat.has("eggParticles")&&combat.get("eggParticles").isJsonObject()){
    var old=combat.getAsJsonObject("eggParticles");
+   if(!old.has("shape")&&old.has("radii")){old.addProperty("radius",EggAuraSettings.read(old.deepCopy().getAsJsonObject()).radii().get(2));
+    try{old.addProperty("radius",old.getAsJsonArray("radii").get(2).getAsDouble());}catch(RuntimeException ignored){}
+    old.addProperty("shape","SPHERE");changed=true;
+   }
    if(!old.has("radii")&&old.has("points")&&number(old,"points",48,24,64)==32){old.addProperty("points",48);changed=true;}
   }
   changed|=merge(combat,"eggParticles",eggDefaults());

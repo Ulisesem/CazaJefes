@@ -14,5 +14,5 @@ public class StormAndMarketTest {
   assertArrayEquals(new int[]{0,6,0,3},CraftPlan.remaining(source,costs));assertArrayEquals(new int[]{40,30,8,3},source);
  }
  @Test public void failedSigilPurchaseKeepsAllCurrencies(){int[] source={3,8};List<IntPredicate> costs=List.of(i->i==0,i->i==0,i->i==0,i->i==0);assertNull(CraftPlan.remaining(source,costs));assertArrayEquals(new int[]{3,8},source);}
- @Test public void marketHasSixDistinctDepartments(){assertEquals(6,MarketMenu.Section.values().length);assertEquals(6,Arrays.stream(MarketMenu.Section.values()).map(s->s.title).distinct().count());}
+ @Test public void marketOnlyHasRebirth(){assertEquals(1,MarketMenu.Section.values().length);assertEquals(1,Arrays.stream(MarketMenu.Section.values()).map(s->s.title).distinct().count());}
 }

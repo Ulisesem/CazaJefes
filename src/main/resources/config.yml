@@ -63,3 +63,36 @@ messages:
 # Idioma de los avisos, menús y combate del plugin.
 language:
   force-spanish: true
+
+# Presentación y libros; recargar con /ri reload.
+presentation:
+  sanctuary:
+    title: Santuario del Renacer
+    pane: BLUE_STAINED_GLASS_PANE
+    sigil-slot: 21
+    amulet-slot: 23
+  greaterburst:
+    stars: 32
+    frames: 2
+    period-ticks: 4
+    star-size: 0.045
+    particle-size: 0.35
+    expansion: 0.18
+books:
+  sharing:
+    enabled: true
+    range: 24
+    targeting-width: 0.65
+    sender-message: 'Has dado {effect} a {player}.'
+    receiver-message: 'Has recibido {effect} de {player}.'
+  greaterburst:
+    radius-base: 5
+    radius-per-level: 2
+    force-base: 1.25
+    force-per-level: 0.35
+    lift-base: 0.65
+    lift-per-level: 0.18
+  invisibility:
+    duration-ticks: 1200
+  fireresistance:
+    duration-per-level-ticks: 900

@@ -93,12 +93,12 @@ final class CinematicFX {
          case "fireresistance" -> Color.ORANGE;
          case "invisibility" -> Color.fromRGB(186, 119, 240);
          case "repairitem" -> Color.AQUA;
-         case "burst", "greaterburst" -> Color.WHITE;
+         case "greaterburst" -> Color.WHITE;
          default -> Color.fromRGB(223, 133, 255);
       };
       Location at = recipient.getLocation();
       var viewers = audience(at, 24);
-      if (!id.equals("burst") && !id.equals("greaterburst")) {
+      if (!id.equals("greaterburst")) {
          ring(at, viewers, .86, 0, 10, primary, Color.WHITE);
          ring(at.clone().add(0, 1.1, 0), viewers, .55, .3, 8, primary, Color.WHITE);
       }

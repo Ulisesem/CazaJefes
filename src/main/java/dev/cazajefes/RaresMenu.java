@@ -132,6 +132,7 @@ final class RaresMenu implements CommandExecutor, Listener {
   List<ShapedRecipe> list=recipes().stream().filter(recipe->category==null||category.matches(recipe.getKey().getKey()))
       .filter(recipe->rank==null||EquipmentSets.tier(items.customId(recipe.getResult()))==rank)
       .filter(recipe->group==null||RareCompatibility.recipeInGroup(recipe.getKey().getKey(),group)).toList();
+  if(category==Category.MATERIALS){list=new ArrayList<>(list);list.sort(Comparator.comparingInt((ShapedRecipe recipe)->materialOrder(recipe.getKey().getKey())).thenComparing(recipe->net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(recipe.getResult().effectiveName()),String.CASE_INSENSITIVE_ORDER));}
   int pageSize=settings.layout().pageSize(),pages=RecipePresentation.pages(list.size(),pageSize);
   page=Math.max(0,Math.min(page,pages-1));Menu menu=new Menu(category,page,detail);menu.rank=rank;menu.group=group;
   String section=group!=null?group.title:rank!=null?rank.display:category==null?settings.layout().title():settings.label(category);
@@ -139,6 +140,7 @@ final class RaresMenu implements CommandExecutor, Listener {
   if(category==null)home(menu,list);else if(detail==null)list(menu,list,pageSize,pages,section);else detail(menu);
   player.openInventory(inventory);
  }
+ private int materialOrder(String key){String group=key.startsWith("esencia_")?"catalysts":key.startsWith("pvp_material_")?"defense":key.startsWith("ranged_material_")?"projectiles":"other";return settings.layout().materialOrder().indexOf(group);}
  private void home(Menu menu,List<ShapedRecipe> list) {
   Inventory inventory=menu.inventory;
   inventory.setItem(4,PremiumStyle.tile(Material.ENCHANTING_TABLE,settings.layout().title(),NamedTextColor.AQUA,true,
@@ -151,7 +153,7 @@ final class RaresMenu implements CommandExecutor, Listener {
   }
   inventory.setItem(45,PremiumStyle.tile(Material.BOOK,"Guía de esencias",NamedTextColor.AQUA,false,"Aprende a mejorar tu equipo."));
   inventory.setItem(47,PremiumStyle.tile(Material.ECHO_SHARD,"Guía de materiales",NamedTextColor.AQUA,false,"Consulta cómo conseguir los materiales."));
-  inventory.setItem(49,PremiumStyle.tile(Material.EMERALD,"Mercado de la Grieta",NamedTextColor.GOLD,true,"Intercambia tus tributos y sellos."));
+  inventory.setItem(49,PremiumStyle.tile(Material.EMERALD,"Santuario del Renacer",NamedTextColor.GOLD,true,"Sello del Renacido y Amuleto del Fénix."));
   inventory.setItem(51,PremiumStyle.tile(Material.HEART_OF_THE_SEA,"Corazones de jefe",NamedTextColor.AQUA,false,"Descubre los trofeos más difíciles de conseguir."));
   inventory.setItem(53,PremiumStyle.tile(Material.NETHERITE_CHESTPLATE,settings.label(Category.PVP),NamedTextColor.AQUA,false,"Cuatro piezas especiales para resistir en PvP."));
  }

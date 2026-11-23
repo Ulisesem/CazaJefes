@@ -10,10 +10,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 final class MarketMenu implements CommandExecutor,Listener {
- private final CazaJefesPlugin plugin;private final RelicItems items;private final CazaJefesCommand catalog;
- MarketMenu(CazaJefesPlugin p,RelicItems items,CazaJefesCommand catalog){plugin=p;this.items=items;this.catalog=catalog;}
+ private final CazaJefesPlugin plugin;private final RelicItems items;
+ MarketMenu(CazaJefesPlugin p,RelicItems items,CazaJefesCommand catalog){plugin=p;this.items=items;}
  enum Section {
-  REBIRTH("Santuario del Renacer",Material.TOTEM_OF_UNDYING),MATERIALS("Bazar de materiales",Material.PRISMARINE_CRYSTALS),WEAPONS("Armería de la Grieta",Material.NETHERITE_SWORD),ARMOR("Salón de armaduras",Material.NETHERITE_CHESTPLATE),INFUSIONS("Cámara de infusiones",Material.MAGMA_CREAM),SPELLS("Archivo de grimorios",Material.ENCHANTED_BOOK);
+  REBIRTH("Santuario del Renacer",Material.TOTEM_OF_UNDYING);
   final String title;final Material icon;Section(String title,Material icon){this.title=title;this.icon=icon;}
  }
  record Cost(String prefix,boolean exact,int amount,String label){}
@@ -23,7 +23,7 @@ final class MarketMenu implements CommandExecutor,Listener {
   View(Section section,int page,Offer offer){this.section=section;this.page=page;this.offer=offer;}public Inventory getInventory(){return inventory;}
  }
  public boolean onCommand(CommandSender sender,Command command,String label,String[] args){if(sender instanceof Player p)open(p);else sender.sendMessage("Abre el mercado dentro del juego.");return true;}
- void open(Player player){show(player,null,0,null);}
+ void open(Player player){show(player,Section.REBIRTH,0,null);}
  private List<Offer> offers(){
   List<Offer> offers=new ArrayList<>();
   int fragments=MarketRules.sigilFragments(plugin.getConfig().getInt("market.sigil-fragments",64));
@@ -32,15 +32,7 @@ final class MarketMenu implements CommandExecutor,Listener {
   offers.add(new Offer(items.colossusSigil(),List.of(new Cost("fragmento_grieta",true,fragments,"Fragmentos de Tributo")),Section.REBIRTH));
   List<Cost> amuletCost=new ArrayList<>();amuletCost.add(new Cost("sello_coloso",true,sigils,"Sellos del Renacido"));if(tributes>0)amuletCost.add(new Cost("tributo_grieta",true,tributes,"Tributos del Cazador"));
   offers.add(new Offer(items.amulet(),List.copyOf(amuletCost),Section.REBIRTH));
-  for(var original:catalog.createTradeOffers()){
-   String id=items.customId(original.reward());if("amuleto_coloso".equals(id))continue;
-   List<Cost> costs=new ArrayList<>();if(original.fragments()>0)costs.add(new Cost("fragmento_grieta",true,original.fragments(),"Fragmentos de Tributo"));
-   if(original.tributes()>0)costs.add(new Cost("tributo_",false,original.tributes(),"Tributos del Cazador"));
-   if(original.itemAmount()>0)costs.add(new Cost(original.itemPrefix(),false,original.itemAmount(),"Núcleos de boss"));
-   String property=items.propertyId(original.reward());Section section=property!=null?(items.spellIds().contains(property)?Section.SPELLS:Section.INFUSIONS)
-     :id!=null&&id.startsWith("armadura_")?Section.ARMOR:id!=null&&(id.startsWith("arma_")||items.rareIds().contains(id))?Section.WEAPONS:Section.MATERIALS;
-   offers.add(new Offer(original.reward(),List.copyOf(costs),section));
-  }return offers;
+  return offers;
  }
  private String label(ItemStack stack){Component title=stack.getItemMeta().displayName();return title==null?stack.getType().name():PlainTextComponentSerializer.plainText().serialize(title);}
  private ItemStack display(Offer offer){
@@ -51,16 +43,12 @@ final class MarketMenu implements CommandExecutor,Listener {
  private int count(Player p,String id){int count=0;for(ItemStack stack:p.getInventory().getStorageContents())if(id.equals(items.customId(stack)))count+=stack.getAmount();return count;}
  private void show(Player player,Section section,int page,Offer offer){
   items.migrateCurrencies(player);List<Offer> list=offers().stream().filter(o->section==null||o.section==section).toList();int pages=Math.max(1,(list.size()+27)/28);page=Math.max(0,Math.min(page,pages-1));
-  View view=new View(section,page,offer);view.inventory=Bukkit.createInventory(view,54,PremiumStyle.heading(offer!=null?"✦ CONFIRMAR CANJE":section==null?"✦ MERCADO DE LA GRIETA":"✦ "+section.title+" · "+(page+1)+"/"+pages,NamedTextColor.GOLD));Inventory inv=view.inventory;
-  PremiumStyle.frame(inv,section==Section.REBIRTH?Material.ORANGE_STAINED_GLASS_PANE:Material.PURPLE_STAINED_GLASS_PANE);
-  inv.setItem(4,PremiumStyle.tile(section==null?Material.END_CRYSTAL:section.icon,section==null?"✦ EL EMPORIO DE LOS CAZADORES ✦":section.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.GOLD,true,"Elige tu recompensa • revisa su precio","Los canjes requieren espacio y monedas originales"));
-  if(section==null){
-   int[] slots={20,22,24,29,31,33};int i=0;for(Section s:Section.values())inv.setItem(slots[i++],PremiumStyle.tile(s.icon,s.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.AQUA,true,list.stream().filter(o->o.section==s).count()+" ofertas disponibles",s==Section.REBIRTH?"Renacimientos → Sellos → Amuleto del Fénix Astral":"Clic para abrir las ofertas"));
-   inv.setItem(40,PremiumStyle.tile(Material.DISC_FRAGMENT_5,"TU BÓVEDA DE CAZADOR",NamedTextColor.LIGHT_PURPLE,true,"Fragmentos: "+count(player,"fragmento_grieta"),"Tributos: "+count(player,"tributo_grieta"),"Sellos del Renacido: "+count(player,"sello_coloso")));
-   inv.setItem(49,PremiumStyle.tile(Material.ENCHANTING_TABLE,"VISITAR LA FORJA",NamedTextColor.GOLD,true,"Recetas, cristales y materiales","Clic para abrir /rares"));
-  }else if(offer==null){
-   for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){int slot=PremiumStyle.GRID[i-page*28];inv.setItem(slot,display(list.get(i)));view.offers.put(slot,list.get(i));}
-   if(page>0)inv.setItem(45,PremiumStyle.tile(Material.ARROW,"ANTERIOR",NamedTextColor.AQUA,false));if(page+1<pages)inv.setItem(53,PremiumStyle.tile(Material.ARROW,"SIGUIENTE",NamedTextColor.AQUA,false));inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER AL MERCADO",NamedTextColor.GOLD,true));
+  View view=new View(section,page,offer);view.inventory=Bukkit.createInventory(view,54,PremiumStyle.heading(offer!=null?"✦ CONFIRMAR CANJE":section==null?"SANTUARIO DEL RENACER":"✦ "+plugin.getConfig().getString("presentation.sanctuary.title","Santuario del Renacer"),NamedTextColor.GOLD));Inventory inv=view.inventory;
+  Material pane=Material.matchMaterial(plugin.getConfig().getString("presentation.sanctuary.pane","BLUE_STAINED_GLASS_PANE"));RecipePresentation.frame(inv,pane!=null&&pane.name().endsWith("STAINED_GLASS_PANE")?pane:Material.BLUE_STAINED_GLASS_PANE);
+  inv.setItem(4,PremiumStyle.tile(section==null?Material.END_CRYSTAL:section.icon,section==null?"SANTUARIO DEL RENACER":section.title.toUpperCase(java.util.Locale.ROOT),NamedTextColor.GOLD,true,"Elige tu recompensa • revisa su precio","Los canjes requieren espacio y monedas originales"));
+  if(offer==null){
+   for(int i=page*28;i<Math.min(list.size(),(page+1)*28);i++){int slot=FeatureSettings.marketSlots(plugin.getConfig())[i-page*28];inv.setItem(slot,display(list.get(i)));view.offers.put(slot,list.get(i));}
+   if(page>0)inv.setItem(45,PremiumStyle.tile(Material.ARROW,"ANTERIOR",NamedTextColor.AQUA,false));if(page+1<pages)inv.setItem(53,PremiumStyle.tile(Material.ARROW,"SIGUIENTE",NamedTextColor.AQUA,false));inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER A RECETAS",NamedTextColor.GOLD,true));
   }else{
    int[] costs={20,29,38};for(int i=0;i<offer.costs.size();i++){
     Cost cost=offer.costs.get(i);Material icon=cost.prefix.equals("fragmento_grieta")?Material.DISC_FRAGMENT_5:cost.prefix.equals("sello_coloso")?Material.NETHER_STAR:cost.prefix.startsWith("tributo")?Material.EMERALD:Material.ECHO_SHARD;
@@ -92,9 +80,8 @@ final class MarketMenu implements CommandExecutor,Listener {
  @EventHandler public void click(InventoryClickEvent event){
   if(!(event.getView().getTopInventory().getHolder() instanceof View view))return;event.setCancelled(true);int slot=event.getRawSlot();if(!(event.getWhoClicked() instanceof Player player)||!MenuActions.isActivation(event.getClick(),slot,54))return;
   MenuActions.dispatch(plugin,player,view,view.gate,()->{
-   if(view.section==null){if(slot==49){plugin.getServer().dispatchCommand(player,"rares");return;}int[] slots={20,22,24,29,31,33};for(int i=0;i<slots.length;i++)if(slot==slots[i])show(player,Section.values()[i],0,null);}
-   else if(view.offer!=null){if(slot==49)show(player,view.section,view.page,null);else if(slot==40)buy(player,view.offer);}
-   else if(slot==49)open(player);else if(slot==45)show(player,view.section,view.page-1,null);else if(slot==53)show(player,view.section,view.page+1,null);else if(view.offers.containsKey(slot))show(player,view.section,view.page,view.offers.get(slot));
+   if(view.offer!=null){if(slot==49)show(player,view.section,view.page,null);else if(slot==40)buy(player,view.offer);}
+   else if(slot==49)plugin.getServer().dispatchCommand(player,"rares");else if(slot==45)show(player,view.section,view.page-1,null);else if(slot==53)show(player,view.section,view.page+1,null);else if(view.offers.containsKey(slot))show(player,view.section,view.page,view.offers.get(slot));
   });
  }
  @EventHandler public void drag(InventoryDragEvent event){if(event.getView().getTopInventory().getHolder() instanceof View)event.setCancelled(true);}

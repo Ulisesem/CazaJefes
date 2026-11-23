@@ -31,7 +31,6 @@ final class RecipeAlchemy {
   Map.entry("veinminer",new Profile(PotionType.STRENGTH,Material.RAW_IRON,BossCatalog.Tier.EPIC)),
   Map.entry("treefeller",new Profile(PotionType.SWIFTNESS,Material.OAK_LOG,BossCatalog.Tier.RARE)),
   Map.entry("magneto",new Profile(PotionType.SWIFTNESS,Material.IRON_INGOT,BossCatalog.Tier.EPIC)),
-  Map.entry("burst",new Profile(PotionType.STRENGTH,Material.GUNPOWDER,BossCatalog.Tier.RARE)),
   Map.entry("craftitem",new Profile(PotionType.SWIFTNESS,Material.CRAFTING_TABLE,BossCatalog.Tier.RARE)),
   Map.entry("fireresistance",new Profile(PotionType.FIRE_RESISTANCE,Material.MAGMA_CREAM,BossCatalog.Tier.RARE)),
   Map.entry("greaterburst",new Profile(PotionType.STRENGTH,Material.FIRE_CHARGE,BossCatalog.Tier.LEGENDARY)),

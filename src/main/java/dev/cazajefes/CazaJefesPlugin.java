@@ -40,7 +40,7 @@ public final class CazaJefesPlugin extends JavaPlugin {
    ConfiguredText text() { return text; }
 
    public void onEnable() {
-      this.saveDefaultConfig();ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);VisualProviders.load(this);
+      this.saveDefaultConfig();FeatureSettings.install(this);ArenaBoundary.load(this);PrivateWarnings.load(this);PacketBridge.load(this);NbtItems.load(this);BossWarnings.start(this);VisualProviders.load(this);
       ConfigMigration.run(this);terrain=new TerrainRestoration(this);
       getServer().getPluginManager().registerEvents(new BedrockProtection(),this);
       languages = new Languages(this);

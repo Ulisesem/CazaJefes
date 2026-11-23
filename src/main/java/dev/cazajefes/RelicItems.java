@@ -112,7 +112,7 @@ public final class RelicItems implements Listener {
    }
 
    public List<String> spellIds() {
-      return List.of("burst", "craftitem", "fireresistance", "greaterburst", "haste", "invisibility", "magicbag", "repairitem");
+      return List.of("craftitem", "fireresistance", "greaterburst", "haste", "invisibility", "magicbag", "repairitem");
    }
 
    public int maxLevel(String var1) {
@@ -182,7 +182,7 @@ public final class RelicItems implements Listener {
 
    private String spellDescription(String var1) {
       return switch (var1) {
-         case "burst" -> "Al usarlo, empuja hacia atrás a los enemigos cercanos.";
+         
          case "craftitem" -> "Abre una mesa de crafteo portátil.";
          case "fireresistance" -> "Te protege temporalmente del fuego y la lava.";
          case "greaterburst" -> "Desata una onda que repele a varios enemigos.";
@@ -289,13 +289,13 @@ public final class RelicItems implements Listener {
                }
 
                Player var20 = var4;
-               if (var4.isSneaking() && (var3.equals("haste") || var3.equals("invisibility"))) {
+               if (var4.isSneaking() && plugin.getConfig().getBoolean("books.sharing.enabled",true) && (var3.equals("haste") || var3.equals("invisibility") || var3.equals("fireresistance"))) {
                   RayTraceResult var21 = var4.getWorld()
                      .rayTraceEntities(
                         var4.getEyeLocation(),
                         var4.getEyeLocation().getDirection(),
-                        24.0,
-                        0.65,
+                        FeatureSettings.number(plugin.getConfig(),"books.sharing.range",24,1,64),
+                        FeatureSettings.number(plugin.getConfig(),"books.sharing.targeting-width",.65,.1,2),
                         var1x -> var1x instanceof Player var2x && !var2x.getUniqueId().equals(var4.getUniqueId())
                      );
                   if (var21 == null || !(var21.getHitEntity() instanceof Player var9)) {
@@ -323,18 +323,18 @@ public final class RelicItems implements Listener {
                            if(var20!=var4)var4.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,600*var23,Math.min(6,var23-1)));
                            break;
                         case "fireresistance":
-                           var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 900 * var23, 0));
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, RareBalance.ticks("fireresistance",(int)FeatureSettings.number(plugin.getConfig(),"books.fireresistance.duration-per-level-ticks",900,20,72000)*var23), 0));
+                           if(var20!=var4)var4.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE,RareBalance.ticks("fireresistance",(int)FeatureSettings.number(plugin.getConfig(),"books.fireresistance.duration-per-level-ticks",900,20,72000)*var23),0));
                            break;
                         case "invisibility":
-                           var20.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 1200, 0));
-                           if(var20!=var4)var4.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,1200,0));
+                           var20.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, RareBalance.ticks("invisibility",(int)FeatureSettings.number(plugin.getConfig(),"books.invisibility.duration-ticks",1200,20,72000)), 0));
+                           if(var20!=var4)var4.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY,RareBalance.ticks("invisibility",(int)FeatureSettings.number(plugin.getConfig(),"books.invisibility.duration-ticks",1200,20,72000)),0));
                            break;
-                        case "burst":
                         case "greaterburst":
-                           double var25 = (var3.equals("burst") ? 3 : 5) + var23 * 2;
+                           double var25 = FeatureSettings.number(plugin.getConfig(),"books.greaterburst.radius-base",5,0,32)+var23*FeatureSettings.number(plugin.getConfig(),"books.greaterburst.radius-per-level",2,0,10);
 
                            ((CazaJefesPlugin)plugin).burstLaunch.wave(var4,var25,
-                              (var3.equals("burst")?1:1.25)+var23*.35,.65+var23*.18,false);
+                              FeatureSettings.number(plugin.getConfig(),"books.greaterburst.force-base",1.25,0,4)+var23*FeatureSettings.number(plugin.getConfig(),"books.greaterburst.force-per-level",.35,0,2),FeatureSettings.number(plugin.getConfig(),"books.greaterburst.lift-base",.65,0,3)+var23*FeatureSettings.number(plugin.getConfig(),"books.greaterburst.lift-per-level",.18,0,1),false);
 
                            BurstVisuals.showBook(plugin,var4);
                            break;
@@ -356,10 +356,10 @@ public final class RelicItems implements Listener {
                            }
                      }
 
-                     if (var20 != var4 && (var3.equals("haste") || var3.equals("invisibility"))) {
-                        String var11 = var3.equals("haste") ? "Haste " + var23 : "Invisibilidad";
-                        var4.sendMessage(Component.text("Has dado " + var11 + " a " + var20.getName() + ".", NamedTextColor.GREEN));
-                        var20.sendMessage(Component.text("Has recibido " + var11 + " de " + var4.getName() + ".", NamedTextColor.AQUA));
+                     if (var20 != var4 && (var3.equals("haste") || var3.equals("invisibility") || var3.equals("fireresistance"))) {
+                        String var11 = var3.equals("haste") ? "Haste " + var23 : var3.equals("fireresistance") ? "Resistencia al fuego" : "Invisibilidad";
+                        var4.sendMessage(Component.text(plugin.getConfig().getString("books.sharing.sender-message","Has dado {effect} a {player}.").replace("{effect}",var11).replace("{player}",var20.getName()), NamedTextColor.GREEN));
+                        var20.sendMessage(Component.text(plugin.getConfig().getString("books.sharing.receiver-message","Has recibido {effect} de {player}.").replace("{effect}",var11).replace("{player}",var4.getName()), NamedTextColor.AQUA));
                      }
 
                      CinematicFX.book(var4, var20, var3);
@@ -713,7 +713,7 @@ public final class RelicItems implements Listener {
    }
 
    public ItemStack fragment(int var1) {
-      return this.named(
+      ItemStack result=this.named(
          Material.DISC_FRAGMENT_5,
          "fragmento_grieta",
          "Fragmento de Tributo",
@@ -722,6 +722,7 @@ public final class RelicItems implements Listener {
          "Energía antigua cristalizada.",
          "Se utiliza en canjes y crafteos de reliquias."
       );
+      var meta=result.getItemMeta();meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ADDITIONAL_TOOLTIP);result.setItemMeta(meta);return result;
    }
 
    public ItemStack tribute(String var1) {

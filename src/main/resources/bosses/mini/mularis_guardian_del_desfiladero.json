@@ -27,15 +27,14 @@
       "waterWalking": true
     },
     "eggParticles": {
+      "radius": 3,
       "points": 48,
       "removeGeneratedPedestal": true,
-      "radii": [
-        1,
-        2,
-        3
-      ],
-      "ringHeight": 0.12,
-      "ringSpacing": 0.16
+      "shape": "SPHERE",
+      "rotationSpeed": 1,
+      "particleSize": 0.65,
+      "primaryColor": "#0C0014",
+      "accentColor": "#AF23F5"
     },
     "axeThrow": {
       "enabled": true,

@@ -9,9 +9,9 @@ final class CombatVisuals {
  static void special(LivingEntity boss,BossCatalog.Tier tier){ring(boss.getLocation(),tier,1.6,24);CosmeticFX.emit(Particle.SOUL_FIRE_FLAME,boss.getLocation().add(0,1,0),14,.6,.7,.6,.025);}
  static void summon(Location point,BossCatalog.Tier tier){ring(point,tier,.8,16);CosmeticFX.emit(Particle.REVERSE_PORTAL,point.clone().add(0,.6,0),18,.35,.5,.35,.03);}
  static void egg(Location point,BossCatalog.Definition boss,double angle){
-  var aura=EggAuraSettings.read(BossTuning.section(boss,"eggParticles"));
-  var black=new Particle.DustOptions(Color.fromRGB(12,0,20),.65f);
-  var purple=new Particle.DustOptions(Color.fromRGB(175,35,245),.65f);
+  var config=BossTuning.section(boss,"eggParticles");var aura=EggAuraSettings.read(config);angle*=BossTuning.number(config,"rotationSpeed",1,.05,5);
+  var black=new Particle.DustOptions(BossTuning.color(config,"primaryColor",Color.fromRGB(12,0,20)),(float)BossTuning.number(config,"particleSize",.65,.1,2));
+  var purple=new Particle.DustOptions(BossTuning.color(config,"accentColor",Color.fromRGB(175,35,245)),(float)BossTuning.number(config,"particleSize",.65,.1,2));
   Location center=point.clone().subtract(0,.65,0);
   for(var dot:aura.dots(angle))CosmeticFX.emit(Particle.DUST,center.clone().add(dot.offset()),1,0,0,0,0,
       (dot.index()+dot.ring())%3==0?black:purple);

@@ -7,8 +7,8 @@ public class EggAuraSettingsTest {
   var config=EggAuraSettings.read(EggAuraSettings.defaults());
   for(double angle:new double[]{0,.18,2.8}) {
    var dots=config.dots(angle);assertEquals(48,dots.size());int[] count=new int[3];
-   for(var dot:dots){count[dot.ring()]++;var p=dot.offset();assertEquals(dot.ring()+1,Math.hypot(p.getX(),p.getZ()),1e-9);}
-   assertArrayEquals(new int[]{8,16,24},count);
+   for(var dot:dots){count[dot.ring()]++;var p=dot.offset();assertEquals(3,Math.sqrt(p.getX()*p.getX()+(p.getY()-.5)*(p.getY()-.5)+p.getZ()*p.getZ()),1e-9);}
+   assertArrayEquals(new int[]{48,0,0},count);
   }
  }
  @Test public void invalidRadiiFallBackTogetherAndOverridesStayBounded(){

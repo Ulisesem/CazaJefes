@@ -3,7 +3,14 @@
   "title": "Forja de la Grieta",
   "accent": "BLUE_STAINED_GLASS_PANE",
   "pageSize": 28,
-  "homeSlots": [20, 22, 24, 29, 31, 33],
+  "homeSlots": [
+    20,
+    22,
+    24,
+    29,
+    31,
+    33
+  ],
   "labels": {
     "ESSENCES": "Esencias",
     "SPELLS": "Libros",
@@ -12,5 +19,11 @@
     "CURRENCIES": "Brújula",
     "ALL": "Todas las recetas",
     "PVP": "Defensas PvP"
-  }
+  },
+  "materialOrder": [
+    "catalysts",
+    "defense",
+    "projectiles",
+    "other"
+  ]
 }

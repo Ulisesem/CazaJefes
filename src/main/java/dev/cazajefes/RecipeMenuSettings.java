@@ -10,8 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /** Player-facing recipe presentation; invalid edits retain the last valid layout. */
 final class RecipeMenuSettings {
- record Layout(String title,Map<String,String> labels,List<Integer> homeSlots,int pageSize,Material accent) {
-  Layout{labels=Map.copyOf(labels);homeSlots=List.copyOf(homeSlots);}
+ record Layout(String title,Map<String,String> labels,List<Integer> homeSlots,int pageSize,Material accent,List<String> materialOrder) {
+  Layout{labels=Map.copyOf(labels);homeSlots=List.copyOf(homeSlots);materialOrder=List.copyOf(materialOrder);}
  }
  private final JavaPlugin plugin;
  private final Path file;
@@ -52,7 +52,9 @@ final class RecipeMenuSettings {
 
  /** Only change previous shipped defaults; administrators keep their custom labels and colors. */
  static boolean upgrade(JsonObject data) {
-  if(data.has("schemaVersion")&&data.get("schemaVersion").getAsInt()>=2)return false;
+  boolean added=false;
+  if(!data.has("materialOrder")){var order=new JsonArray();for(String group:List.of("catalysts","defense","projectiles","other"))order.add(group);data.add("materialOrder",order);added=true;}
+  if(data.has("schemaVersion")&&data.get("schemaVersion").getAsInt()>=2)return added;
   if(data.has("accent")&&"CYAN_STAINED_GLASS_PANE".equals(data.get("accent").getAsString()))
    data.addProperty("accent","BLUE_STAINED_GLASS_PANE");
   if(data.get("labels") instanceof JsonObject labels&&labels.has("CURRENCIES")
@@ -84,6 +86,8 @@ final class RecipeMenuSettings {
   Material accent=data.has("accent")?Material.matchMaterial(data.get("accent").getAsString()):Material.BLUE_STAINED_GLASS_PANE;
   if(accent==null||!accent.name().endsWith("STAINED_GLASS_PANE"))
    throw new IllegalArgumentException("accent debe ser un panel de cristal tintado");
-  return new Layout(title,labels,slots,count,accent);
+  List<String> order=new ArrayList<>(List.of("catalysts","defense","projectiles","other"));
+  if(data.has("materialOrder")){var edited=data.getAsJsonArray("materialOrder").asList().stream().map(e->e.getAsString()).toList();if(edited.size()!=4||!new HashSet<>(edited).equals(new HashSet<>(order)))throw new IllegalArgumentException("materialOrder requiere los cuatro grupos únicos");order=new ArrayList<>(edited);}
+  return new Layout(title,labels,slots,count,accent,order);
  }
 }

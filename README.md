@@ -1,3 +1,7 @@
+# CazaJefes 1.53.0 · testRefactor
+
+[Esferas, Greater Burst y Santuario del Renacer](docs/CAMBIOS-1.53.0.md).
+
 # CazaJefes 1.52.0 · testRefactor
 
 [Anillos de huevos, combate por rareza y recetas de botín](docs/CAMBIOS-1.52.0.md). Paper 1.21.11, Java 21 y PacketEvents.

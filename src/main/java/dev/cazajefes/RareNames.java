@@ -19,7 +19,6 @@ final class RareNames {
  case "veinminer" -> "VeinMiner";
  case "treefeller" -> "TreeFeller";
  case "magneto" -> "Magneto";
- case "burst" -> "Burst";
  case "craftitem" -> "CraftItem";
  case "fireresistance" -> "FireResistance";
  case "greaterburst" -> "GreaterBurst";

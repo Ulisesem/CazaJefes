@@ -349,41 +349,7 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    private void trade(Player player, int page) { ((CazaJefesPlugin)plugin).market.open(player); }
 
    List<CazaJefesCommand.TradeOffer> createTradeOffers() {
-      ArrayList var1 = new ArrayList();
-      var1.add(new CazaJefesCommand.TradeOffer(this.items.essence(), 3, 1, "Esencia de la Grieta"));
-      var1.add(new CazaJefesCommand.TradeOffer(this.items.primordialEssence(), 8, 3, "Esencia Primordial"));
-      var1.add(new CazaJefesCommand.TradeOffer(this.items.abyssalEssence(), 20, 8, "Esencia Abisal"));
-      var1.add(new CazaJefesCommand.TradeOffer(this.items.amulet(), 32, 0, "Amuleto del Coloso"));
-      for (String var10 : this.items.catalogIds().stream().distinct().toList()) {
-         if (this.items.rareBook(var10) != null) {
-            boolean var12 = this.items.spellIds().contains(var10);
-            ItemStack var6 = this.items.rareBook(var10, 1);
-            String var7 = (var12 ? "SpellBook " : "Esencia ") + var10;
-            var1.add(new CazaJefesCommand.TradeOffer(var6, var10.equals("magneto") ? 12 : (var12 ? 5 : 4), var10.equals("magneto") ? 3 : (var12 ? 1 : 2), var7));
-         }
-      }
-
-      for (CazaJefesCommand.GearTierSpec var11 : this.gearTierSpecs()) {
-         BossCatalog.Definition var13 = this.firstBoss(var11.tier());
-         if (var13 != null) {
-            for (int var14 = 0; var14 < 4; var14++) {
-               var1.add(
-                  new CazaJefesCommand.TradeOffer(
-                     this.items.craftedArmor(var13.id(), var14),
-                     var11.fragments(),
-                     var11.tributes(),
-                     "componente_",
-                     var11.cores(),
-                     this.armorSlotName(var14) + " de rango " + var11.display()
-                  )
-               );
-            }
-
-
-         }
-      }
-
-      return var1;
+      return List.of();
    }
 
    private ItemStack tradeDisplay(CazaJefesCommand.TradeOffer var1) {
@@ -959,7 +925,6 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
          case "veinminer" -> "Extrae una veta completa.";
          case "treefeller" -> "Tala el tronco entero.";
          case "magneto" -> "Envía al inventario lo que extraes con un pico.";
-         case "burst" -> "Empuja a un enemigo cercano.";
          case "craftitem" -> "Abre la mesa de crafteo.";
          case "fireresistance" -> "Resistencia al fuego temporal.";
          case "greaterburst" -> "Empuja a varios enemigos.";
