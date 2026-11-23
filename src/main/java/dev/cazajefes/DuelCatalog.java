@@ -9,7 +9,7 @@ final class DuelCatalog {
  new Relic("ocaso","Arco del Ocaso",Material.BOW,"Lente del Ocaso",Material.ECHO_SHARD,Material.ENDER_EYE,"Disparo a 12 m: ceguera 1 s y brillo 3 s",14000,false),
  new Relic("resonancia","Voz de la Tormenta",Material.CROSSBOW,"Resonador de Tormenta",Material.AMETHYST_SHARD,Material.LIGHTNING_ROD,"Disparo: +15 % daño y Lentitud I · 2 s",12000,false),
  new Relic("vigia","Vigía de Ónix",Material.NETHERITE_HELMET,"Ojo de Ónix",Material.ENDER_EYE,Material.OBSIDIAN,"Recibe una flecha: -20 % daño y revela al tirador",12000,true),
- new Relic("quitina","Coraza de Quitina",Material.NETHERITE_CHESTPLATE,"Quitina Resonante",Material.PRISMARINE_SHARD,Material.SPIDER_EYE,"Recibe cuerpo a cuerpo: -20 % daño y Resistencia I · 2 s",14000,true),
+ new Relic("quitina","Coraza de Quitina",Material.NETHERITE_CHESTPLATE,"Quitina Resonante",Material.TURTLE_SCUTE,Material.SPIDER_EYE,"Recibe cuerpo a cuerpo: -20 % daño y Resistencia I · 2 s",14000,true),
  new Relic("cadenas","Grebas Rompecadenas",Material.NETHERITE_LEGGINGS,"Fibra Rompecadenas",Material.PHANTOM_MEMBRANE,Material.COBWEB,"Si recibes daño con lentitud: la limpia y da Velocidad I · 2 s",14000,true),
  new Relic("espectral","Paso Espectral",Material.NETHERITE_BOOTS,"Pluma Espectral",Material.FEATHER,Material.RABBIT_FOOT,"Recibe daño con ≤40 % vida: Velocidad II · 3 s",18000,true));
  static Relic get(String id){return ALL.stream().filter(r->r.id().equals(id)).findFirst().orElse(null);}

@@ -51,7 +51,7 @@ final class MarketMenu implements CommandExecutor,Listener {
    if(page>0)inv.setItem(45,PremiumStyle.tile(Material.ARROW,"ANTERIOR",NamedTextColor.AQUA,false));if(page+1<pages)inv.setItem(53,PremiumStyle.tile(Material.ARROW,"SIGUIENTE",NamedTextColor.AQUA,false));inv.setItem(49,PremiumStyle.tile(Material.NETHER_STAR,"VOLVER A RECETAS",NamedTextColor.GOLD,true));
   }else{
    int[] costs={20,29,38};for(int i=0;i<offer.costs.size();i++){
-    Cost cost=offer.costs.get(i);Material icon=cost.prefix.equals("fragmento_grieta")?Material.DISC_FRAGMENT_5:cost.prefix.equals("sello_coloso")?Material.NETHER_STAR:cost.prefix.startsWith("tributo")?Material.EMERALD:Material.ECHO_SHARD;
+    Cost cost=offer.costs.get(i);Material icon=cost.prefix.equals("fragmento_grieta")?items.fragment(1).getType():cost.prefix.equals("sello_coloso")?Material.NETHER_STAR:cost.prefix.startsWith("tributo")?Material.EMERALD:Material.ECHO_SHARD;
     inv.setItem(costs[i],PremiumStyle.tile(icon,cost.amount+" × "+cost.label,NamedTextColor.AQUA,true,"Se consume al confirmar el canje"));
    }
    inv.setItem(22,PremiumStyle.tile(Material.SPECTRAL_ARROW,"INTERCAMBIO",NamedTextColor.GOLD,true));inv.setItem(24,offer.reward.clone());

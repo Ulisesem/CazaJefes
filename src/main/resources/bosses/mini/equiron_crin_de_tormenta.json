@@ -129,7 +129,11 @@
     "melee": {
       "intervalTicks": 12,
       "warningTicks": 1,
-      "duringMobileSpecials": true
+      "duringMobileSpecials": true,
+      "comboHits": 3,
+      "comboIntervalTicks": 10,
+      "comboWindowTicks": 60,
+      "comboBonus": 0.12
     }
   }
 }

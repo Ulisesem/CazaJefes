@@ -714,7 +714,7 @@ public final class RelicItems implements Listener {
 
    public ItemStack fragment(int var1) {
       ItemStack result=this.named(
-         Material.DISC_FRAGMENT_5,
+         FeatureSettings.itemMaterial(plugin.getConfig(),"items.tribute-fragment-material",Material.PRISMARINE_SHARD),
          "fragmento_grieta",
          "Fragmento de Tributo",
          NamedTextColor.LIGHT_PURPLE,
@@ -1148,6 +1148,7 @@ public final class RelicItems implements Listener {
       else if(id.equals("tributo_grieta"))replacement=tribute("Cazador");
       if(id.startsWith("armadura_"))return refreshAppearance(EquipmentSets.migrateArmor(stack,id,itemKey));
       if(id.startsWith("arma_"))return refreshAppearance(EquipmentSets.migrateWeapon(stack,id,itemKey));
+      if(id.startsWith("pvp_material_")){var spec=DuelCatalog.get(id.substring("pvp_material_".length()));var duel=((CazaJefesPlugin)plugin).duel;if(spec!=null&&duel!=null)replacement=duel.material(spec);}
       if(id.equals("tracking_compass"))replacement=compass();
       if(id.equals("sello_coloso"))replacement=colossusSigil();
       if(id.equals("amuleto_coloso"))replacement=amulet();

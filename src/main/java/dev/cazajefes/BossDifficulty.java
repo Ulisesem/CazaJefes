@@ -39,6 +39,7 @@ record BossDifficulty(double meleeDamageMultiplier,double specialDamageMultiplie
         json.addProperty("intervalTicks",INTERVAL[rank(tier,mini)]);
         json.addProperty("warningTicks",1);
         json.addProperty("duringMobileSpecials",true);
+        json.addProperty("comboHits",3);json.addProperty("comboIntervalTicks",10);json.addProperty("comboWindowTicks",60);json.addProperty("comboBonus",.12);
         return json;
     }
 

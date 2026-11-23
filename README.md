@@ -1,3 +1,7 @@
+# CazaJefes 1.54.0 · testRefactor
+
+[Materiales, forja y combos configurables](docs/CAMBIOS-1.54.0.md).
+
 # CazaJefes 1.53.0 · testRefactor
 
 [Esferas, Greater Burst y Santuario del Renacer](docs/CAMBIOS-1.53.0.md).

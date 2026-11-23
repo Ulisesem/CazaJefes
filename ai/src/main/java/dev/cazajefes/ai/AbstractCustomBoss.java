@@ -25,6 +25,8 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     private BossAttack pending;
     private BossAttack requested;
     private AttackMotion motion;
+    private final MeleeCombo combo=new MeleeCombo();
+    @Override public double meleeMultiplier(){return combo.multiplier(profile.melee());}
     private long releaseAt,gcdUntil,specialUntil,stunnedUntil,meleeUntil,tick;
     private boolean specialMotion;
 
@@ -195,7 +197,10 @@ public abstract class AbstractCustomBoss implements CustomBoss {
 
     private void released(BossAttack attack){
         ready.put(attack.id(),tick+attack.cooldown());
-        if(attack instanceof dev.cazajefes.ai.attack.MeleeSweep)meleeUntil=tick+Math.max(10,attack.cooldown());
+        if(attack instanceof dev.cazajefes.ai.attack.MeleeSweep){
+            if(target()!=null)combo.strike(target().getUniqueId(),tick,profile.melee());
+            meleeUntil=tick+combo.interval(profile.melee());ready.put(attack.id(),meleeUntil);
+        }
     }
 
     /** A released mobile spell does not stop contact attacks. Its warning and cast stay untouched. */
@@ -266,6 +271,7 @@ public abstract class AbstractCustomBoss implements CustomBoss {
     }
 
     @Override public final void stun(int ticks){
+        combo.clear();
         finish();
         stunnedUntil=Math.max(stunnedUntil,tick+Math.max(0,ticks));
         state=BossState.STUNNED;

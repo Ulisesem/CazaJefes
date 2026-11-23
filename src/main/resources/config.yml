@@ -96,3 +96,7 @@ books:
     duration-ticks: 1200
   fireresistance:
     duration-per-level-ticks: 900
+
+items:
+  tribute-fragment-material: PRISMARINE_SHARD
+  resonant-chitin-material: TURTLE_SCUTE

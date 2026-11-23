@@ -133,7 +133,7 @@ final class RaresMenu implements CommandExecutor, Listener {
       .filter(recipe->rank==null||EquipmentSets.tier(items.customId(recipe.getResult()))==rank)
       .filter(recipe->group==null||RareCompatibility.recipeInGroup(recipe.getKey().getKey(),group)).toList();
   if(category==Category.MATERIALS){list=new ArrayList<>(list);list.sort(Comparator.comparingInt((ShapedRecipe recipe)->materialOrder(recipe.getKey().getKey())).thenComparing(recipe->net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(recipe.getResult().effectiveName()),String.CASE_INSENSITIVE_ORDER));}
-  int pageSize=settings.layout().pageSize(),pages=RecipePresentation.pages(list.size(),pageSize);
+  int pageSize=Math.min(settings.layout().pageSize(),category==Category.SPELLS?14:category==Category.MATERIALS?20:28),pages=RecipePresentation.pages(list.size(),pageSize);
   page=Math.max(0,Math.min(page,pages-1));Menu menu=new Menu(category,page,detail);menu.rank=rank;menu.group=group;
   String section=group!=null?group.title:rank!=null?rank.display:category==null?settings.layout().title():settings.label(category);
   Inventory inventory=inventory(menu,detail!=null?"Receta":section);
@@ -151,18 +151,14 @@ final class RaresMenu implements CommandExecutor, Listener {
    inventory.setItem(entry.getKey(),PremiumStyle.tile(category.icon,settings.label(category),NamedTextColor.AQUA,true,
        RecipePresentation.description(category),count+" recetas · Clic para explorar."));
   }
-  inventory.setItem(45,PremiumStyle.tile(Material.BOOK,"Guía de esencias",NamedTextColor.AQUA,false,"Aprende a mejorar tu equipo."));
-  inventory.setItem(47,PremiumStyle.tile(Material.ECHO_SHARD,"Guía de materiales",NamedTextColor.AQUA,false,"Consulta cómo conseguir los materiales."));
-  inventory.setItem(49,PremiumStyle.tile(Material.EMERALD,"Santuario del Renacer",NamedTextColor.GOLD,true,"Sello del Renacido y Amuleto del Fénix."));
-  inventory.setItem(51,PremiumStyle.tile(Material.HEART_OF_THE_SEA,"Corazones de jefe",NamedTextColor.AQUA,false,"Descubre los trofeos más difíciles de conseguir."));
-  inventory.setItem(53,PremiumStyle.tile(Material.NETHERITE_CHESTPLATE,settings.label(Category.PVP),NamedTextColor.AQUA,false,"Cuatro piezas especiales para resistir en PvP."));
+
  }
  private void list(Menu menu,List<ShapedRecipe> recipes,int pageSize,int pages,String section) {
   Inventory inventory=menu.inventory;
   inventory.setItem(4,PremiumStyle.tile(menu.group==null?menu.category.icon:menu.group.icon,section,NamedTextColor.AQUA,true,
       "Página "+(menu.page+1)+" de "+pages+" · "+recipes.size()+" recetas",
       "Pasa el cursor para ver el efecto.","Clic para ver ingredientes y fabricar."));
-  int start=menu.page*pageSize,count=Math.min(pageSize,recipes.size()-start);int[] slots=RareMenuStyle.slots(count);
+  int start=menu.page*pageSize,count=Math.min(pageSize,recipes.size()-start);int[] slots=menu.category==Category.SPELLS?RareMenuStyle.bookSlots(count):menu.category==Category.MATERIALS?RareMenuStyle.materialSlots(count):RareMenuStyle.slots(count);
   for(int i=0;i<count;i++) {
    ShapedRecipe recipe=recipes.get(start+i);inventory.setItem(slots[i],items.refreshAppearance(recipe.getResult().clone()));
    menu.recipes.put(slots[i],recipe);
@@ -210,13 +206,7 @@ final class RaresMenu implements CommandExecutor, Listener {
   MenuActions.dispatch(plugin,player,menu,menu.gate,()->activate(player,menu,slot));
  }
  private void activate(Player player,Menu menu,int slot) {
-  if(menu.category==null) {
-   if(slot==45)help(player);else if(slot==47)plugin.trophies.open(player,true,0);
-   else if(slot==49)plugin.market.open(player);else if(slot==51)plugin.trophies.open(player,false,0);
-   else if(slot==53)open(player,Category.PVP,0,null);
-   else if(menu.categories.containsKey(slot))select(player,menu.categories.get(slot));
-   return;
-  }
+  if(menu.category==null){if(menu.categories.containsKey(slot))select(player,menu.categories.get(slot));return;}
   if(slot==RecipePresentation.LIST_BACK) {
    switch(RecipePresentation.parent(menu.detail!=null,menu.groups,menu.ranks,menu.rank,menu.group)) {
     case ROOT -> open(player,null,0,null);

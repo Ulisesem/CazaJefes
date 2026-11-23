@@ -94,6 +94,8 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
             case "tribute":
                this.giveMaterial(var1, var4, "tribute");
                break;
+            case "materiales":
+               new MaterialsCommand(items).onCommand(var1,var2,"ri materiales",java.util.Arrays.copyOfRange(var4,1,var4.length));break;
             case "equipo":
                new EquipmentCommand(items).onCommand(var1,var2,"ri equipo",java.util.Arrays.copyOfRange(var4,1,var4.length));break;
             case "armor":
@@ -163,11 +165,12 @@ public final class CazaJefesCommand implements CommandExecutor, TabCompleter, Li
    }
 
    public List<String> onTabComplete(CommandSender sender,Command command,String label,String[] args){
+      if(args.length>=2&&args[0].equalsIgnoreCase("materiales"))return new MaterialsCommand(items).onTabComplete(sender,command,"ri materiales",java.util.Arrays.copyOfRange(args,1,args.length));
       if(args.length==0)return List.of();if(AdminArguments.root(args[0]).equals("equipo")&&args.length>=2)return new EquipmentCommand(items).onTabComplete(sender,command,"ri equipo",java.util.Arrays.copyOfRange(args,1,args.length));List<String> out=new ArrayList<>();String root=AdminArguments.root(args[0]);
       if(args.length==1){
          out.add("provocar");out.addAll(List.of("help","estadisticas","ranking","particulas","bestiario","bosses","recetas","canjear","catalogo","compass","rares","enchants"));
          for(String action:List.of("spawnpoint","egg","boss","reload"))if(isAdmin(sender,"rareitemhunter.admin."+action))out.add(action);
-         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon","equipo"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.addAll(List.of("diagnostico","rares-debug"));
+         if(isAdmin(sender,"rareitemhunter.admin.egg"))out.add("eggs");if(isAdmin(sender,"rareitemhunter.admin.essence"))out.addAll(List.of("get","give","rare","book","essence","fragment","tribute","armor","weapon","equipo","materiales"));if(isAdmin(sender,"rareitemhunter.admin.diagnostico"))out.addAll(List.of("diagnostico","rares-debug"));
       }else if(root.equals("particulas")){if(args.length==2)out.addAll(List.of("baja","media","alta","off"));}
       else if(root.equals("spawnpoint")&&isAdmin(sender,"rareitemhunter.admin.spawnpoint")){
          if(args.length==2)out.addAll(List.of("list","timer","off","delete"));

@@ -11,6 +11,7 @@ public interface CustomBoss {
     Player target();
     BossEnvironment environment();
     default Location origin() { return body().getEyeLocation(); }
+    default double meleeMultiplier(){return 1;}
     void tick(long tick);
     void stun(int ticks);
     default boolean canStartSpecial(){return true;}

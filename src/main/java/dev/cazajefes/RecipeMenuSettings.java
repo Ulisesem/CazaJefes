@@ -52,16 +52,19 @@ final class RecipeMenuSettings {
 
  /** Only change previous shipped defaults; administrators keep their custom labels and colors. */
  static boolean upgrade(JsonObject data) {
+  int version=data.has("schemaVersion")?data.get("schemaVersion").getAsInt():0;
   boolean added=false;
+  if(version<3&&data.has("homeSlots")&&data.get("homeSlots").toString().equals("[20,22,24,29,31,33]")){var slots=new JsonArray();for(int slot:RecipePresentation.CATEGORIES)slots.add(slot);data.add("homeSlots",slots);added=true;}
   if(!data.has("materialOrder")){var order=new JsonArray();for(String group:List.of("catalysts","defense","projectiles","other"))order.add(group);data.add("materialOrder",order);added=true;}
-  if(data.has("schemaVersion")&&data.get("schemaVersion").getAsInt()>=2)return added;
+  if(version>=3)return added;
+  if(version>=2){data.addProperty("schemaVersion",3);return true;}
   if(data.has("accent")&&"CYAN_STAINED_GLASS_PANE".equals(data.get("accent").getAsString()))
    data.addProperty("accent","BLUE_STAINED_GLASS_PANE");
   if(data.get("labels") instanceof JsonObject labels&&labels.has("CURRENCIES")
       &&"Tributos".equals(labels.get("CURRENCIES").getAsString()))labels.addProperty("CURRENCIES","Brújula");
   if(data.get("labels") instanceof JsonObject labels&&labels.has("PVP")
       &&"Reliquias PvP".equals(labels.get("PVP").getAsString()))labels.addProperty("PVP","Defensas PvP");
-  data.addProperty("schemaVersion",2);
+  data.addProperty("schemaVersion",3);
   return true;
  }
  static Layout read(JsonObject source) {

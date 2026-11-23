@@ -7,8 +7,8 @@ import org.bukkit.inventory.ItemStack;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 final class RecipePresentation {
- static final int LIST_BACK=50,ARMOR_LIST_SEAL=51;
- static final int[] CATEGORIES={20,22,24,29,31,33};
+ static final int LIST_BACK=49,ARMOR_LIST_SEAL=51;
+ static final int[] CATEGORIES={19,22,25,28,31,34};
  static final List<RaresMenu.Category> HOME=List.of(RaresMenu.Category.ESSENCES,RaresMenu.Category.SPELLS,
      RaresMenu.Category.CRYSTALS,RaresMenu.Category.MATERIALS,RaresMenu.Category.CURRENCIES,RaresMenu.Category.ALL);
  enum Parent {ROOT,GROUPS,RANKS,LIST}
